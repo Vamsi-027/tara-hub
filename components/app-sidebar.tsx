@@ -1,91 +1,79 @@
 "use client"
 
-import { Calendar, BarChart3, FileText, Compass, Package, Home } from "lucide-react"
+import * as React from "react"
+import { BarChart3, Calendar, FileText, Home, Package, Palette, Target } from 'lucide-react'
 
+import { NavMain } from "@/components/nav-main"
+import { NavUser } from "@/components/nav-user"
+import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
   SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
 
-const items = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: BarChart3,
+const data = {
+  user: {
+    name: "Sarah Johnson",
+    email: "sarah@hearthstore.com",
+    avatar: "/placeholder-user.jpg",
   },
-  {
-    title: "Calendar",
-    url: "/calendar",
-    icon: Calendar,
-  },
-  {
-    title: "Posts",
-    url: "/posts",
-    icon: FileText,
-  },
-  {
-    title: "Strategy",
-    url: "/strategy",
-    icon: Compass,
-  },
-  {
-    title: "Products & Promos",
-    url: "/products",
-    icon: Package,
-  },
-]
+  teams: [
+    {
+      name: "Hearth & Home Store",
+      logo: Home,
+      plan: "August 2025 Plan",
+    },
+  ],
+  navMain: [
+    {
+      title: "Dashboard",
+      url: "/",
+      icon: BarChart3,
+    },
+    {
+      title: "Calendar",
+      url: "/calendar",
+      icon: Calendar,
+    },
+    {
+      title: "Posts",
+      url: "/posts",
+      icon: FileText,
+    },
+    {
+      title: "Strategy",
+      url: "/strategy",
+      icon: Target,
+    },
+    {
+      title: "Products & Promos",
+      url: "/products",
+      icon: Package,
+    },
+    {
+      title: "Fabrics",
+      url: "/fabrics",
+      icon: Palette,
+    },
+  ],
+}
 
-export function AppSidebar() {
-  const pathname = usePathname()
-
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-4 py-2">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-amber-700 text-sidebar-primary-foreground">
-            <Home className="size-4" />
-          </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">Hearth & Home</span>
-            <span className="truncate text-xs">August 2025 Plan</span>
-          </div>
-        </div>
+        <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <div className="p-4 text-xs text-sidebar-foreground/70">
-          <p>© 2025 Hearth & Home Store</p>
-          <p>Social Media Dashboard v1.0</p>
-        </div>
+        <NavUser user={data.user} />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }
