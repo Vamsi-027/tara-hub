@@ -27,7 +27,7 @@ Tara Hub is a modern fabric marketplace platform built with Next.js 15, featurin
 
 ## 📦 Quick Start
 
-```bash
+\`\`\`bash
 # Clone repository
 git clone https://github.com/varaku1012/tara-hub.git
 cd tara-hub
@@ -41,11 +41,11 @@ cp .env.example .env.local
 
 # Run development server
 npm run dev
-```
+\`\`\`
 
 ## 🔧 Environment Variables
 
-```env
+\`\`\`env
 # Required
 NEXTAUTH_URL=https://your-domain.vercel.app
 NEXTAUTH_SECRET=your-generated-secret
@@ -53,7 +53,7 @@ NEXTAUTH_SECRET=your-generated-secret
 # Optional (for admin features)
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
+\`\`\`
 
 ## 🚀 Deployment
 
