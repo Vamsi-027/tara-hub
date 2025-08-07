@@ -1,30 +1,64 @@
-# Interactive Social Media Plan
+# Tara Hub - Premium Fabric Marketplace
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://tara-hub.vercel.app)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/rajesh-vankayalapatis-projects/v0-interactive-social-media-plan)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/tAk6nnYnQj3)
+## 🚀 Overview
 
-## Overview
+Tara Hub is a modern fabric marketplace platform built with Next.js 15, featuring a comprehensive catalog of premium fabrics for designers, manufacturers, and textile enthusiasts.
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## ✨ Features
 
-## Deployment
+- **Extensive Fabric Catalog**: Browse through premium fabrics with detailed specifications
+- **Advanced Filtering**: Search by category, color, composition, and availability
+- **Responsive Design**: Optimized for all devices
+- **Fast Performance**: Static generation for instant page loads
+- **Admin Dashboard**: Manage inventory and content
+- **Secure Authentication**: NextAuth.js integration
 
-Your project is live at:
+## 🛠️ Tech Stack
 
-**[https://vercel.com/rajesh-vankayalapatis-projects/v0-interactive-social-media-plan](https://vercel.com/rajesh-vankayalapatis-projects/v0-interactive-social-media-plan)**
+- **Framework**: Next.js 15 (App Router)
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI + Shadcn/ui
+- **Authentication**: NextAuth.js
+- **Database**: Vercel KV (with fallback)
+- **Deployment**: Vercel
 
-## Build your app
+## 📦 Quick Start
 
-Continue building your app on:
+```bash
+# Clone repository
+git clone https://github.com/varaku1012/tara-hub.git
+cd tara-hub
 
-**[https://v0.dev/chat/projects/tAk6nnYnQj3](https://v0.dev/chat/projects/tAk6nnYnQj3)**
+# Install dependencies
+npm install
 
-## How It Works
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your values
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+# Run development server
+npm run dev
+```
+
+## 🔧 Environment Variables
+
+```env
+# Required
+NEXTAUTH_URL=https://your-domain.vercel.app
+NEXTAUTH_SECRET=your-generated-secret
+
+# Optional (for admin features)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+## 🚀 Deployment
+
+This project auto-deploys to Vercel on every push to `main` branch.
+
+---
+
+**Status**: ✅ Production Ready | **Last Updated**: December 2024
