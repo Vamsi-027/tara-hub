@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { fabricSeedData } from '@/lib/fabric-seed-data'
+import type { Fabric } from '@/lib/fabric-seed-data'
 
 export function FeaturedFabrics() {
   // Get first 6 fabrics as featured
-  const featuredFabrics = fabricSeedData.slice(0, 6)
+  const featuredFabrics: Fabric[] = fabricSeedData.slice(0, 6)
 
   return (
     <section className="py-16 bg-white">
@@ -49,12 +50,16 @@ export function FeaturedFabrics() {
                 </p>
                 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  <Badge variant="outline" className="text-xs">
-                    {fabric.category}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {fabric.composition.split(',')[0]}
-                  </Badge>
+                  {fabric.category && (
+                    <Badge variant="outline" className="text-xs">
+                      {fabric.category}
+                    </Badge>
+                  )}
+                  {fabric.composition && (
+                    <Badge variant="outline" className="text-xs">
+                      {fabric.composition.split(',')[0]}
+                    </Badge>
+                  )}
                 </div>
 
                 <Link href={`/fabric/${fabric.id}`}>
