@@ -1,13 +1,16 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Check, X, Mail, Phone } from 'lucide-react'
-import Link from "next/link"
-import Image from "next/image"
+import { Separator } from "@/components/ui/separator"
+import { ArrowLeft, Download, Share2, Heart } from 'lucide-react'
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 import type { Fabric } from "@/lib/fabric-seed-data"
 
 interface FabricDetailPageProps {
@@ -16,28 +19,28 @@ interface FabricDetailPageProps {
 
 export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
   const [selectedImage, setSelectedImage] = useState(0)
-  
-  const images = fabric.images?.filter(Boolean) || [fabric.swatchImageUrl || "/placeholder.jpg"]
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Button */}
-        <div className="mb-6">
-          <Link href="/fabrics">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Fabrics
-            </Button>
+        {/* Breadcrumb */}
+        <div className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
+          <Link href="/fabrics" className="hover:text-gray-900 flex items-center">
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Fabrics
           </Link>
+          <span>/</span>
+          <span className="text-gray-900">{fabric.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Image Gallery */}
           <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-sm">
+            <div className="aspect-square overflow-hidden rounded-lg bg-white">
               <Image
-                src={images[selectedImage] || "/placeholder.svg"}
+                src={fabric.detailImages[selectedImage] || fabric.swatchImageUrl}
                 alt={fabric.name}
                 width={600}
                 height={600}
@@ -45,66 +48,52 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
               />
             </div>
             
-            {images.length > 1 && (
-              <div className="flex space-x-2 overflow-x-auto">
-                {images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                      selectedImage === index ? 'border-amber-500' : 'border-gray-200'
-                    }`}
-                  >
-                    <Image
-                      src={image || "/placeholder.svg"}
-                      alt={`${fabric.name} view ${index + 1}`}
-                      width={80}
-                      height={80}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Thumbnail Gallery */}
+            <div className="grid grid-cols-4 gap-2">
+              {fabric.detailImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`aspect-square overflow-hidden rounded-md border-2 ${
+                    selectedImage === index ? 'border-gray-900' : 'border-gray-200'
+                  }`}
+                >
+                  <Image
+                    src={image || "/placeholder.svg"}
+                    alt={`${fabric.name} view ${index + 1}`}
+                    width={150}
+                    height={150}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Product Details */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{fabric.name}</h1>
-              <p className="text-lg text-gray-600 mb-4">{fabric.description}</p>
-              
-              <div className="flex flex-wrap gap-2 mb-4">
-                <Badge variant="secondary">{fabric.category}</Badge>
-                <Badge variant="secondary">{fabric.color}</Badge>
-                <Badge variant="secondary">{fabric.pattern}</Badge>
-                {fabric.inStock ? (
-                  <Badge variant="default" className="bg-green-100 text-green-800">
-                    <Check className="w-3 h-3 mr-1" />
-                    In Stock
-                  </Badge>
-                ) : (
-                  <Badge variant="destructive">
-                    <X className="w-3 h-3 mr-1" />
-                    Out of Stock
-                  </Badge>
-                )}
+              <div className="flex items-start justify-between mb-2">
+                <h1 className="text-3xl font-bold text-gray-900">{fabric.name}</h1>
+                <div className="flex space-x-2">
+                  <Button variant="ghost" size="icon">
+                    <Heart className="w-5 h-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <Share2 className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
-            </div>
+              
+              <div className="flex items-center space-x-2 mb-4">
+                <Badge variant={fabric.inStock ? "default" : "secondary"}>
+                  {fabric.inStock ? "In Stock" : "Made to Order"}
+                </Badge>
+                <Badge variant="outline">{fabric.category}</Badge>
+                <Badge variant="outline">{fabric.color}</Badge>
+              </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <Button className="w-full" size="lg">
-                <Mail className="w-4 h-4 mr-2" />
-                Request Information
-              </Button>
-              <Button variant="outline" className="w-full" size="lg">
-                Request Sample
-              </Button>
-              <Button variant="ghost" className="w-full" size="lg">
-                <Phone className="w-4 h-4 mr-2" />
-                Schedule Consultation
-              </Button>
+              <p className="text-lg text-gray-600 mb-6">{fabric.description}</p>
             </div>
 
             {/* Quick Specs */}
@@ -112,29 +101,61 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
               <CardHeader>
                 <CardTitle className="text-lg">Quick Specifications</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Composition:</span>
-                  <span className="font-medium">{fabric.composition}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Width:</span>
-                  <span className="font-medium">{fabric.width}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Weight:</span>
-                  <span className="font-medium">{fabric.weight}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Origin:</span>
-                  <span className="font-medium">{fabric.origin}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Lead Time:</span>
-                  <span className="font-medium">{fabric.leadTime}</span>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Composition:</span>
+                    <p className="font-medium">{fabric.composition}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Width:</span>
+                    <p className="font-medium">{fabric.width}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Weight:</span>
+                    <p className="font-medium">{fabric.weight}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Origin:</span>
+                    <p className="font-medium">{fabric.origin}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <Button className="w-full" size="lg">
+                Request Sample
+              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="flex items-center">
+                  <Download className="w-4 h-4 mr-2" />
+                  Spec Sheet
+                </Button>
+                <Button variant="outline">
+                  Get Quote
+                </Button>
+              </div>
+            </div>
+
+            {/* Designer Info */}
+            {fabric.designer && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm">
+                    <span className="text-gray-500">Designer:</span>
+                    <p className="font-medium">{fabric.designer}</p>
+                    {fabric.collection && (
+                      <>
+                        <span className="text-gray-500">Collection:</span>
+                        <p className="font-medium">{fabric.collection}</p>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 
@@ -143,9 +164,9 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
           <Tabs defaultValue="specifications" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="specifications">Specifications</TabsTrigger>
-              <TabsTrigger value="performance">Performance</TabsTrigger>
               <TabsTrigger value="applications">Applications</TabsTrigger>
               <TabsTrigger value="care">Care Instructions</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
             </TabsList>
             
             <TabsContent value="specifications" className="mt-6">
@@ -169,85 +190,39 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
                             <span>{fabric.weight}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Texture:</span>
-                            <span>{fabric.texture}</span>
+                            <span className="text-gray-600">Durability:</span>
+                            <span>{fabric.durability}</span>
                           </div>
+                          {fabric.patternRepeat && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Pattern Repeat:</span>
+                              <span>{fabric.patternRepeat}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
                     
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Design Details</h4>
+                        <h4 className="font-semibold text-gray-900 mb-2">Origin & Design</h4>
                         <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Color:</span>
-                            <span>{fabric.color}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Pattern:</span>
-                            <span>{fabric.pattern}</span>
-                          </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Origin:</span>
                             <span>{fabric.origin}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Category:</span>
-                            <span>{fabric.category}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="performance" className="mt-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Durability</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Durability Rating:</span>
-                            <span>{fabric.durability}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Light Fastness:</span>
-                            <span>{fabric.lightFastness}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Abrasion Resistance:</span>
-                            <span>{fabric.abrasionResistance}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Special Properties</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Flame Retardant:</span>
-                            <span>{fabric.flameRetardant ? 'Yes' : 'No'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Antimicrobial:</span>
-                            <span>{fabric.antimicrobial ? 'Yes' : 'No'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Stain Resistant:</span>
-                            <span>{fabric.stainResistant ? 'Yes' : 'No'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Water Repellent:</span>
-                            <span>{fabric.waterRepellent ? 'Yes' : 'No'}</span>
-                          </div>
+                          {fabric.designer && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Designer:</span>
+                              <span>{fabric.designer}</span>
+                            </div>
+                          )}
+                          {fabric.collection && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Collection:</span>
+                              <span>{fabric.collection}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -259,34 +234,29 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
             <TabsContent value="applications" className="mt-6">
               <Card>
                 <CardContent className="pt-6">
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Recommended Applications</h4>
-                      <div className="flex flex-wrap gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-3">Recommended Applications</h4>
+                      <ul className="space-y-2">
                         {fabric.applications.map((application, index) => (
-                          <Badge key={index} variant="outline">{application}</Badge>
+                          <li key={index} className="flex items-center text-sm">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
+                            {application}
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
                     
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Ordering Information</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Minimum Order:</span>
-                          <span>{fabric.minimumOrder}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Lead Time:</span>
-                          <span>{fabric.leadTime}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Stock Status:</span>
-                          <span className={fabric.inStock ? 'text-green-600' : 'text-red-600'}>
-                            {fabric.inStock ? 'In Stock' : 'Made to Order'}
-                          </span>
-                        </div>
-                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Key Features</h4>
+                      <ul className="space-y-2">
+                        {fabric.features.map((feature, index) => (
+                          <li key={index} className="flex items-center text-sm">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 </CardContent>
@@ -299,17 +269,70 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
                   <div className="space-y-4">
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2">Care Instructions</h4>
-                      <p className="text-gray-700">{fabric.care}</p>
+                      <p className="text-sm text-gray-600 mb-4">{fabric.careInstructions}</p>
                     </div>
                     
+                    <Separator />
+                    
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Professional Recommendations</h4>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                        <li>Always test cleaning methods on an inconspicuous area first</li>
-                        <li>Avoid direct sunlight to prevent fading</li>
-                        <li>Rotate cushions regularly for even wear</li>
-                        <li>Professional cleaning recommended for best results</li>
+                      <h4 className="font-semibold text-gray-900 mb-2">General Care Tips</h4>
+                      <ul className="space-y-2 text-sm text-gray-600">
+                        <li>• Vacuum regularly with upholstery attachment</li>
+                        <li>• Rotate cushions periodically for even wear</li>
+                        <li>• Keep away from direct sunlight to prevent fading</li>
+                        <li>• Address spills immediately with clean, dry cloth</li>
+                        <li>• Professional cleaning recommended for best results</li>
                       </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="performance" className="mt-6">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-900 mb-3">Performance Ratings</h4>
+                      <div className="space-y-3">
+                        {fabric.abrasionRating && (
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-600">Abrasion Resistance:</span>
+                              <span className="font-medium">{fabric.abrasionRating}</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {fabric.lightFastness && (
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-600">Light Fastness:</span>
+                              <span className="font-medium">{fabric.lightFastness}</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {fabric.pillResistance && (
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-600">Pill Resistance:</span>
+                              <span className="font-medium">{fabric.pillResistance}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-900 mb-3">Safety Standards</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Flammability:</span>
+                          <span className="font-medium">{fabric.flammabilityRating}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -318,6 +341,8 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
           </Tabs>
         </div>
       </div>
+
+      <Footer />
     </div>
   )
 }

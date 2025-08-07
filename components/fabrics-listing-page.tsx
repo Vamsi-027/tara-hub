@@ -10,6 +10,8 @@ import { fabricSeedData } from "@/lib/fabric-seed-data"
 import { Search, Filter } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 
 export function FabricsListingPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -38,6 +40,8 @@ export function FabricsListingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -177,6 +181,8 @@ export function FabricsListingPage() {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   )
 }

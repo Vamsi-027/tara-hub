@@ -1,7 +1,5 @@
 import { fabricSeedData } from "@/lib/fabric-seed-data"
 import { FabricDetailPage } from "@/components/fabric-detail-page"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
 import { notFound } from "next/navigation"
 
 interface FabricPageProps {
@@ -17,11 +15,11 @@ export default function FabricPage({ params }: FabricPageProps) {
     notFound()
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <FabricDetailPage fabric={fabric} />
-      <Footer />
-    </div>
-  )
+  return <FabricDetailPage fabric={fabric} />
+}
+
+export async function generateStaticParams() {
+  return fabricSeedData.map((fabric) => ({
+    id: fabric.id,
+  }))
 }
