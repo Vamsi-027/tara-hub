@@ -1,28 +1,27 @@
 import Image from 'next/image'
-import { Card, CardContent } from '@/components/ui/card'
-import { Award, Globe, Users, Palette } from 'lucide-react'
+import { ShieldCheck, Wrench, Users, CalendarClock } from 'lucide-react'
 
 export function AboutSection() {
   const features = [
     {
-      icon: Award,
-      title: "Premium Quality",
-      description: "Sourced from the world's finest mills and manufacturers"
+      icon: ShieldCheck,
+      title: "Quality Products",
+      description: "We carry the most trusted brands in the industry."
     },
     {
-      icon: Globe,
-      title: "Global Sourcing",
-      description: "Fabrics from Europe, Asia, and the Americas"
+      icon: Wrench,
+      title: "Expert Installation",
+      description: "Our certified technicians ensure a safe and perfect setup."
     },
     {
       icon: Users,
-      title: "Trade Program",
-      description: "Special pricing and services for design professionals"
+      title: "Family-Owned",
+      description: "Proudly serving our community with a personal touch."
     },
     {
-      icon: Palette,
-      title: "Custom Solutions",
-      description: "Bespoke fabric solutions for unique projects"
+      icon: CalendarClock,
+      title: "40+ Years of Experience",
+      description: "Decades of expertise in home heating solutions."
     }
   ]
 
@@ -32,17 +31,13 @@ export function AboutSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Crafting Beautiful Interiors Since 1985
+              Your Home for Warmth & Comfort for Over 40 Years
             </h2>
             <p className="text-lg text-gray-600 mb-6">
-              For nearly four decades, Hearth & Home Fabrics has been the trusted partner 
-              for interior designers, architects, and homeowners seeking exceptional textiles. 
-              Our curated collection represents the finest in global fabric manufacturing.
+              The Hearth and Home Store is a family-owned and operated business dedicated to bringing warmth, comfort, and style to your home. For decades, we've been the trusted local source for high-quality fireplaces, stoves, and inserts.
             </p>
             <p className="text-lg text-gray-600 mb-8">
-              From luxurious silks and velvets to performance fabrics and outdoor textiles, 
-              we offer an unparalleled selection that meets the demands of both residential 
-              and commercial projects.
+              Our commitment is to provide you with superior products, expert installation, and unmatched customer service. Whether you're building a new home or upgrading your current space, our knowledgeable team is here to help you find the perfect solution.
             </p>
             
             <div className="grid grid-cols-2 gap-6">
@@ -60,12 +55,12 @@ export function AboutSection() {
             </div>
           </div>
           
-          <div className="relative">
+          <div className="relative h-80 lg:h-full">
             <Image
-              src="/fabric-warehouse.png"
-              alt="Fabric warehouse and showroom"
-              width={600}
-              height={400}
+              src="/cozy-fireplace.png"
+              alt="A cozy living room with a modern fireplace"
+              fill
+              style={{objectFit: 'cover'}}
               className="rounded-lg shadow-lg"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg"></div>

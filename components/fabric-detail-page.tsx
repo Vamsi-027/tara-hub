@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Download, Share2, Heart } from 'lucide-react'
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import type { Fabric } from "@/lib/fabric-seed-data"
+import type { Fabric } from "@/lib/types"
 
 interface FabricDetailPageProps {
   fabric: Fabric
@@ -125,18 +125,10 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button className="w-full" size="lg">
-                Request Sample
+              <Button variant="outline" className="w-full flex items-center" size="lg">
+                <Download className="w-4 h-4 mr-2" />
+                Spec Sheet
               </Button>
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="flex items-center">
-                  <Download className="w-4 h-4 mr-2" />
-                  Spec Sheet
-                </Button>
-                <Button variant="outline">
-                  Get Quote
-                </Button>
-              </div>
             </div>
 
             {/* Designer Info */}

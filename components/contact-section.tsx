@@ -19,6 +19,7 @@ export function ContactSection() {
     e.preventDefault()
     // Handle form submission here
     console.log('Form submitted:', formData)
+    alert('Thank you for your message! We will get back to you shortly.')
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -36,8 +37,8 @@ export function ContactSection() {
             Get in Touch
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Ready to start your next project? Contact our team for samples, quotes, 
-            or design consultation.
+            Have a question or need a quote? Our team is ready to help. 
+            Visit our showroom or send us a message below.
           </p>
         </div>
 
@@ -52,8 +53,7 @@ export function ContactSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">info@hearthhomefabrics.com</p>
-                <p className="text-gray-600">samples@hearthhomefabrics.com</p>
+                <a href="mailto:info@thehearthandhomestore.com" className="text-gray-600 hover:text-amber-700">info@thehearthandhomestore.com</a>
               </CardContent>
             </Card>
 
@@ -65,8 +65,7 @@ export function ContactSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">(555) 123-4567</p>
-                <p className="text-gray-600">Toll Free: (800) 123-4567</p>
+                <a href="tel:7319684328" className="text-gray-600 hover:text-amber-700">(731) 968-4328</a>
               </CardContent>
             </Card>
 
@@ -78,8 +77,8 @@ export function ContactSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">123 Design District</p>
-                <p className="text-gray-600">New York, NY 10001</p>
+                <p className="text-gray-600">554 W. Church St.</p>
+                <p className="text-gray-600">Lexington, TN 38351</p>
               </CardContent>
             </Card>
 
@@ -91,9 +90,9 @@ export function ContactSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">Monday - Friday: 9AM - 6PM</p>
-                <p className="text-gray-600">Saturday: 10AM - 4PM</p>
-                <p className="text-gray-600">Sunday: By Appointment</p>
+                <p className="text-gray-600">Mon - Fri: 8AM - 5PM</p>
+                <p className="text-gray-600">Saturday: 8AM - 12PM</p>
+                <p className="text-gray-600">Sunday: Closed</p>
               </CardContent>
             </Card>
           </div>
@@ -138,16 +137,15 @@ export function ContactSection() {
                   </div>
                   
                   <div>
-                    <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
-                      Company/Studio
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone
                     </label>
                     <Input
-                      id="company"
-                      name="company"
-                      type="text"
-                      value={formData.company}
+                      id="phone"
+                      name="phone"
+                      type="tel"
                       onChange={handleChange}
-                      placeholder="Your company or design studio"
+                      placeholder="Your phone number"
                     />
                   </div>
                   
@@ -162,7 +160,7 @@ export function ContactSection() {
                       rows={6}
                       value={formData.message}
                       onChange={handleChange}
-                      placeholder="Tell us about your project, sample requests, or any questions you have..."
+                      placeholder="Tell us about your project or any questions you have..."
                     />
                   </div>
                   
