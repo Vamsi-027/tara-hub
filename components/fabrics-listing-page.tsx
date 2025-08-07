@@ -11,17 +11,14 @@ import { Search, Filter } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
 import { Header } from "@/components/header"
-import { useRouter, usePathname, ReadonlyURLSearchParams } from "next/navigation"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { Footer } from "@/components/footer"
 import { FabricCard } from "@/components/fabric-card" // Import FabricCard
 
-interface FabricsListingPageProps {
-  searchParams: ReadonlyURLSearchParams
-}
-
-export function FabricsListingPage({ searchParams }: FabricsListingPageProps) {
+export function FabricsListingPage() {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "")
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "all")
@@ -73,7 +70,6 @@ export function FabricsListingPage({ searchParams }: FabricsListingPageProps) {
 
     // Use replace instead of push to avoid adding to browser history for filter changes
     router.push(`${pathname}?${params.toString()}`)
-    })
   }, [searchTerm, categoryFilter, colorFilter, stockFilter])
 
   return (

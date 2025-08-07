@@ -33,10 +33,6 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-  },  
-    async jwt({ token, user }) {
-      return token
-    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 }

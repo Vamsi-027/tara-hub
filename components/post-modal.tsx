@@ -135,4 +135,57 @@ export function PostModal({ post, mode, isOpen, onClose, onSave, onDelete }: Pos
             <Textarea
               id="idea"
               value={formData.idea || ""}
-              \
+              onChange={(e) => setFormData({ ...formData, idea: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="goal">Goal</Label>
+            <Textarea
+              id="goal"
+              value={formData.goal || ""}
+              onChange={(e) => setFormData({ ...formData, goal: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="copy">Copy</Label>
+            <Textarea
+              id="copy"
+              value={formData.copy || ""}
+              onChange={(e) => setFormData({ ...formData, copy: e.target.value })}
+              rows={4}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="hashtags">Hashtags</Label>
+            <Textarea
+              id="hashtags"
+              value={formData.hashtags || ""}
+              onChange={(e) => setFormData({ ...formData, hashtags: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes || ""}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              {mode === "create" ? "Create Post" : "Save Changes"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

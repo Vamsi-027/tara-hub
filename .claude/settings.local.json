@@ -9,7 +9,8 @@
       "Bash(npm install)",
       "mcp__ide__getDiagnostics",
       "Bash(npm install:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }
