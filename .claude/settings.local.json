@@ -10,7 +10,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(npm install:*)",
       "Bash(vercel:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(openssl rand:*)"
     ],
     "deny": []
   }
