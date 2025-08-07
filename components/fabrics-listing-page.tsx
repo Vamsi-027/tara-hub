@@ -73,7 +73,8 @@ export function FabricsListingPage({ searchParams }: FabricsListingPageProps) {
 
     // Use replace instead of push to avoid adding to browser history for filter changes
     router.push(`${pathname}?${params.toString()}`)
-  }, [searchTerm, categoryFilter, colorFilter, stockFilter, pathname, router, searchParams])
+    })
+  }, [searchTerm, categoryFilter, colorFilter, stockFilter])
 
   return (
     <div className="min-h-screen bg-gray-50">
