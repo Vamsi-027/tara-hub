@@ -5,7 +5,21 @@ import {
   type Strategy,
   type Fabric,
 } from './types'
-import { randomUUID } from 'crypto'
+
+// Browser-compatible UUID generation
+function generateUUID(): string {
+  // Use crypto.randomUUID if available (modern browsers and Node.js 16.7+)
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  
+  // Fallback for older environments
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 
 // Re-export kv for use in other modules
 export { kv }
@@ -127,7 +141,7 @@ const initializeFallbackData = () => {
 // --- Post Functions ---
 
 export async function createPost(postData: Omit<Post, 'id'>): Promise<Post> {
-  const id = randomUUID()
+  const id = generateUUID()
   const post: Post = { id, ...postData }
   await kv.hset(`post:${id}`, post)
   await kv.zadd('posts_by_date', { score: Date.now(), member: id })
@@ -167,7 +181,7 @@ async function createItem<T>(
   itemData: Omit<T, 'id'>,
   keyPrefix: string
 ): Promise<T> {
-  const id = randomUUID()
+  const id = generateUUID()
   const item = { id, ...itemData } as T
   await kv.hset(`${keyPrefix}:${id}`, item)
   return item
