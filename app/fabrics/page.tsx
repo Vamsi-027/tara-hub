@@ -14,8 +14,10 @@ import {
 import { FabricsListingPage } from "@/components/fabrics-listing-page"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { useSearchParams } from "next/navigation"
 
 export default function FabricsPage() {
+  const searchParams = useSearchParams()
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -37,7 +39,7 @@ export default function FabricsPage() {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <main className="flex-1 overflow-auto p-4">
+        <main className="flex-1 overflow-auto p-4" >
           <FabricsListingPage />
         </main>
       </SidebarInset>

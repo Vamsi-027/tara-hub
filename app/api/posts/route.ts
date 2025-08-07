@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const boost = searchParams.get("boost")
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
+    const limit = searchParams.get("limit")
+    const offset = searchParams.get("offset")
 
     let posts = await getAllPosts()
 
@@ -42,12 +44,19 @@ export async function GET(request: NextRequest) {
     // Sort by date
     posts.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
+    const total = posts.length;
+    let paginatedPosts = posts;
+
+    if (limit && offset) {
+      const limitNum = parseInt(limit, 10);
+      const offsetNum = parseInt(offset, 10);
+      if (!isNaN(limitNum) && !isNaN(offsetNum) && limitNum >= 0 && offsetNum >= 0) {
+        paginatedPosts = posts.slice(offsetNum, offsetNum + limitNum);
+      }
+    }
     const response: APIResponse<PostsResponse> = {
       success: true,
-      data: {
-        posts,
-        total: posts.length,
-      },
+      data: { posts: paginatedPosts, total },
     }
 
     return NextResponse.json(response)
@@ -75,6 +84,50 @@ export async function POST(request: NextRequest) {
         }
         return NextResponse.json(response, { status: 400 })
       }
+    }
+
+    // Validate data types
+    if (typeof body.date !== "string") {
+      const response: APIResponse<DBPost> = {
+        success: false,
+        error: "Invalid data type for field: date. Expected string.",
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
+    if (typeof body.idea !== "string") {
+      const response: APIResponse<DBPost> = {
+        success: false,
+        error: "Invalid data type for field: idea. Expected string.",
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
+    if (typeof body.goal !== "string") {
+      const response: APIResponse<DBPost> = {
+        success: false,
+        error: "Invalid data type for field: goal. Expected string.",
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
+    if (typeof body.type !== "string") {
+      const response: APIResponse<DBPost> = {
+        success: false,
+        error: "Invalid data type for field: type. Expected string.",
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
+    if (!Array.isArray(body.channels) || !body.channels.every(channel => typeof channel === "string")) {
+      const response: APIResponse<DBPost> = {
+        success: false,
+        error: "Invalid data type for field: channels. Expected array of strings.",
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
+    if (body.boost !== undefined && typeof body.boost !== "boolean") {
+      const response: APIResponse<DBPost> = {
+        success: false,
+        error: "Invalid data type for field: boost. Expected boolean.",
+      }
+      return NextResponse.json(response, { status: 400 })
     }
 
     // Set default values

@@ -5,16 +5,10 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Menu, X } from 'lucide-react'
+import { mainNavigation } from '@/lib/navigation' // Import mainNavigation
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
-
-  const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Fabrics', href: '/fabrics' },
-    { name: 'About', href: '#about' },
-    { name: 'Contact', href: '#contact' },
-  ]
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -29,7 +23,7 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
+            {mainNavigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -65,7 +59,7 @@ export function Header() {
                     <h2 className="text-lg font-semibold">Menu</h2>
                   </div>
                   <nav className="flex flex-col space-y-4">
-                    {navigation.map((item) => (
+                    {mainNavigation.map((item) => (
                       <Link
                         key={item.name}
                         href={item.href}

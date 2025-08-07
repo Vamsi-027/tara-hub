@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,13 +11,22 @@ import { Search, Filter } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
 import { Header } from "@/components/header"
+import { useRouter, usePathname, ReadonlyURLSearchParams } from "next/navigation"
 import { Footer } from "@/components/footer"
+import { FabricCard } from "@/components/fabric-card" // Import FabricCard
 
-export function FabricsListingPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("all")
-  const [colorFilter, setColorFilter] = useState("all")
-  const [stockFilter, setStockFilter] = useState("all")
+interface FabricsListingPageProps {
+  searchParams: ReadonlyURLSearchParams
+}
+
+export function FabricsListingPage({ searchParams }: FabricsListingPageProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "")
+  const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "all")
+  const [colorFilter, setColorFilter] = useState(searchParams.get('color') || "all")
+  const [stockFilter, setStockFilter] = useState(searchParams.get('stock') || "all")
 
   const categories = Array.from(new Set(fabricSeedData.map(fabric => fabric.category)))
   const colors = Array.from(new Set(fabricSeedData.map(fabric => fabric.color)))
@@ -35,6 +44,35 @@ export function FabricsListingPage() {
                           (stockFilter === "made-to-order" && !fabric.inStock)
 
       return matchesSearch && matchesCategory && matchesColor && matchesStock
+    })
+  }, [searchTerm, categoryFilter, colorFilter, stockFilter, fabricSeedData])
+
+  // Effect to update URL parameters when filters change
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (searchTerm) {
+      params.set('search', searchTerm)
+    } else {
+      params.delete('search')
+    }
+    if (categoryFilter !== 'all') {
+      params.set('category', categoryFilter)
+    } else {
+      params.delete('category')
+    }
+    if (colorFilter !== 'all') {
+ params.set('color', colorFilter);
+    } else {
+ params.delete('color');
+    }
+    if (stockFilter !== 'all') {
+ params.set('stock', stockFilter);
+    } else {
+ params.delete('stock');
+    }
+
+    // Use replace instead of push to avoid adding to browser history for filter changes
+    router.push(`${pathname}?${params.toString()}`)
     })
   }, [searchTerm, categoryFilter, colorFilter, stockFilter])
 
@@ -116,50 +154,7 @@ export function FabricsListingPage() {
         {/* Fabric Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredFabrics.map((fabric) => (
-            <Card key={fabric.id} className="group hover:shadow-lg transition-shadow duration-300">
-              <div className="aspect-square overflow-hidden rounded-t-lg">
-                <Image
-                  src={fabric.swatchImageUrl || "/placeholder.svg"}
-                  alt={fabric.name}
-                  width={300}
-                  height={300}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">{fabric.name}</h3>
-                  <Badge variant={fabric.inStock ? "default" : "secondary"} className="ml-2 flex-shrink-0">
-                    {fabric.inStock ? "In Stock" : "MTO"}
-                  </Badge>
-                </div>
-                
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{fabric.description}</p>
-                
-                <div className="space-y-1 mb-3 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Composition:</span>
-                    <span className="text-gray-900 text-right">{fabric.composition}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Width:</span>
-                    <span className="text-gray-900">{fabric.width}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-1 mb-3">
-                  <Badge variant="outline" className="text-xs">{fabric.category}</Badge>
-                  <Badge variant="outline" className="text-xs">{fabric.color}</Badge>
-                </div>
-
-                <div className="space-y-2">
-                  <Link href={`/fabric/${fabric.id}`}>
-                    <Button className="w-full" size="sm">View Details</Button>
-                  </Link>
-                  <Button variant="outline" className="w-full" size="sm">Request Sample</Button>
-                </div>
-              </CardContent>
-            </Card>
+ <FabricCard key={fabric.id} fabric={fabric} /> // Use the FabricCard component
           ))}
         </div>
 
