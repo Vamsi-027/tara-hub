@@ -1,163 +1,214 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Info } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { CalendarDays, Users, TrendingUp, MessageSquare, Eye, Heart, Share2 } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts"
 
-const kpiData = [
-  { name: "Reach", target: 25, current: 10 },
-  { name: "Engagement", target: 3.5, current: 2.1 },
-  { name: "CTR", target: 2.0, current: 1.1 },
-  { name: "Revenue", target: 20, current: 8 },
+const engagementData = [
+  { name: 'Mon', posts: 4, engagement: 240 },
+  { name: 'Tue', posts: 3, engagement: 180 },
+  { name: 'Wed', posts: 5, engagement: 320 },
+  { name: 'Thu', posts: 2, engagement: 150 },
+  { name: 'Fri', posts: 6, engagement: 410 },
+  { name: 'Sat', posts: 4, engagement: 280 },
+  { name: 'Sun', posts: 3, engagement: 200 },
 ]
 
-const chartConfig = {
-  target: {
-    label: "Target",
-    color: "hsl(var(--chart-1))",
+const platformData = [
+  { name: 'Instagram', value: 45, color: '#E1306C' },
+  { name: 'Facebook', value: 30, color: '#1877F2' },
+  { name: 'Twitter', value: 15, color: '#1DA1F2' },
+  { name: 'LinkedIn', value: 10, color: '#0A66C2' },
+]
+
+const recentPosts = [
+  {
+    id: 1,
+    title: "New Linen Collection Launch",
+    platform: "Instagram",
+    status: "Published",
+    engagement: { likes: 245, comments: 18, shares: 12 },
+    date: "2024-01-15"
   },
-  current: {
-    label: "Current",
-    color: "hsl(var(--chart-2))",
+  {
+    id: 2,
+    title: "Behind the Scenes: Fabric Sourcing",
+    platform: "Facebook",
+    status: "Scheduled",
+    engagement: { likes: 0, comments: 0, shares: 0 },
+    date: "2024-01-16"
   },
-}
+  {
+    id: 3,
+    title: "Customer Spotlight: Living Room Makeover",
+    platform: "Instagram",
+    status: "Draft",
+    engagement: { likes: 0, comments: 0, shares: 0 },
+    date: "2024-01-17"
+  }
+]
 
 export function DashboardView() {
-  const isKVAvailable = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
-
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          This is your at-a-glance overview of this month's key performance indicators, strategic goals, and major
-          events. Use this page to quickly assess progress and anticipate upcoming launches and promotions.
-        </p>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Social Media Dashboard</h1>
+        <p className="text-gray-600 mt-2">Monitor your social media performance and manage content</p>
       </div>
 
-      {/* Database Status Notice */}
-      {!isKVAvailable && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Demo Mode:</strong> This application is running with sample data. To use Vercel KV database, add
-            your KV_REST_API_URL and KV_REST_API_TOKEN environment variables.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reach Target</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">+25%</div>
-            <p className="text-xs text-muted-foreground">Month-over-Month</p>
+            <div className="text-2xl font-bold">127</div>
+            <p className="text-xs text-muted-foreground">
+              +12% from last month
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Engagement</CardTitle>
+            <Heart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">3.5%</div>
-            <p className="text-xs text-muted-foreground">Average Target</p>
+            <div className="text-2xl font-bold">2,847</div>
+            <p className="text-xs text-muted-foreground">
+              +18% from last month
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Click-Through Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Followers</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">2.0%</div>
-            <p className="text-xs text-muted-foreground">To Site/Etsy</p>
+            <div className="text-2xl font-bold">1,234</div>
+            <p className="text-xs text-muted-foreground">
+              +8% from last month
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue Growth</CardTitle>
+            <CardTitle className="text-sm font-medium">Reach</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">+20%</div>
-            <p className="text-xs text-muted-foreground">From Social</p>
+            <div className="text-2xl font-bold">12,847</div>
+            <p className="text-xs text-muted-foreground">
+              +25% from last month
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Chart */}
-        <Card className="col-span-4">
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
           <CardHeader>
-            <CardTitle>Monthly Goal Progress</CardTitle>
+            <CardTitle>Weekly Engagement</CardTitle>
+            <CardDescription>Posts and engagement over the last week</CardDescription>
           </CardHeader>
-          <CardContent className="pl-2">
-            <ChartContainer config={chartConfig} className="h-[350px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={kpiData}>
-                  <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `${value}`}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="target" fill="var(--color-target)" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="current" fill="var(--color-current)" radius={[0, 0, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={engagementData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="engagement" fill="#10b981" />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Major Events */}
-        <Card className="col-span-3">
+        <Card>
           <CardHeader>
-            <CardTitle>Major August Events</CardTitle>
+            <CardTitle>Platform Distribution</CardTitle>
+            <CardDescription>Engagement by social media platform</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-rose-500 rounded-full mt-2 flex-shrink-0"></div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium leading-none">Aug 4: "The Study Sanctuary" Launch</p>
-                <p className="text-sm text-muted-foreground">New collection for dorms & offices.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium leading-none">Aug 16-17: Weekend Flash Sale</p>
-                <p className="text-sm text-muted-foreground">15% off all textiles.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-rose-500 rounded-full mt-2 flex-shrink-0"></div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium leading-none">Aug 18: "Harvest Moon" Candle Launch</p>
-                <p className="text-sm text-muted-foreground">New signature fall scents.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium leading-none">Aug 28: Labor Day Sale Begins</p>
-                <p className="text-sm text-muted-foreground">Early access for subscribers.</p>
-              </div>
-            </div>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={platformData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {platformData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Posts */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Posts</CardTitle>
+          <CardDescription>Your latest social media content</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentPosts.map((post) => (
+              <div key={post.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex-1">
+                  <h3 className="font-semibold">{post.title}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline">{post.platform}</Badge>
+                    <Badge 
+                      variant={post.status === 'Published' ? 'default' : post.status === 'Scheduled' ? 'secondary' : 'outline'}
+                    >
+                      {post.status}
+                    </Badge>
+                    <span className="text-sm text-gray-500">{post.date}</span>
+                  </div>
+                </div>
+                
+                {post.status === 'Published' && (
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <Heart className="w-4 h-4" />
+                      {post.engagement.likes}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MessageSquare className="w-4 h-4" />
+                      {post.engagement.comments}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Share2 className="w-4 h-4" />
+                      {post.engagement.shares}
+                    </div>
+                  </div>
+                )}
+                
+                <Button variant="outline" size="sm" className="ml-4">
+                  View
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

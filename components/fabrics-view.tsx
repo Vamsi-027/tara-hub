@@ -3,80 +3,95 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react'
-import { fabricSeedData, Fabric } from "@/lib/fabric-seed-data"
-import { FabricForm } from "./fabric-form"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { MoreHorizontal, Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { FabricForm } from "@/components/fabric-form"
+import { seedFabrics } from "@/lib/fabric-seed-data"
+import type { DBFabric } from "@/lib/db-schema"
 
 export function FabricsView() {
-  const [fabrics, setFabrics] = useState<Fabric[]>(fabricSeedData)
+  const [fabrics, setFabrics] = useState<DBFabric[]>(
+    seedFabrics.map((fabric, index) => ({
+      ...fabric,
+      id: `fabric_${index + 1}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }))
+  )
   const [searchTerm, setSearchTerm] = useState("")
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [editingFabric, setEditingFabric] = useState<Fabric | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingFabric, setEditingFabric] = useState<DBFabric | null>(null)
 
   const filteredFabrics = fabrics.filter(fabric =>
     fabric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     fabric.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fabric.color.toLowerCase().includes(searchTerm.toLowerCase())
+    fabric.color.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    fabric.type.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleAddFabric = (fabricData: Partial<Fabric>) => {
-    const newFabric: Fabric = {
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...fabricData,
-    } as Fabric
-    setFabrics([...fabrics, newFabric])
-    setIsAddDialogOpen(false)
+  const handleAddFabric = () => {
+    setEditingFabric(null)
+    setIsDialogOpen(true)
   }
 
-  const handleEditFabric = (fabricData: Partial<Fabric>) => {
+  const handleEditFabric = (fabric: DBFabric) => {
+    setEditingFabric(fabric)
+    setIsDialogOpen(true)
+  }
+
+  const handleDeleteFabric = (fabricId: string) => {
+    setFabrics(prev => prev.filter(f => f.id !== fabricId))
+  }
+
+  const handleSubmitFabric = (fabricData: Omit<DBFabric, "id" | "createdAt" | "updatedAt">) => {
     if (editingFabric) {
-      setFabrics(fabrics.map(f => 
-        f.id === editingFabric.id ? { ...f, ...fabricData, updatedAt: new Date().toISOString() } : f
+      // Update existing fabric
+      setFabrics(prev => prev.map(f => 
+        f.id === editingFabric.id 
+          ? { ...fabricData, id: f.id, createdAt: f.createdAt, updatedAt: new Date().toISOString() }
+          : f
       ))
-      setEditingFabric(null)
+    } else {
+      // Add new fabric
+      const newFabric: DBFabric = {
+        ...fabricData,
+        id: `fabric_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      setFabrics(prev => [...prev, newFabric])
     }
+    setIsDialogOpen(false)
+    setEditingFabric(null)
   }
 
-  const handleDeleteFabric = (id: string) => {
-    setFabrics(fabrics.filter(f => f.id !== id))
+  const handleCancelForm = () => {
+    setIsDialogOpen(false)
+    setEditingFabric(null)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Fabric Products Library</h1>
-          <p className="text-muted-foreground">Manage your fabric inventory and product catalog</p>
+          <h1 className="text-3xl font-bold">Fabric Library</h1>
+          <p className="text-muted-foreground">Manage your fabric inventory and specifications</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Fabric
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Fabric</DialogTitle>
-            </DialogHeader>
-            <FabricForm
-              onSubmit={handleAddFabric}
-              onCancel={() => setIsAddDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <Button onClick={handleAddFabric}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Fabric
+        </Button>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Fabrics</CardTitle>
           </CardHeader>
           <CardContent>
@@ -84,7 +99,7 @@ export function FabricsView() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Fabrics</CardTitle>
           </CardHeader>
           <CardContent>
@@ -92,7 +107,7 @@ export function FabricsView() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Featured Fabrics</CardTitle>
           </CardHeader>
           <CardContent>
@@ -100,15 +115,16 @@ export function FabricsView() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fabrics.filter(f => f.stockQuantity < 50).length}</div>
+            <div className="text-2xl font-bold">{fabrics.filter(f => f.stockQuantity < 10).length}</div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Search */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -121,6 +137,7 @@ export function FabricsView() {
         </div>
       </div>
 
+      {/* Fabrics Table */}
       <Card>
         <CardHeader>
           <CardTitle>Fabric Inventory</CardTitle>
@@ -143,52 +160,65 @@ export function FabricsView() {
             <TableBody>
               {filteredFabrics.map((fabric) => (
                 <TableRow key={fabric.id}>
-                  <TableCell className="font-medium">{fabric.name}</TableCell>
-                  <TableCell>{fabric.sku}</TableCell>
-                  <TableCell>{fabric.type}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center space-x-2">
+                      {fabric.swatchImageUrl && (
+                        <img 
+                          src={fabric.swatchImageUrl || "/placeholder.svg"} 
+                          alt={fabric.name}
+                          className="w-8 h-8 rounded object-cover"
+                        />
+                      )}
+                      <span>{fabric.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{fabric.sku || 'N/A'}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <Badge variant="outline">{fabric.type}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
                       {fabric.colorHex && (
                         <div 
                           className="w-4 h-4 rounded border"
                           style={{ backgroundColor: fabric.colorHex }}
                         />
                       )}
-                      {fabric.color}
+                      <span>{fabric.color}</span>
                     </div>
                   </TableCell>
                   <TableCell>{fabric.manufacturer}</TableCell>
-                  <TableCell>${fabric.pricePerYard}</TableCell>
+                  <TableCell>${fabric.pricePerYard.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge variant={fabric.stockQuantity < 50 ? "destructive" : "secondary"}>
-                      {fabric.stockQuantity} yards
-                    </Badge>
+                    <span className={fabric.stockQuantity < 10 ? "text-red-600" : ""}>
+                      {fabric.stockQuantity}
+                    </span>
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
-                      {fabric.isActive && <Badge variant="secondary">Active</Badge>}
-                      {fabric.isFeatured && <Badge variant="default">Featured</Badge>}
+                    <div className="flex space-x-1">
+                      {fabric.isActive && <Badge variant="default" className="text-xs">Active</Badge>}
+                      {fabric.isFeatured && <Badge variant="secondary" className="text-xs">Featured</Badge>}
                     </div>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" className="h-8 w-8 p-0">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditFabric(fabric)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setEditingFabric(fabric)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteFabric(fabric.id)}
-                          className="text-destructive"
+                          className="text-red-600"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
@@ -203,18 +233,19 @@ export function FabricsView() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!editingFabric} onOpenChange={() => setEditingFabric(null)}>
+      {/* Add/Edit Fabric Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Fabric</DialogTitle>
+            <DialogTitle>
+              {editingFabric ? 'Edit Fabric' : 'Add New Fabric'}
+            </DialogTitle>
           </DialogHeader>
-          {editingFabric && (
-            <FabricForm
-              fabric={editingFabric}
-              onSubmit={handleEditFabric}
-              onCancel={() => setEditingFabric(null)}
-            />
-          )}
+          <FabricForm
+            fabric={editingFabric || undefined}
+            onSubmit={handleSubmitFabric}
+            onCancel={handleCancelForm}
+          />
         </DialogContent>
       </Dialog>
     </div>

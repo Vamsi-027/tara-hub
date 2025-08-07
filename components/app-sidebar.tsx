@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { BarChart3, Calendar, FileText, Home, Package, Palette, Target } from 'lucide-react'
+import Link from "next/link"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -14,16 +15,17 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
+// This is sample data.
 const data = {
   user: {
-    name: "Sarah Johnson",
-    email: "sarah@hearthstore.com",
+    name: "Social Media Manager",
+    email: "manager@hearthome.com",
     avatar: "/placeholder-user.jpg",
   },
   teams: [
     {
-      name: "Hearth & Home Store",
-      logo: Home,
+      name: "Hearth & Home",
+      logo: "/placeholder-logo.svg",
       plan: "August 2025 Plan",
     },
   ],
@@ -31,7 +33,8 @@ const data = {
     {
       title: "Dashboard",
       url: "/",
-      icon: BarChart3,
+      icon: Home,
+      isActive: true,
     },
     {
       title: "Calendar",

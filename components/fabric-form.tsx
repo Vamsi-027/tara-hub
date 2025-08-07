@@ -7,21 +7,22 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Fabric } from "@/lib/fabric-seed-data"
+import { Badge } from "@/components/ui/badge"
+import { X } from 'lucide-react'
+import type { DBFabric } from "@/lib/db-schema"
 
 interface FabricFormProps {
-  fabric?: Fabric | null
-  onSubmit: (data: Partial<Fabric>) => void
+  fabric?: DBFabric
+  onSubmit: (fabric: Omit<DBFabric, "id" | "createdAt" | "updatedAt">) => void
   onCancel: () => void
 }
 
 export function FabricForm({ fabric, onSubmit, onCancel }: FabricFormProps) {
-  const [formData, setFormData] = useState<Partial<Fabric>>({
+  const [formData, setFormData] = useState({
     name: fabric?.name || "",
     sku: fabric?.sku || "",
     description: fabric?.description || "",
-    type: fabric?.type || "Upholstery",
+    type: fabric?.type || "Upholstery" as const,
     pattern: fabric?.pattern || "",
     color: fabric?.color || "",
     colorHex: fabric?.colorHex || "",
@@ -35,7 +36,7 @@ export function FabricForm({ fabric, onSubmit, onCancel }: FabricFormProps) {
     isCustomOrder: fabric?.isCustomOrder || false,
     content: fabric?.content || "",
     weight: fabric?.weight || 0,
-    durability: fabric?.durability || "",
+    durability: fabric?.durability || 5,
     martindale: fabric?.martindale || 0,
     isStainResistant: fabric?.isStainResistant || false,
     isFadeResistant: fabric?.isFadeResistant || false,
@@ -49,349 +50,374 @@ export function FabricForm({ fabric, onSubmit, onCancel }: FabricFormProps) {
     tags: fabric?.tags || [],
     isActive: fabric?.isActive ?? true,
     isFeatured: fabric?.isFeatured || false,
-    warrantyInfo: fabric?.warrantyInfo || "",
+    warranty_info: fabric?.warranty_info || "",
   })
+
+  const [newTag, setNewTag] = useState("")
+  const [newCareInstruction, setNewCareInstruction] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    onSubmit({
+      ...formData,
+      images: fabric?.images || {
+        thumbnail: formData.swatchImageUrl,
+        main: formData.swatchImageUrl,
+        detail: [formData.swatchImageUrl],
+        room: [formData.swatchImageUrl]
+      }
+    })
   }
 
-  const handleInputChange = (field: keyof Fabric, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  const addTag = () => {
+    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTag.trim()]
+      }))
+      setNewTag("")
+    }
+  }
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }))
+  }
+
+  const addCareInstruction = () => {
+    if (newCareInstruction.trim() && !formData.careInstructions.includes(newCareInstruction.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        careInstructions: [...prev.careInstructions, newCareInstruction.trim()]
+      }))
+      setNewCareInstruction("")
+    }
+  }
+
+  const removeCareInstruction = (instructionToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      careInstructions: prev.careInstructions.filter(instruction => instruction !== instructionToRemove)
+    }))
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="sku">SKU</Label>
-              <Input
-                id="sku"
-                value={formData.sku}
-                onChange={(e) => handleInputChange("sku", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="type">Type *</Label>
-              <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Upholstery">Upholstery</SelectItem>
-                  <SelectItem value="Drapery">Drapery</SelectItem>
-                  <SelectItem value="Both">Both</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="pattern">Pattern *</Label>
-              <Input
-                id="pattern"
-                value={formData.pattern}
-                onChange={(e) => handleInputChange("pattern", e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="color">Color *</Label>
-              <Input
-                id="color"
-                value={formData.color}
-                onChange={(e) => handleInputChange("color", e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="colorHex">Color Hex</Label>
-              <Input
-                id="colorHex"
-                type="color"
-                value={formData.colorHex}
-                onChange={(e) => handleInputChange("colorHex", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Core Identification */}
+        <div className="space-y-2">
+          <Label htmlFor="name">Name *</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            required
+          />
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Manufacturer & Pricing</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="manufacturer">Manufacturer *</Label>
-              <Input
-                id="manufacturer"
-                value={formData.manufacturer}
-                onChange={(e) => handleInputChange("manufacturer", e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="collection">Collection</Label>
-              <Input
-                id="collection"
-                value={formData.collection}
-                onChange={(e) => handleInputChange("collection", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="pricePerYard">Price per Yard *</Label>
-              <Input
-                id="pricePerYard"
-                type="number"
-                step="0.01"
-                value={formData.pricePerYard}
-                onChange={(e) => handleInputChange("pricePerYard", parseFloat(e.target.value))}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="width">Width (inches)</Label>
-              <Input
-                id="width"
-                type="number"
-                value={formData.width}
-                onChange={(e) => handleInputChange("width", parseInt(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="minimumOrder">Minimum Order</Label>
-              <Input
-                id="minimumOrder"
-                type="number"
-                value={formData.minimumOrder}
-                onChange={(e) => handleInputChange("minimumOrder", parseInt(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="leadTime">Lead Time (days)</Label>
-              <Input
-                id="leadTime"
-                type="number"
-                value={formData.leadTime}
-                onChange={(e) => handleInputChange("leadTime", parseInt(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="stockQuantity">Stock Quantity</Label>
-              <Input
-                id="stockQuantity"
-                type="number"
-                value={formData.stockQuantity}
-                onChange={(e) => handleInputChange("stockQuantity", parseInt(e.target.value))}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-2">
+          <Label htmlFor="sku">SKU</Label>
+          <Input
+            id="sku"
+            value={formData.sku}
+            onChange={(e) => setFormData(prev => ({ ...prev, sku: e.target.value }))}
+          />
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Physical Properties</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="content">Content</Label>
-              <Input
-                id="content"
-                value={formData.content}
-                onChange={(e) => handleInputChange("content", e.target.value)}
-                placeholder="e.g., 100% Cotton"
-              />
-            </div>
-            <div>
-              <Label htmlFor="weight">Weight (oz per sq yard)</Label>
-              <Input
-                id="weight"
-                type="number"
-                value={formData.weight}
-                onChange={(e) => handleInputChange("weight", parseFloat(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="durability">Durability *</Label>
-              <Input
-                id="durability"
-                value={formData.durability}
-                onChange={(e) => handleInputChange("durability", e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="martindale">Martindale (abrasion resistance)</Label>
-              <Input
-                id="martindale"
-                type="number"
-                value={formData.martindale}
-                onChange={(e) => handleInputChange("martindale", parseInt(e.target.value))}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            rows={3}
+          />
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Treatment Features</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isStainResistant"
-                checked={formData.isStainResistant}
-                onCheckedChange={(checked) => handleInputChange("isStainResistant", checked)}
-              />
-              <Label htmlFor="isStainResistant">Stain Resistant</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isFadeResistant"
-                checked={formData.isFadeResistant}
-                onCheckedChange={(checked) => handleInputChange("isFadeResistant", checked)}
-              />
-              <Label htmlFor="isFadeResistant">Fade Resistant</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isWaterResistant"
-                checked={formData.isWaterResistant}
-                onCheckedChange={(checked) => handleInputChange("isWaterResistant", checked)}
-              />
-              <Label htmlFor="isWaterResistant">Water Resistant</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isPetFriendly"
-                checked={formData.isPetFriendly}
-                onCheckedChange={(checked) => handleInputChange("isPetFriendly", checked)}
-              />
-              <Label htmlFor="isPetFriendly">Pet Friendly</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isOutdoorSafe"
-                checked={formData.isOutdoorSafe}
-                onCheckedChange={(checked) => handleInputChange("isOutdoorSafe", checked)}
-              />
-              <Label htmlFor="isOutdoorSafe">Outdoor Safe</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isFireRetardant"
-                checked={formData.isFireRetardant}
-                onCheckedChange={(checked) => handleInputChange("isFireRetardant", checked)}
-              />
-              <Label htmlFor="isFireRetardant">Fire Retardant</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isCustomOrder"
-                checked={formData.isCustomOrder}
-                onCheckedChange={(checked) => handleInputChange("isCustomOrder", checked)}
-              />
-              <Label htmlFor="isCustomOrder">Custom Order</Label>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Fabric Classification */}
+        <div className="space-y-2">
+          <Label htmlFor="type">Type *</Label>
+          <Select value={formData.type} onValueChange={(value: "Upholstery" | "Drapery" | "Both") => 
+            setFormData(prev => ({ ...prev, type: value }))}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Upholstery">Upholstery</SelectItem>
+              <SelectItem value="Drapery">Drapery</SelectItem>
+              <SelectItem value="Both">Both</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="pattern">Pattern *</Label>
+          <Input
+            id="pattern"
+            value={formData.pattern}
+            onChange={(e) => setFormData(prev => ({ ...prev, pattern: e.target.value }))}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="color">Color *</Label>
+          <Input
+            id="color"
+            value={formData.color}
+            onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="colorHex">Color Hex</Label>
+          <Input
+            id="colorHex"
+            type="color"
+            value={formData.colorHex}
+            onChange={(e) => setFormData(prev => ({ ...prev, colorHex: e.target.value }))}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="manufacturer">Manufacturer *</Label>
+          <Input
+            id="manufacturer"
+            value={formData.manufacturer}
+            onChange={(e) => setFormData(prev => ({ ...prev, manufacturer: e.target.value }))}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="collection">Collection</Label>
+          <Input
+            id="collection"
+            value={formData.collection}
+            onChange={(e) => setFormData(prev => ({ ...prev, collection: e.target.value }))}
+          />
+        </div>
+
+        {/* Pricing & Ordering */}
+        <div className="space-y-2">
+          <Label htmlFor="pricePerYard">Price Per Yard *</Label>
+          <Input
+            id="pricePerYard"
+            type="number"
+            step="0.01"
+            value={formData.pricePerYard}
+            onChange={(e) => setFormData(prev => ({ ...prev, pricePerYard: parseFloat(e.target.value) || 0 }))}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="width">Width (inches)</Label>
+          <Input
+            id="width"
+            type="number"
+            value={formData.width}
+            onChange={(e) => setFormData(prev => ({ ...prev, width: parseInt(e.target.value) || 54 }))}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="minimumOrder">Minimum Order</Label>
+          <Input
+            id="minimumOrder"
+            type="number"
+            value={formData.minimumOrder}
+            onChange={(e) => setFormData(prev => ({ ...prev, minimumOrder: parseInt(e.target.value) || 1 }))}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="leadTime">Lead Time (days)</Label>
+          <Input
+            id="leadTime"
+            type="number"
+            value={formData.leadTime}
+            onChange={(e) => setFormData(prev => ({ ...prev, leadTime: parseInt(e.target.value) || 14 }))}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="stockQuantity">Stock Quantity</Label>
+          <Input
+            id="stockQuantity"
+            type="number"
+            value={formData.stockQuantity}
+            onChange={(e) => setFormData(prev => ({ ...prev, stockQuantity: parseInt(e.target.value) || 0 }))}
+          />
+        </div>
+
+        {/* Physical Properties */}
+        <div className="space-y-2">
+          <Label htmlFor="content">Content</Label>
+          <Input
+            id="content"
+            value={formData.content}
+            onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+            placeholder="e.g., 100% Cotton"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="weight">Weight (oz/sq yd)</Label>
+          <Input
+            id="weight"
+            type="number"
+            step="0.1"
+            value={formData.weight}
+            onChange={(e) => setFormData(prev => ({ ...prev, weight: parseFloat(e.target.value) || 0 }))}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="durability">Durability (1-10) *</Label>
+          <Input
+            id="durability"
+            type="number"
+            min="1"
+            max="10"
+            value={formData.durability}
+            onChange={(e) => setFormData(prev => ({ ...prev, durability: parseInt(e.target.value) || 5 }))}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="martindale">Martindale Rating</Label>
+          <Input
+            id="martindale"
+            type="number"
+            value={formData.martindale}
+            onChange={(e) => setFormData(prev => ({ ...prev, martindale: parseInt(e.target.value) || 0 }))}
+          />
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Additional Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="careInstructions">Care Instructions (comma-separated)</Label>
-            <Textarea
-              id="careInstructions"
-              value={formData.careInstructions?.join(", ")}
-              onChange={(e) => handleInputChange("careInstructions", e.target.value.split(",").map(s => s.trim()))}
-              placeholder="Professional cleaning recommended, Avoid direct sunlight"
-            />
-          </div>
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange("notes", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="swatchImageUrl">Swatch Image URL</Label>
-            <Input
-              id="swatchImageUrl"
-              value={formData.swatchImageUrl}
-              onChange={(e) => handleInputChange("swatchImageUrl", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="tags">Tags (comma-separated)</Label>
-            <Input
-              id="tags"
-              value={formData.tags?.join(", ")}
-              onChange={(e) => handleInputChange("tags", e.target.value.split(",").map(s => s.trim()))}
-              placeholder="luxury, velvet, green, upholstery"
-            />
-          </div>
-          <div>
-            <Label htmlFor="warrantyInfo">Warranty Information</Label>
-            <Textarea
-              id="warrantyInfo"
-              value={formData.warrantyInfo}
-              onChange={(e) => handleInputChange("warrantyInfo", e.target.value)}
-            />
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+      {/* Treatment Features */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Treatment Features</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            { key: 'isStainResistant', label: 'Stain Resistant' },
+            { key: 'isFadeResistant', label: 'Fade Resistant' },
+            { key: 'isWaterResistant', label: 'Water Resistant' },
+            { key: 'isPetFriendly', label: 'Pet Friendly' },
+            { key: 'isOutdoorSafe', label: 'Outdoor Safe' },
+            { key: 'isFireRetardant', label: 'Fire Retardant' },
+            { key: 'isCustomOrder', label: 'Custom Order' },
+            { key: 'isActive', label: 'Active' },
+            { key: 'isFeatured', label: 'Featured' },
+          ].map(({ key, label }) => (
+            <div key={key} className="flex items-center space-x-2">
               <Checkbox
-                id="isActive"
-                checked={formData.isActive}
-                onCheckedChange={(checked) => handleInputChange("isActive", checked)}
+                id={key}
+                checked={formData[key as keyof typeof formData] as boolean}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({ ...prev, [key]: checked }))
+                }
               />
-              <Label htmlFor="isActive">Active</Label>
+              <Label htmlFor={key}>{label}</Label>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isFeatured"
-                checked={formData.isFeatured}
-                onCheckedChange={(checked) => handleInputChange("isFeatured", checked)}
-              />
-              <Label htmlFor="isFeatured">Featured</Label>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      </div>
 
-      <div className="flex justify-end space-x-2">
+      {/* Care Instructions */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Care Instructions</h3>
+        <div className="flex gap-2">
+          <Input
+            value={newCareInstruction}
+            onChange={(e) => setNewCareInstruction(e.target.value)}
+            placeholder="Add care instruction"
+            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCareInstruction())}
+          />
+          <Button type="button" onClick={addCareInstruction}>Add</Button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {formData.careInstructions.map((instruction, index) => (
+            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+              {instruction}
+              <X 
+                className="h-3 w-3 cursor-pointer" 
+                onClick={() => removeCareInstruction(instruction)}
+              />
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Tags */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Tags</h3>
+        <div className="flex gap-2">
+          <Input
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            placeholder="Add tag"
+            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+          />
+          <Button type="button" onClick={addTag}>Add</Button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {formData.tags.map((tag, index) => (
+            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+              {tag}
+              <X 
+                className="h-3 w-3 cursor-pointer" 
+                onClick={() => removeTag(tag)}
+              />
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Additional Fields */}
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="swatchImageUrl">Swatch Image URL</Label>
+          <Input
+            id="swatchImageUrl"
+            value={formData.swatchImageUrl}
+            onChange={(e) => setFormData(prev => ({ ...prev, swatchImageUrl: e.target.value }))}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="notes">Notes</Label>
+          <Textarea
+            id="notes"
+            value={formData.notes}
+            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+            rows={3}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="warranty_info">Warranty Information</Label>
+          <Textarea
+            id="warranty_info"
+            value={formData.warranty_info}
+            onChange={(e) => setFormData(prev => ({ ...prev, warranty_info: e.target.value }))}
+            rows={2}
+          />
+        </div>
+      </div>
+
+      {/* Form Actions */}
+      <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit">
-          {fabric ? "Update Fabric" : "Add Fabric"}
+          {fabric ? 'Update' : 'Create'} Fabric
         </Button>
       </div>
     </form>
