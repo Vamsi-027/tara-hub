@@ -240,6 +240,51 @@ export async function getAllHeroCategories(): Promise<DBHeroCategory[]> {
   }
 }
 
+export async function updateHeroCategory(id: string, updates: Partial<DBHeroCategory>): Promise<DBHeroCategory | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingCategory = fallbackData.heroCategories.get(id)
+    if (!existingCategory) return null
+
+    const updatedCategory: DBHeroCategory = {
+      ...existingCategory,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.heroCategories.set(id, updatedCategory)
+    return updatedCategory
+  }
+
+  try {
+    const existingCategory = await getHeroCategory(id)
+    if (!existingCategory) return null
+
+    const updatedCategory: DBHeroCategory = {
+      ...existingCategory,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    await kv.hset(KEYS.HERO_CATEGORIES, { [id]: updatedCategory })
+    return updatedCategory
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingCategory = fallbackData.heroCategories.get(id)
+    if (!existingCategory) return null
+
+    const updatedCategory: DBHeroCategory = {
+      ...existingCategory,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.heroCategories.set(id, updatedCategory)
+    return updatedCategory
+  }
+}
+
 // Launch Pipeline
 export async function getAllLaunchItems(): Promise<DBLaunchItem[]> {
   if (!isKVAvailable()) {
@@ -254,6 +299,67 @@ export async function getAllLaunchItems(): Promise<DBLaunchItem[]> {
     console.warn("KV error, falling back to in-memory data:", error)
     initializeFallbackData()
     return Array.from(fallbackData.launchItems.values()).sort((a, b) => a.order - b.order)
+  }
+}
+
+export async function updateLaunchItem(id: string, updates: Partial<DBLaunchItem>): Promise<DBLaunchItem | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingItem = fallbackData.launchItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBLaunchItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.launchItems.set(id, updatedItem)
+    return updatedItem
+  }
+
+  try {
+    const existingItem = await getLaunchItem(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBLaunchItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    await kv.hset(KEYS.LAUNCH_PIPELINE, { [id]: updatedItem })
+    return updatedItem
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingItem = fallbackData.launchItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBLaunchItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.launchItems.set(id, updatedItem)
+    return updatedItem
+  }
+}
+
+export async function deleteLaunchItem(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.launchItems.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.LAUNCH_PIPELINE, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.launchItems.delete(id)
   }
 }
 
@@ -274,6 +380,40 @@ export async function getAllPromoItems(): Promise<DBPromoItem[]> {
   }
 }
 
+export async function updatePromoItem(id: string, updates: Partial<DBPromoItem>): Promise<DBPromoItem | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingItem = fallbackData.promoItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBPromoItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.promoItems.set(id, updatedItem)
+    return updatedItem
+  }
+
+  try {
+    const existingItem = await getPromoItem(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBPromoItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    await kv.hset(KEYS.PROMO_FRAMEWORK, { [id]: updatedItem })
+    return updatedItem
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingItem = fallbackData.promoItems.get(id)
+    if (!existingItem) return null
+
 // Channel Strategies
 export async function getAllChannelStrategies(): Promise<DBChannelStrategy[]> {
   if (!isKVAvailable()) {
@@ -290,6 +430,24 @@ export async function getAllChannelStrategies(): Promise<DBChannelStrategy[]> {
     return Array.from(fallbackData.channelStrategies.values()).sort((a, b) => a.order - b.order)
   }
 }
+
+export async function deletePromoItem(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.promoItems.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.PROMO_FRAMEWORK, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.promoItems.delete(id)
+  }
+}
+
+// Channel Strategies
 
 // SEO Keywords
 export async function getAllSEOKeywords(): Promise<DBSEOKeyword[]> {
@@ -342,6 +500,330 @@ export async function getAllCreativeGuidelines(): Promise<DBCreativeGuideline[]>
   }
 }
 
+export async function getHeroCategory(id: string): Promise<DBHeroCategory | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.heroCategories.get(id) || null
+  }
+
+  try {
+    return await kv.hget(KEYS.HERO_CATEGORIES, id)
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.heroCategories.get(id) || null
+  }
+}
+
+// Launch Pipeline
+export async function getAllLaunchItems(): Promise<DBLaunchItem[]> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return Array.from(fallbackData.launchItems.values()).sort((a, b) => a.order - b.order)
+  }
+
+  try {
+    const items = await kv.hgetall(KEYS.LAUNCH_PIPELINE)
+    return Object.values(items || {}).sort((a: any, b: any) => a.order - b.order) as DBLaunchItem[]
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return Array.from(fallbackData.launchItems.values()).sort((a, b) => a.order - b.order)
+  }
+}
+
+export async function getLaunchItem(id: string): Promise<DBLaunchItem | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.launchItems.get(id) || null
+  }
+
+  try {
+    return await kv.hget(KEYS.LAUNCH_PIPELINE, id)
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.launchItems.get(id) || null
+  }
+}
+
+// Promo Framework
+export async function getAllPromoItems(): Promise<DBPromoItem[]> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return Array.from(fallbackData.promoItems.values()).sort((a, b) => a.order - b.order)
+  }
+
+  try {
+    const items = await kv.hgetall(KEYS.PROMO_FRAMEWORK)
+    return Object.values(items || {}).sort((a: any, b: any) => a.order - b.order) as DBPromoItem[]
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return Array.from(fallbackData.promoItems.values()).sort((a, b) => a.order - b.order)
+  }
+}
+
+export async function getPromoItem(id: string): Promise<DBPromoItem | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.promoItems.get(id) || null
+  }
+
+  try {
+    return await kv.hget(KEYS.PROMO_FRAMEWORK, id)
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.promoItems.get(id) || null
+  }
+}
+
+export async function updateChannelStrategy(id: string, updates: Partial<DBChannelStrategy>): Promise<DBChannelStrategy | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingStrategy = fallbackData.channelStrategies.get(id)
+    if (!existingStrategy) return null
+
+    const updatedStrategy: DBChannelStrategy = {
+      ...existingStrategy,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.channelStrategies.set(id, updatedStrategy)
+    return updatedStrategy
+  }
+
+  try {
+    const existingStrategy = await getChannelStrategy(id)
+    if (!existingStrategy) return null
+
+    const updatedStrategy: DBChannelStrategy = {
+      ...existingStrategy,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    await kv.hset(KEYS.CHANNEL_STRATEGIES, { [id]: updatedStrategy })
+    return updatedStrategy
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingStrategy = fallbackData.channelStrategies.get(id)
+    if (!existingStrategy) return null
+
+// Channel Strategies
+export async function getAllChannelStrategies(): Promise<DBChannelStrategy[]> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return Array.from(fallbackData.channelStrategies.values()).sort((a, b) => a.order - b.order)
+  }
+
+  try {
+    const strategies = await kv.hgetall(KEYS.CHANNEL_STRATEGIES)
+    return Object.values(strategies || {}).sort((a: any, b: any) => a.order - b.order) as DBChannelStrategy[]
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return Array.from(fallbackData.channelStrategies.values()).sort((a, b) => a.order - b.order)
+  }
+}
+
+export async function deleteChannelStrategy(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.channelStrategies.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.CHANNEL_STRATEGIES, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.channelStrategies.delete(id)
+  }
+}
+
+export async function getChannelStrategy(id: string): Promise<DBChannelStrategy | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.channelStrategies.get(id) || null
+  }
+
+  try {
+    return await kv.hget(KEYS.CHANNEL_STRATEGIES, id)
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.channelStrategies.get(id) || null
+  }
+}
+
+// SEO Keywords
+export async function getAllSEOKeywords(): Promise<DBSEOKeyword[]> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return Array.from(fallbackData.seoKeywords.values())
+  }
+
+  try {
+    const keywords = await kv.hgetall(KEYS.SEO_KEYWORDS)
+    return Object.values(keywords || {}) as DBSEOKeyword[]
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return Array.from(fallbackData.seoKeywords.values())
+  }
+}
+
+export async function getSEOKeyword(id: string): Promise<DBSEOKeyword | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.seoKeywords.get(id) || null
+  }
+
+  try {
+    return await kv.hget(KEYS.SEO_KEYWORDS, id)
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.seoKeywords.get(id) || null
+  }
+}
+
+// Blog Posts
+export async function getAllBlogPosts(): Promise<DBBlogPost[]> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return Array.from(fallbackData.blogPosts.values())
+  }
+
+  try {
+    const posts = await kv.hgetall(KEYS.BLOG_POSTS)
+    return Object.values(posts || {}) as DBBlogPost[]
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return Array.from(fallbackData.blogPosts.values())
+  }
+}
+
+export async function getBlogPost(id: string): Promise<DBBlogPost | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.blogPosts.get(id) || null
+  }
+
+  try {
+    return await kv.hget(KEYS.BLOG_POSTS, id)
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.blogPosts.get(id) || null
+  }
+}
+
+// Creative Guidelines
+export async function getAllCreativeGuidelines(): Promise<DBCreativeGuideline[]> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return Array.from(fallbackData.creativeGuidelines.values()).sort((a, b) => a.order - b.order)
+  }
+
+  try {
+    const guidelines = await kv.hgetall(KEYS.CREATIVE_GUIDELINES)
+    return Object.values(guidelines || {}).sort((a: any, b: any) => a.order - b.order) as DBCreativeGuideline[]
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return Array.from(fallbackData.creativeGuidelines.values()).sort((a, b) => a.order - b.order)
+  }
+}
+
+export async function getCreativeGuideline(id: string): Promise<DBCreativeGuideline | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.creativeGuidelines.get(id) || null
+  }
+
+  try {
+    return await kv.hget(KEYS.CREATIVE_GUIDELINES, id)
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.creativeGuidelines.get(id) || null
+  }
+}
+
+export async function updateSEOKeyword(id: string, updates: Partial<DBSEOKeyword>): Promise<DBSEOKeyword | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingKeyword = fallbackData.seoKeywords.get(id)
+    if (!existingKeyword) return null
+
+    const updatedKeyword: DBSEOKeyword = { ...existingKeyword, ...updates, id, updatedAt: new Date().toISOString() };
+    fallbackData.seoKeywords.set(id, updatedKeyword)
+    return updatedKeyword
+  }
+
+  try {
+    const existingKeyword = await getSEOKeyword(id)
+    if (!existingKeyword) return null
+
+    const updatedKeyword: DBSEOKeyword = { ...existingKeyword, ...updates, id, updatedAt: new Date().toISOString() };
+    await kv.hset(KEYS.SEO_KEYWORDS, { [id]: updatedKeyword });
+    return updatedKeyword;
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingKeyword = fallbackData.seoKeywords.get(id)
+    if (!existingKeyword) return null
+
+    const updatedKeyword: DBSEOKeyword = {
+      ...existingKeyword,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.seoKeywords.set(id, updatedKeyword)
+    return updatedKeyword
+  }
+}
+
+export async function deleteSEOKeyword(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.seoKeywords.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.SEO_KEYWORDS, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.seoKeywords.delete(id)
+  }
+}
+
+// Blog Posts
+export async function getAllBlogPosts(): Promise<DBBlogPost[]> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return Array.from(fallbackData.blogPosts.values())
+  }
+
+  try {
+    const posts = await kv.hgetall(KEYS.BLOG_POSTS)
+    return Object.values(posts || {}) as DBBlogPost[]
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return Array.from(fallbackData.blogPosts.values())
+  }
+}
 // Simplified functions for other entities (using fallback approach)
 export async function createHeroCategory(
   category: Omit<DBHeroCategory, "id" | "createdAt" | "updatedAt">,
@@ -504,5 +986,489 @@ export async function createCreativeGuideline(
     initializeFallbackData()
     fallbackData.creativeGuidelines.set(id, newGuideline)
     return newGuideline
+  }
+}
+
+export async function updatePromoItem(id: string, updates: Partial<DBPromoItem>): Promise<DBPromoItem | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingItem = fallbackData.promoItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBPromoItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.promoItems.set(id, updatedItem)
+    return updatedItem
+  }
+
+  try {
+    const existingItem = await getPromoItem(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBPromoItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    await kv.hset(KEYS.PROMO_FRAMEWORK, { [id]: updatedItem })
+    return updatedItem
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingItem = fallbackData.promoItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBPromoItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.promoItems.set(id, updatedItem)
+    return updatedItem
+  }
+}
+
+export async function updateHeroCategory(id: string, updates: Partial<DBHeroCategory>): Promise<DBHeroCategory | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingCategory = fallbackData.heroCategories.get(id)
+    if (!existingCategory) return null
+
+    const updatedCategory: DBHeroCategory = {
+      ...existingCategory,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.heroCategories.set(id, updatedCategory)
+    return updatedCategory
+  }
+
+  try {
+    const existingCategory = await getHeroCategory(id)
+    if (!existingCategory) return null
+
+    const updatedCategory: DBHeroCategory = { ...existingCategory, ...updates, id, updatedAt: new Date().toISOString() };
+    await kv.hset(KEYS.HERO_CATEGORIES, { [id]: updatedCategory });
+    return updatedCategory;
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingCategory = fallbackData.heroCategories.get(id)
+    if (!existingCategory) return null
+
+    const updatedCategory: DBHeroCategory = {
+      ...existingCategory,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.heroCategories.set(id, updatedCategory)
+    return updatedCategory
+  }
+}
+
+export async function deleteHeroCategory(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.heroCategories.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.HERO_CATEGORIES, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.heroCategories.delete(id)
+  }
+}
+
+export async function updateLaunchItem(id: string, updates: Partial<DBLaunchItem>): Promise<DBLaunchItem | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingItem = fallbackData.launchItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBLaunchItem = { ...existingItem, ...updates, id, updatedAt: new Date().toISOString() };
+    fallbackData.launchItems.set(id, updatedItem)
+    return updatedItem
+  }
+
+  try {
+    const existingItem = await getLaunchItem(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBLaunchItem = { ...existingItem, ...updates, id, updatedAt: new Date().toISOString() };
+    await kv.hset(KEYS.LAUNCH_PIPELINE, { [id]: updatedItem });
+    return updatedItem;
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingItem = fallbackData.launchItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBLaunchItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.launchItems.set(id, updatedItem)
+    return updatedItem
+  }
+}
+
+export async function deleteLaunchItem(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.launchItems.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.LAUNCH_PIPELINE, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.launchItems.delete(id)
+  }
+}
+
+export async function updatePromoItem(id: string, updates: Partial<DBPromoItem>): Promise<DBPromoItem | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingItem = fallbackData.promoItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBPromoItem = { ...existingItem, ...updates, id, updatedAt: new Date().toISOString() };
+    fallbackData.promoItems.set(id, updatedItem)
+    return updatedItem
+  }
+
+  try {
+    const existingItem = await getPromoItem(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBPromoItem = { ...existingItem, ...updates, id, updatedAt: new Date().toISOString() };
+    await kv.hset(KEYS.PROMO_FRAMEWORK, { [id]: updatedItem });
+    return updatedItem;
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingItem = fallbackData.promoItems.get(id)
+    if (!existingItem) return null
+
+    const updatedItem: DBPromoItem = {
+      ...existingItem,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.promoItems.set(id, updatedItem)
+    return updatedItem
+  }
+}
+
+export async function deletePromoItem(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.promoItems.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.PROMO_FRAMEWORK, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.promoItems.delete(id)
+  }
+}
+
+export async function updateChannelStrategy(id: string, updates: Partial<DBChannelStrategy>): Promise<DBChannelStrategy | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingStrategy = fallbackData.channelStrategies.get(id)
+    if (!existingStrategy) return null
+
+    const updatedStrategy: DBChannelStrategy = { ...existingStrategy, ...updates, id, updatedAt: new Date().toISOString() };
+    fallbackData.channelStrategies.set(id, updatedStrategy)
+    return updatedStrategy
+  }
+
+  try {
+    const existingStrategy = await getChannelStrategy(id)
+    if (!existingStrategy) return null
+
+    const updatedStrategy: DBChannelStrategy = { ...existingStrategy, ...updates, id, updatedAt: new Date().toISOString() };
+    await kv.hset(KEYS.CHANNEL_STRATEGIES, { [id]: updatedStrategy });
+    return updatedStrategy;
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingStrategy = fallbackData.channelStrategies.get(id)
+    if (!existingStrategy) return null
+
+    const updatedStrategy: DBChannelStrategy = {
+      ...existingStrategy,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.channelStrategies.set(id, updatedStrategy)
+    return updatedStrategy
+  }
+}
+
+export async function deleteChannelStrategy(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.channelStrategies.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.CHANNEL_STRATEGIES, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.channelStrategies.delete(id)
+  }
+}
+
+export async function updateSEOKeyword(id: string, updates: Partial<DBSEOKeyword>): Promise<DBSEOKeyword | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingKeyword = fallbackData.seoKeywords.get(id)
+    if (!existingKeyword) return null
+
+    const updatedKeyword: DBSEOKeyword = { ...existingKeyword, ...updates, id, updatedAt: new Date().toISOString() };
+    fallbackData.seoKeywords.set(id, updatedKeyword)
+    return updatedKeyword
+  }
+
+  try {
+    const existingKeyword = await getSEOKeyword(id)
+    if (!existingKeyword) return null
+
+    const updatedKeyword: DBSEOKeyword = { ...existingKeyword, ...updates, id, updatedAt: new Date().toISOString() };
+    await kv.hset(KEYS.SEO_KEYWORDS, { [id]: updatedKeyword });
+    return updatedKeyword;
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingKeyword = fallbackData.seoKeywords.get(id)
+    if (!existingKeyword) return null
+
+    const updatedKeyword: DBSEOKeyword = {
+      ...existingKeyword,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.seoKeywords.set(id, updatedKeyword)
+    return updatedKeyword
+  }
+}
+
+export async function deleteSEOKeyword(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.seoKeywords.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.SEO_KEYWORDS, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.seoKeywords.delete(id)
+  }
+}
+
+export async function updateBlogPost(id: string, updates: Partial<DBBlogPost>): Promise<DBBlogPost | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingPost = fallbackData.blogPosts.get(id)
+    if (!existingPost) return null
+
+    const updatedPost: DBBlogPost = { ...existingPost, ...updates, id, updatedAt: new Date().toISOString() };
+    fallbackData.blogPosts.set(id, updatedPost)
+    return updatedPost
+  }
+
+  try {
+    const existingPost = await getBlogPost(id)
+    if (!existingPost) return null
+
+    const updatedPost: DBBlogPost = { ...existingPost, ...updates, id, updatedAt: new Date().toISOString() };
+    await kv.hset(KEYS.BLOG_POSTS, { [id]: updatedPost });
+    return updatedPost;
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingPost = fallbackData.blogPosts.get(id)
+    if (!existingPost) return null
+
+    const updatedPost: DBBlogPost = {
+      ...existingPost,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.blogPosts.set(id, updatedPost)
+    return updatedPost
+  }
+}
+
+export async function deleteBlogPost(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.blogPosts.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.BLOG_POSTS, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.blogPosts.delete(id)
+  }
+}
+
+export async function updateCreativeGuideline(id: string, updates: Partial<DBCreativeGuideline>): Promise<DBCreativeGuideline | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingGuideline = fallbackData.creativeGuidelines.get(id)
+    if (!existingGuideline) return null
+
+    const updatedGuideline: DBCreativeGuideline = { ...existingGuideline, ...updates, id, updatedAt: new Date().toISOString() };
+    fallbackData.creativeGuidelines.set(id, updatedGuideline)
+    return updatedGuideline
+  }
+
+  try {
+    const existingGuideline = await getCreativeGuideline(id)
+    if (!existingGuideline) return null
+
+    const updatedGuideline: DBCreativeGuideline = { ...existingGuideline, ...updates, id, updatedAt: new Date().toISOString() };
+    await kv.hset(KEYS.CREATIVE_GUIDELINES, { [id]: updatedGuideline });
+    return updatedGuideline;
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingGuideline = fallbackData.creativeGuidelines.get(id)
+    if (!existingGuideline) return null
+
+    const updatedGuideline: DBCreativeGuideline = {
+      ...existingGuideline,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.creativeGuidelines.set(id, updatedGuideline)
+    return updatedGuideline
+  }
+}
+
+export async function deleteCreativeGuideline(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.creativeGuidelines.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.CREATIVE_GUIDELINES, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.creativeGuidelines.delete(id)
+  }
+}
+
+export async function updateCreativeGuideline(id: string, updates: Partial<DBCreativeGuideline>): Promise<DBCreativeGuideline | null> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    const existingGuideline = fallbackData.creativeGuidelines.get(id)
+    if (!existingGuideline) return null
+
+    const updatedGuideline: DBCreativeGuideline = {
+      ...existingGuideline,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.creativeGuidelines.set(id, updatedGuideline)
+    return updatedGuideline
+  }
+
+  try {
+    const existingGuideline = await getCreativeGuideline(id)
+    if (!existingGuideline) return null
+
+    const updatedGuideline: DBCreativeGuideline = {
+      ...existingGuideline,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    await kv.hset(KEYS.CREATIVE_GUIDELINES, { [id]: updatedGuideline })
+    return updatedGuideline
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    const existingGuideline = fallbackData.creativeGuidelines.get(id)
+    if (!existingGuideline) return null
+
+    const updatedGuideline: DBCreativeGuideline = {
+      ...existingGuideline,
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString(),
+    }
+    fallbackData.creativeGuidelines.set(id, updatedGuideline)
+    return updatedGuideline
+  }
+}
+
+export async function deleteCreativeGuideline(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.creativeGuidelines.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.CREATIVE_GUIDELINES, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.creativeGuidelines.delete(id)
+  }
+}
+
+export async function deleteHeroCategory(id: string): Promise<boolean> {
+  if (!isKVAvailable()) {
+    initializeFallbackData()
+    return fallbackData.heroCategories.delete(id)
+  }
+
+  try {
+    const result = await kv.hdel(KEYS.HERO_CATEGORIES, id)
+    return result > 0
+  } catch (error) {
+    console.warn("KV error, falling back to in-memory data:", error)
+    initializeFallbackData()
+    return fallbackData.heroCategories.delete(id)
   }
 }

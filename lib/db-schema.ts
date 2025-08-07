@@ -12,6 +12,75 @@ export interface DBPost {
   updatedAt: string
 }
 
+// Hero Category types
+export interface DBHeroCategory {
+  id: string;
+  text: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Launch Item types
+export interface DBLaunchItem {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Promo Item types
+export interface DBPromoItem {
+  id: string;
+  title: string;
+  dates: string;
+  details: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Channel Strategy types
+export interface DBChannelStrategy {
+  id: string;
+  platform: string;
+  points: string[];
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// SEO Keyword types
+export interface DBSEOKeyword {
+  id: string;
+  text: string;
+  type: string; // You might want to make this more specific like 'primary' | 'longTail'
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Blog Post types
+export interface DBBlogPost {
+  id: string;
+  date: string;
+  title: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Creative Guideline types
+export interface DBCreativeGuideline {
+  id: string;
+  text: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Product types
 export interface DBProduct {
   id: string

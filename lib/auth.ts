@@ -13,8 +13,27 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async session({ session, token }) {
-      return session
+      const adminEmails = ['admin@example.com', 'anotheradmin@example.com']; // Define your admin emails here
+      if (session.user && session.user.email && adminEmails.includes(session.user.email)) {
+        (session.user as any).role = 'admin'; // Add role to session user
+      } else if (session.user) {
+        (session.user as any).role = 'user'; // Optional: set role to 'user' for non-admins
+      }
+      return session;
     },
+    async jwt({ token, user }) {
+      // You might want to add role to the token as well if needed
+      if (user) {
+        const adminEmails = ['admin@example.com', 'anotheradmin@example.com']; // Define your admin emails here
+        if (adminEmails.includes(user.email)) {
+          (token as any).role = 'admin';
+        } else {
+          (token as any).role = 'user';
+        }
+      }
+      return token;
+    },
+  },  
     async jwt({ token, user }) {
       return token
     },
