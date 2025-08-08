@@ -37,8 +37,8 @@ export function ContactSection() {
             Get in Touch
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Have a question or need a quote? Our team is ready to help. 
-            Visit our showroom or send us a message below.
+            Ready to create your custom cushions? Have questions about fabrics or sizing? 
+            We're here to help bring your vision to life.
           </p>
         </div>
 
@@ -160,7 +160,7 @@ export function ContactSection() {
                       rows={6}
                       value={formData.message}
                       onChange={handleChange}
-                      placeholder="Tell us about your project or any questions you have..."
+                      placeholder="Tell us about your cushion project - dimensions, fabric preferences, or any special requirements..."
                     />
                   </div>
                   

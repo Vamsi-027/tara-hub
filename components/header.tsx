@@ -18,7 +18,7 @@ export function Header() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="text-2xl font-bold text-gray-900">
-              Hearth & Home Fabrics
+              The Hearth & Home Store
             </Link>
           </div>
 
@@ -39,7 +39,7 @@ export function Header() {
           <div className="hidden md:flex items-center space-x-4">
             <Link href={config.etsyFabricListingUrl} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm">
-                Request Samples
+                Start Your Custom Order
               </Button>
             </Link>
           </div>
@@ -73,7 +73,7 @@ export function Header() {
                   <div className="flex flex-col space-y-2 pt-4 border-t">
                     <Link href={config.etsyFabricListingUrl} target="_blank" rel="noopener noreferrer" className="w-full">
                       <Button variant="outline" className="w-full">
-                        Request Samples
+                        Start Your Custom Order
                       </Button>
                     </Link>
                   </div>

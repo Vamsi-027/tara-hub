@@ -15,11 +15,11 @@ export function FeaturedFabrics() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Featured Fabrics
+            Choose Your Perfect Fabric
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore our handpicked selection of premium fabrics, chosen for their exceptional quality, 
-            unique character, and versatile applications.
+            Browse our curated collection of over 100 premium fabrics. Each one carefully selected 
+            for durability, beauty, and comfort - perfect for your custom cushions and pillows.
           </p>
         </div>
 

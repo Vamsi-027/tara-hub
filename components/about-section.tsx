@@ -1,27 +1,27 @@
 import Image from 'next/image'
-import { ShieldCheck, Wrench, Users, CalendarClock } from 'lucide-react'
+import { Heart, Palette, Home, Star } from 'lucide-react'
 
 export function AboutSection() {
   const features = [
     {
-      icon: ShieldCheck,
-      title: "Quality Products",
-      description: "We carry the most trusted brands in the industry."
+      icon: Palette,
+      title: "100% Customizable",
+      description: "No limit to your creativity - every detail is yours to choose."
     },
     {
-      icon: Wrench,
-      title: "Expert Installation",
-      description: "Our certified technicians ensure a safe and perfect setup."
+      icon: Home,
+      title: "Made in USA",
+      description: "Handcrafted with pride in Missouri by skilled artisans."
     },
     {
-      icon: Users,
+      icon: Heart,
       title: "Family-Owned",
-      description: "Proudly serving our community with a personal touch."
+      description: "Personal service with warmth and attention to detail."
     },
     {
-      icon: CalendarClock,
-      title: "40+ Years of Experience",
-      description: "Decades of expertise in home heating solutions."
+      icon: Star,
+      title: "Featured on NBC TODAY",
+      description: "Recognized by Good Housekeeping Institute."
     }
   ]
 
@@ -31,13 +31,13 @@ export function AboutSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Your Home for Warmth & Comfort for Over 40 Years
+              Together We'll Unleash Your Inner Designer
             </h2>
             <p className="text-lg text-gray-600 mb-6">
-              The Hearth and Home Store is a family-owned and operated business dedicated to bringing warmth, comfort, and style to your home. For decades, we've been the trusted local source for high-quality fireplaces, stoves, and inserts.
+              The Hearth and Home Store is your destination for custom cushions and pillows that transform any space into your personal sanctuary. With over 100 premium fabrics to choose from, we bring your vision to life with unmatched quality and care.
             </p>
             <p className="text-lg text-gray-600 mb-8">
-              Our commitment is to provide you with superior products, expert installation, and unmatched customer service. Whether you're building a new home or upgrading your current space, our knowledgeable team is here to help you find the perfect solution.
+              From unique shapes to personalized monograms, every piece is handcrafted in the USA with meticulous attention to detail. Whether you're refreshing your living room, creating an outdoor oasis, or protecting little ones with our innovative Jack-Mat hearth cushions, we make comfort beautiful.
             </p>
             
             <div className="grid grid-cols-2 gap-6">
