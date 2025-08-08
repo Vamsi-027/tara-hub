@@ -1,4 +1,4 @@
-import { Pencil, Fabric, Package, Heart } from 'lucide-react'
+import { Pencil, Palette, Package, Heart } from 'lucide-react'
 
 export function CustomProcessSection() {
   const steps = [
@@ -8,7 +8,7 @@ export function CustomProcessSection() {
       description: "Share your measurements, style preferences, and any special requirements. No shape is too unique!"
     },
     {
-      icon: Fabric,
+      icon: Palette,
       title: "Select Your Fabric",
       description: "Choose from over 100 premium fabrics - indoor, outdoor, patterns, solids, and textures galore."
     },
