@@ -3,6 +3,7 @@
 import * as React from "react"
 import { BarChart3, Calendar, FileText, Home, Package, Palette, Target } from 'lucide-react'
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -17,11 +18,6 @@ import {
 
 // This is sample data.
 const data = {
-  user: {
-    name: "Social Media Manager",
-    email: "manager@hearthome.com",
-    avatar: "/placeholder-user.jpg",
-  },
   teams: [
     {
       name: "Hearth & Home",
@@ -32,39 +28,47 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/",
+      url: "/admin",
       icon: Home,
       isActive: true,
     },
     {
       title: "Calendar",
-      url: "/calendar",
+      url: "/admin/calendar",
       icon: Calendar,
     },
     {
       title: "Posts",
-      url: "/posts",
+      url: "/admin/posts",
       icon: FileText,
     },
     {
       title: "Strategy",
-      url: "/strategy",
+      url: "/admin/strategy",
       icon: Target,
     },
     {
       title: "Products & Promos",
-      url: "/products",
+      url: "/admin/products",
       icon: Package,
     },
     {
       title: "Fabrics",
-      url: "/fabrics",
+      url: "/admin/fabrics",
       icon: Palette,
     },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = useSession()
+  
+  const user = {
+    name: session?.user?.name || "Admin",
+    email: session?.user?.email || "admin@tarahub.com",
+    avatar: session?.user?.image || "/placeholder-user.jpg",
+  }
+  
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -74,7 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

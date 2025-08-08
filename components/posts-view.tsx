@@ -8,6 +8,7 @@ import { usePosts } from "@/hooks/use-posts"
 import type { DBPost } from "@/lib/db-schema"
 import { PostModal } from "@/components/post-modal"
 import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/empty-state"
 
 export function PostsView() {
   const [channelFilter, setChannelFilter] = useState("All")
@@ -182,6 +183,15 @@ export function PostsView() {
               </CardContent>
             </Card>
           ))
+        ) : posts.length === 0 ? (
+          <EmptyState 
+            type="posts"
+            onAction={() => {
+              // This could trigger the post creation modal
+              setSelectedPost(null)
+              setIsModalOpen(true)
+            }}
+          />
         ) : (
           <Card>
             <CardContent className="p-12 text-center">

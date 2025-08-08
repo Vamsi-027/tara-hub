@@ -37,5 +37,33 @@ export default function AdminPage() {
     )
   }
 
+  // Check if user has admin role
+  if ((session.user as any)?.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-red-600">Access Denied</CardTitle>
+            <p className="text-gray-600 mt-2">
+              You don't have permission to access the admin dashboard.
+            </p>
+            <p className="text-sm text-gray-500 mt-4">
+              Logged in as: {session.user?.email}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={() => signIn('google')}
+              variant="outline"
+              className="w-full"
+            >
+              Sign in with Different Account
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return <AdminDashboard />
 }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { config } from '@/lib/config'
 
 export function HeroSection() {
   return (
@@ -33,9 +34,11 @@ export function HeroSection() {
                 Browse Collection
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-gray-900">
-              Request Samples
-            </Button>
+            <Link href={config.etsyFabricListingUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 bg-amber-500 text-white border-amber-500 hover:bg-amber-600 hover:border-amber-600">
+                Request Samples
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

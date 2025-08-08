@@ -12,6 +12,7 @@ import { PostModal } from "@/components/post-modal"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
 import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/empty-state"
 
 const COLORS = ["#fde68a", "#c4b5fd", "#93c5fd", "#6ee7b7", "#fca5a5", "#a5f3fc"]
 
@@ -165,6 +166,39 @@ export function CalendarView() {
           <h1 className="text-3xl font-bold tracking-tight">Interactive Content Calendar</h1>
           <p className="text-destructive">Error loading calendar: {error}</p>
         </div>
+      </div>
+    )
+  }
+
+  // Check if posts array is empty
+  if (!loading && posts.length === 0) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Interactive Content Calendar</h1>
+          <p className="text-muted-foreground">
+            Here is the day-by-day content plan for August. Click on any day with a colored background to see the detailed
+            post plan. Use the filters to narrow your view by channel or to highlight posts slated for paid promotion.
+          </p>
+        </div>
+        
+        <EmptyState 
+          type="calendar"
+          onAction={() => {
+            setSelectedPost(null)
+            setModalMode("create")
+            setIsModalOpen(true)
+          }}
+        />
+        
+        <PostModal
+          post={selectedPost}
+          mode={modalMode}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSavePost}
+          onDelete={handleDeletePost}
+        />
       </div>
     )
   }

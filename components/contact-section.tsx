@@ -65,7 +65,7 @@ export function ContactSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <a href="tel:7319684328" className="text-gray-600 hover:text-amber-700">(731) 968-4328</a>
+                <a href="tel:6363375200" className="text-gray-600 hover:text-amber-700">(636) 337-5200</a>
               </CardContent>
             </Card>
 
@@ -77,8 +77,8 @@ export function ContactSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">554 W. Church St.</p>
-                <p className="text-gray-600">Lexington, TN 38351</p>
+                <p className="text-gray-600">116 Easton St.</p>
+                <p className="text-gray-600">DeSoto, MO 63020</p>
               </CardContent>
             </Card>
 

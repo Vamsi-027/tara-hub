@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, Sparkles } from "lucide-react"
 import { useStrategy } from "@/hooks/use-strategy"
 import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/empty-state"
 
 export function StrategyView() {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -68,6 +69,37 @@ export function StrategyView() {
           <h1 className="text-3xl font-bold tracking-tight">Strategy Hub</h1>
           <p className="text-destructive">Error loading strategy data: {error}</p>
         </div>
+      </div>
+    )
+  }
+
+  // Check if data is empty
+  const isEmpty = !loading && (!data || (
+    (!data.channels || data.channels.length === 0) &&
+    (!data.seoKeywords || data.seoKeywords.length === 0) &&
+    (!data.blogPosts || data.blogPosts.length === 0) &&
+    (!data.creativeGuidelines || data.creativeGuidelines.length === 0)
+  ))
+
+  if (isEmpty) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Strategy Hub</h1>
+          <p className="text-muted-foreground">
+            This section contains the high-level strategic frameworks guiding this month's activities. Explore the
+            channel-specific plans, SEO keywords, and creative guidelines that define the brand's voice and market
+            approach.
+          </p>
+        </div>
+        
+        <EmptyState 
+          type="strategy"
+          onAction={() => {
+            // This could trigger a modal or navigation to a strategy setup page
+            console.log("Define strategy clicked")
+          }}
+        />
       </div>
     )
   }

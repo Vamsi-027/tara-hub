@@ -141,11 +141,24 @@ const initializeFallbackData = () => {
 // --- Post Functions ---
 
 export async function createPost(postData: Omit<Post, 'id'>): Promise<Post> {
-  const id = generateUUID()
-  const post: Post = { id, ...postData }
-  await kv.hset(`post:${id}`, post)
-  await kv.zadd('posts_by_date', { score: Date.now(), member: id })
-  return post
+  if (!isKVAvailable()) {
+    // Return mock post when KV is not available
+    const id = generateUUID()
+    const post: Post = { id, ...postData }
+    console.log('KV not available, returning mock post:', post)
+    return post
+  }
+  
+  try {
+    const id = generateUUID()
+    const post: Post = { id, ...postData }
+    await kv.hset(`post:${id}`, post)
+    await kv.zadd('posts_by_date', { score: Date.now(), member: id })
+    return post
+  } catch (error) {
+    console.error('Error creating post in KV:', error)
+    throw error
+  }
 }
 
 export async function getPost(id: string): Promise<Post | null> {
@@ -153,13 +166,23 @@ export async function getPost(id: string): Promise<Post | null> {
 }
 
 export async function getAllPosts(): Promise<Post[]> {
-  const postIds = await kv.zrange('posts_by_date', 0, -1, { rev: true })
-  if (postIds.length === 0) return []
+  if (!isKVAvailable()) {
+    // Return empty array when KV is not available
+    return []
+  }
+  
+  try {
+    const postIds = await kv.zrange('posts_by_date', 0, -1, { rev: true })
+    if (postIds.length === 0) return []
 
-  const pipeline = kv.pipeline()
-  postIds.forEach(id => pipeline.hgetall(`post:${id}`))
-  const results = (await pipeline.exec()) as Post[]
-  return results.filter(Boolean)
+    const pipeline = kv.pipeline()
+    postIds.forEach(id => pipeline.hgetall(`post:${id}`))
+    const results = (await pipeline.exec()) as Post[]
+    return results.filter(Boolean)
+  } catch (error) {
+    console.error('Error fetching posts from KV:', error)
+    return []
+  }
 }
 
 export async function updatePost(id: string, postData: Partial<Post>): Promise<Post | null> {
@@ -181,18 +204,39 @@ async function createItem<T>(
   itemData: Omit<T, 'id'>,
   keyPrefix: string
 ): Promise<T> {
-  const id = generateUUID()
-  const item = { id, ...itemData } as T
-  await kv.hset(`${keyPrefix}:${id}`, item)
-  return item
+  if (!isKVAvailable()) {
+    const id = generateUUID()
+    const item = { id, ...itemData } as T
+    console.log(`KV not available, returning mock ${keyPrefix}:`, item)
+    return item
+  }
+  
+  try {
+    const id = generateUUID()
+    const item = { id, ...itemData } as T
+    await kv.hset(`${keyPrefix}:${id}`, item)
+    return item
+  } catch (error) {
+    console.error(`Error creating ${keyPrefix} in KV:`, error)
+    throw error
+  }
 }
 
 async function getAllItems<T>(keyPrefix: string): Promise<T[]> {
-    const keys = await kv.keys(`${keyPrefix}:*`)
-    if (keys.length === 0) return []
-    const pipeline = kv.pipeline()
-    keys.forEach(key => pipeline.hgetall(key))
-    return (await pipeline.exec()) as T[]
+    if (!isKVAvailable()) {
+      return []
+    }
+    
+    try {
+      const keys = await kv.keys(`${keyPrefix}:*`)
+      if (keys.length === 0) return []
+      const pipeline = kv.pipeline()
+      keys.forEach(key => pipeline.hgetall(key))
+      return (await pipeline.exec()) as T[]
+    } catch (error) {
+      console.error(`Error fetching ${keyPrefix} from KV:`, error)
+      return []
+    }
 }
 
 // --- HeroCategory Functions ---

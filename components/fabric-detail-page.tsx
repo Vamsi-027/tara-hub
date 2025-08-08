@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Download, Share2, Heart } from 'lucide-react'
+import { ArrowLeft, Download, Share2, Heart, ShoppingCart, ExternalLink } from 'lucide-react'
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { config } from "@/lib/config"
 import type { Fabric } from "@/lib/types"
 
 interface FabricDetailPageProps {
@@ -123,11 +124,39 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
               </CardContent>
             </Card>
 
+            {/* Pricing */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-baseline justify-between mb-4">
+                  <div>
+                    <span className="text-sm text-gray-500">Price per yard</span>
+                    <p className="text-3xl font-bold text-gray-900">${fabric.pricePerYard}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm text-gray-500">Minimum Order</span>
+                    <p className="text-lg font-medium">{fabric.minimumOrder} yards</p>
+                  </div>
+                </div>
+                {fabric.leadTime && (
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Lead Time:</span> {fabric.leadTime}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Action Buttons */}
             <div className="space-y-3">
+              <Link href={config.etsyFabricListingUrl} target="_blank" rel="noopener noreferrer" className="w-full">
+                <Button className="w-full flex items-center justify-center bg-amber-600 hover:bg-amber-700" size="lg">
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Buy on Etsy
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
               <Button variant="outline" className="w-full flex items-center" size="lg">
                 <Download className="w-4 h-4 mr-2" />
-                Spec Sheet
+                Download Spec Sheet
               </Button>
             </div>
 

@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
+import { ExternalLink, ShoppingCart } from 'lucide-react'
 import { Fabric } from "@/lib/fabric-seed-data"
+import { config } from "@/lib/config"
 
 interface FabricCardProps {
   fabric: Fabric;
@@ -24,11 +26,14 @@ export function FabricCard({ fabric }: FabricCardProps) {
         />
       </div>
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
+        <div className="mb-2">
           <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">{fabric.name}</h3>
-          <Badge variant={fabric.inStock ? "default" : "secondary"} className="ml-2 flex-shrink-0">
-            {fabric.inStock ? "In Stock" : "MTO"}
-          </Badge>
+          <div className="flex items-center justify-between mt-1">
+            <span className="text-lg font-bold text-gray-900">${fabric.pricePerYard}/yd</span>
+            <Badge variant={fabric.inStock ? "default" : "secondary"} className="ml-2 flex-shrink-0">
+              {fabric.inStock ? "In Stock" : "MTO"}
+            </Badge>
+          </div>
         </div>
 
         <p className="text-gray-600 text-sm mb-3 line-clamp-2">{fabric.description}</p>
@@ -53,7 +58,13 @@ export function FabricCard({ fabric }: FabricCardProps) {
           <Link href={`/fabric/${fabric.id}`}>
             <Button className="w-full" size="sm">View Details</Button>
           </Link>
-          <Button variant="outline" className="w-full" size="sm">Request Sample</Button>
+          <Link href={config.etsyFabricListingUrl} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" className="w-full bg-amber-50 hover:bg-amber-100 border-amber-300" size="sm">
+              <ShoppingCart className="w-3 h-3 mr-1" />
+              Shop on Etsy
+              <ExternalLink className="w-3 h-3 ml-1" />
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

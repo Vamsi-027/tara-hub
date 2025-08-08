@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Menu, X } from 'lucide-react'
 import { mainNavigation } from '@/lib/navigation' // Import mainNavigation
+import { config } from '@/lib/config'
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -36,12 +37,11 @@ export function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              Request Samples
-            </Button>
-            <Button size="sm">
-              Trade Program
-            </Button>
+            <Link href={config.etsyFabricListingUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm">
+                Request Samples
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -71,12 +71,11 @@ export function Header() {
                     ))}
                   </nav>
                   <div className="flex flex-col space-y-2 pt-4 border-t">
-                    <Button variant="outline" className="w-full">
-                      Request Samples
-                    </Button>
-                    <Button className="w-full">
-                      Trade Program
-                    </Button>
+                    <Link href={config.etsyFabricListingUrl} target="_blank" rel="noopener noreferrer" className="w-full">
+                      <Button variant="outline" className="w-full">
+                        Request Samples
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </SheetContent>

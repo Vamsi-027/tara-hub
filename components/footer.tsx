@@ -50,7 +50,7 @@ export function Footer() {
             <div className="space-y-2 text-sm">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-gray-400" />
-                <a href="tel:7319684328" className="text-gray-300 hover:text-white">(731) 968-4328</a>
+                <a href="tel:6363375200" className="text-gray-300 hover:text-white">(636) 337-5200</a>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-gray-400" />
@@ -58,7 +58,7 @@ export function Footer() {
               </div>
               <div className="flex items-start space-x-2">
                 <MapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
-                <span className="text-gray-300">554 W. Church St., Lexington, TN 38351</span>
+                <span className="text-gray-300">116 Easton St., DeSoto, MO 63020</span>
               </div>
             </div>
           </div>

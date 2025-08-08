@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Luxury Fabrics - Premium Textile Showcase",
   description: "Discover our curated collection of premium fabrics for interior design and upholstery projects.",
-    generator: 'v0.dev'
+    generator: 'Heart & Homes'
 }
 
 export default function RootLayout({

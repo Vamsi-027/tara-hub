@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useProducts } from "@/hooks/use-products"
 import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/empty-state"
 
 export function ProductsView() {
   const { data, loading, error } = useProducts()
@@ -14,6 +15,35 @@ export function ProductsView() {
           <h1 className="text-3xl font-bold tracking-tight">Products, Promos & Launches</h1>
           <p className="text-destructive">Error loading products data: {error}</p>
         </div>
+      </div>
+    )
+  }
+
+  // Check if data is empty
+  const isEmpty = !loading && (!data || (
+    (!data.heroCategories || data.heroCategories.length === 0) &&
+    (!data.launchPipeline || data.launchPipeline.length === 0) &&
+    (!data.promoFramework || data.promoFramework.length === 0)
+  ))
+
+  if (isEmpty) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Products, Promos & Launches</h1>
+          <p className="text-muted-foreground">
+            This section details the merchandising strategy for August, including the hero product categories to focus on,
+            the pipeline for new collection launches, and the promotional framework designed to drive sales.
+          </p>
+        </div>
+        
+        <EmptyState 
+          type="products"
+          onAction={() => {
+            // This could trigger a modal or navigation to a setup page
+            console.log("Create product strategy clicked")
+          }}
+        />
       </div>
     )
   }
