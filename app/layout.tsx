@@ -2,14 +2,13 @@ import type { Metadata } from "next"
 import { Inter } from 'next/font/google'
 import "./globals.css"
 import { Providers } from "@/components/providers"
-import { SidebarProvider } from "@/components/ui/sidebar"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Luxury Fabrics - Premium Textile Showcase",
-  description: "Discover our curated collection of premium fabrics for interior design and upholstery projects.",
-    generator: 'Heart & Homes'
+  title: "The Hearth & Home Store - Custom Cushions & Pillows",
+  description: "100% customizable cushions and pillows, handcrafted in the USA. Choose from over 100 premium fabrics. Family-owned since Missouri.",
+  generator: 'The Hearth & Home Store'
 }
 
 export default function RootLayout({
@@ -20,10 +19,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
- <Providers>
- <SidebarProvider>
+        <Providers>
           {children}
- </SidebarProvider>
         </Providers>
       </body>
     </html>

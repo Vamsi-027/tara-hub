@@ -8,9 +8,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">The Hearth and Home Store</h3>
+            <h3 className="text-xl font-bold">The Hearth & Home Store</h3>
             <p className="text-gray-300 text-sm">
-              Your one-stop shop for fireplaces, stoves, inserts, and outdoor living products.
+              Custom cushions and pillows handcrafted in the USA. 100% customizable with over 100 fabric choices.
             </p>
             <div className="flex space-x-4">
               <a href="https://www.facebook.com/thehearthandhomestore/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
@@ -26,21 +26,21 @@ export function Footer() {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Quick Links</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/products" className="text-gray-300 hover:text-white">Products</Link></li>
+              <li><Link href="/fabrics" className="text-gray-300 hover:text-white">Fabric Collection</Link></li>
               <li><Link href="#about" className="text-gray-300 hover:text-white">About Us</Link></li>
               <li><Link href="#contact" className="text-gray-300 hover:text-white">Contact</Link></li>
-              <li><Link href="/services" className="text-gray-300 hover:text-white">Our Services</Link></li>
+              <li><Link href="/#process" className="text-gray-300 hover:text-white">How It Works</Link></li>
             </ul>
           </div>
 
           {/* Services */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Services</h4>
+            <h4 className="text-lg font-semibold">Our Products</h4>
             <ul className="space-y-2 text-sm">
-              <li className="text-gray-300">Fireplace & Stove Sales</li>
-              <li className="text-gray-300">Expert Installation</li>
-              <li className="text-gray-300">Maintenance & Repair</li>
-              <li className="text-gray-300">Chimney Services</li>
+              <li className="text-gray-300">Custom Cushions</li>
+              <li className="text-gray-300">Custom Pillows</li>
+              <li className="text-gray-300">Jack-Mat Hearth Safety</li>
+              <li className="text-gray-300">Monogrammed Pillows</li>
             </ul>
           </div>
 
@@ -66,7 +66,7 @@ export function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 The Hearth and Home Store. All rights reserved.
+            © 2024 The Hearth & Home Store. All rights reserved.
           </p>
         </div>
       </div>
