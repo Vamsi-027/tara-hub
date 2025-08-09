@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { config } from '@/lib/config'
+import { Award, Star, Shield, Users } from 'lucide-react'
 
 export function HeroSection() {
   return (
@@ -18,15 +20,49 @@ export function HeroSection() {
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
         <div className="max-w-3xl">
+          {/* Trust Badges */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            <Badge className="bg-amber-500/20 text-amber-200 border-amber-400 px-3 py-1">
+              <Award className="w-4 h-4 mr-2" />
+              Featured on NBC TODAY Show
+            </Badge>
+            <Badge className="bg-amber-500/20 text-amber-200 border-amber-400 px-3 py-1">
+              <Shield className="w-4 h-4 mr-2" />
+              Good Housekeeping Approved
+            </Badge>
+            <Badge className="bg-amber-500/20 text-amber-200 border-amber-400 px-3 py-1">
+              <Users className="w-4 h-4 mr-2" />
+              40+ Years Family-Owned
+            </Badge>
+          </div>
+
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
             Custom Cushions & Pillows
             <span className="block text-amber-400">Made Just for You</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-300 mb-6 leading-relaxed">
             Unleash your inner designer with 100% customizable cushions and pillows. 
-            Family-owned, made in USA, with over 100 fabric choices.
+            Handcrafted in Missouri with over 100 premium fabric choices.
           </p>
+
+          {/* Social Proof */}
+          <div className="flex items-center gap-6 mb-8">
+            <div className="flex items-center">
+              <div className="flex -space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <span className="ml-2 text-amber-200">4.9/5</span>
+            </div>
+            <div className="text-gray-300">
+              <span className="font-semibold text-white">2,500+</span> Happy Customers
+            </div>
+            <div className="text-gray-300">
+              <span className="font-semibold text-white">USA</span> Made
+            </div>
+          </div>
           
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/fabrics">
