@@ -13,7 +13,14 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(cat:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:thehearthandhomestore.com)",
+      "WebFetch(domain:www.etsy.com)",
+      "WebFetch(domain:www.pinterest.com)",
+      "WebFetch(domain:www.instagram.com)",
+      "WebFetch(domain:www.facebook.com)",
+      "Bash(npx shadcn@latest add:*)"
     ],
     "deny": []
   }
