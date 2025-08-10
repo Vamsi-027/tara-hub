@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { getBlogPost, getRelatedPosts, blogPosts } from '@/lib/blog-data'
+import { BlogEtsyProducts } from '@/components/blog-etsy-products'
 
 interface BlogPostPageProps {
   params: {
@@ -162,6 +163,9 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             className="prose prose-lg max-w-none"
             dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
           />
+
+          {/* Etsy Products Section */}
+          <BlogEtsyProducts />
 
           {/* Tags */}
           <div className="mt-12 pt-8 border-t">

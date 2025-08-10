@@ -6,6 +6,7 @@ import { TestimonialsSection } from "@/components/testimonials-section"
 import { CustomProcessSection } from "@/components/custom-process-section"
 import { FeaturedFabrics } from "@/components/featured-fabrics"
 import { BlogPreview } from "@/components/blog-preview"
+import { EtsyFeaturedProducts } from "@/components/etsy-featured-products"
 import { ContactSection } from "@/components/contact-section"
 import { Footer } from "@/components/footer"
 
@@ -51,6 +52,7 @@ export default function HomePage() {
       <TestimonialsSection />
       <CustomProcessSection />
       <FeaturedFabrics />
+      <EtsyFeaturedProducts />
       <BlogPreview />
       <ContactSection />
       <Footer />

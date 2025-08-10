@@ -21,7 +21,8 @@
       "WebFetch(domain:www.instagram.com)",
       "WebFetch(domain:www.facebook.com)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }
