@@ -20,7 +20,8 @@
       "WebFetch(domain:www.pinterest.com)",
       "WebFetch(domain:www.instagram.com)",
       "WebFetch(domain:www.facebook.com)",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

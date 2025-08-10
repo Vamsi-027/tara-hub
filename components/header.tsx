@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Menu, X } from 'lucide-react'
@@ -14,11 +15,21 @@ export function Header() {
   return (
     <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20 lg:h-24">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-gray-900">
-              The Hearth & Home Store
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/logo.png"
+                alt="The Hearth & Home Store"
+                width={60}
+                height={60}
+                className="lg:w-20 lg:h-20"
+                priority
+              />
+              <span className="ml-3 text-xl lg:text-2xl font-bold text-gray-900 hidden sm:block">
+                The Hearth & Home Store
+              </span>
             </Link>
           </div>
 

@@ -21,7 +21,7 @@ const data = {
   teams: [
     {
       name: "Hearth & Home",
-      logo: "/placeholder-logo.svg",
+      logo: "/logo.png",
       plan: "August 2025 Plan",
     },
   ],

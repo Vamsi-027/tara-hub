@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Facebook, Instagram, Mail, Phone, MapPin } from 'lucide-react'
 
 export function Footer() {
@@ -8,7 +9,16 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">The Hearth & Home Store</h3>
+            <div className="flex items-center space-x-3">
+              <Image
+                src="/logo.png"
+                alt="The Hearth & Home Store"
+                width={40}
+                height={40}
+                className="rounded-full bg-white p-1"
+              />
+              <h3 className="text-xl font-bold">The Hearth & Home Store</h3>
+            </div>
             <p className="text-gray-300 text-sm">
               Custom cushions and pillows handcrafted in the USA. 100% customizable with over 100 fabric choices.
             </p>
