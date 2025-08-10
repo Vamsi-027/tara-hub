@@ -12,6 +12,7 @@ import Image from "next/image"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { FabricCard } from "@/components/fabric-card"
 import type { Fabric } from "@/lib/types"
+import { fabricSeedData } from "@/lib/fabric-seed-data"
 
 interface FabricsListingPageProps {
   initialFabrics?: Fabric[]
@@ -24,7 +25,7 @@ interface FabricsListingPageProps {
 export function FabricsListingPage({ 
   initialFabrics, 
   initialFilters 
-}: FabricsListingPageProps) {
+}: FabricsListingPageProps = {}) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -33,19 +34,28 @@ export function FabricsListingPage({
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "all")
   const [colorFilter, setColorFilter] = useState(searchParams.get('color') || "all")
   const [stockFilter, setStockFilter] = useState(searchParams.get('stock') || "all")
-  const [fabrics, setFabrics] = useState(initialFabrics || [])
+  const [fabrics, setFabrics] = useState(initialFabrics || fabricSeedData)
 
   // Use initial filters if provided, otherwise derive from fabrics
   const categories = initialFilters?.categories || Array.from(new Set(fabrics.map(fabric => fabric.category)))
   const colors = initialFilters?.colors || Array.from(new Set(fabrics.map(fabric => fabric.color)))
 
-  // Fetch fabrics if not provided (for client-side navigation)
+  // Fetch fabrics from API if available (optional enhancement)
   useEffect(() => {
-    if (!initialFabrics) {
+    // Only fetch if we want to get latest data from KV
+    // For now, we'll use seed data for stability
+    if (false && !initialFabrics) {
       fetch('/api/fabrics')
         .then(res => res.json())
-        .then(data => setFabrics(data))
-        .catch(err => console.error('Error fetching fabrics:', err))
+        .then(data => {
+          if (data && data.length > 0) {
+            setFabrics(data)
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching fabrics:', err)
+          // Keep using seed data on error
+        })
     }
   }, [])
 

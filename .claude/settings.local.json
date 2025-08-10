@@ -22,7 +22,8 @@
       "WebFetch(domain:www.facebook.com)",
       "Bash(npx shadcn@latest add:*)",
       "Bash(cp:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:tara-hub.vercel.app)"
     ],
     "deny": []
   }
