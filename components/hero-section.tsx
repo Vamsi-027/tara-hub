@@ -37,13 +37,13 @@ export function HeroSection() {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-            Custom Cushions & Pillows
-            <span className="block text-amber-400">Made Just for You</span>
+            <span className="text-2xl md:text-3xl font-medium text-gray-100 block mb-2">Hearth & Home</span>
+            <span className="text-5xl md:text-7xl font-bold text-white block">Fabric Info</span>
           </h1>
           
           <p className="text-xl md:text-2xl text-gray-300 mb-6 leading-relaxed">
-            Unleash your inner designer with 100% customizable cushions and pillows. 
-            Handcrafted in Missouri with over 100 premium fabric choices.
+            Discover our curated collection of 100+ premium fabrics for custom cushions and pillows. 
+            Expert guidance to help you choose the perfect fabric for your project.
           </p>
 
           {/* Social Proof */}
