@@ -57,8 +57,8 @@ export function AboutSection() {
           
           <div className="relative h-80 lg:h-full">
             <Image
-              src="/cozy-fireplace.png"
-              alt="A cozy living room with a modern fireplace"
+              src="/luxury-fabric-showroom.png"
+              alt="Luxury fabric showroom"
               fill
               style={{objectFit: 'cover'}}
               className="rounded-lg shadow-lg"

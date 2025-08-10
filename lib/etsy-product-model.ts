@@ -1,4 +1,10 @@
 import { kv } from '@vercel/kv'
+import { memoryStore } from './memory-store'
+
+// Check if KV is available
+const isKVAvailable = () => {
+  return process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+}
 
 export interface EtsyProduct {
   id: string
@@ -67,13 +73,23 @@ export class EtsyProductModel {
   }
 
   static async findAll(): Promise<EtsyProduct[]> {
-    const ids = await kv.smembers(this.INDEX_PREFIX) || []
-    const products = await Promise.all(
-      ids.map(id => this.findById(id as string))
-    )
+    if (!isKVAvailable()) {
+      // Return empty array when KV is not available
+      return []
+    }
     
-    return products
-      .filter(p => p !== null) as EtsyProduct[]
+    try {
+      const ids = await kv.smembers(this.INDEX_PREFIX) || []
+      const products = await Promise.all(
+        ids.map(id => this.findById(id as string))
+      )
+      
+      return products
+        .filter(p => p !== null) as EtsyProduct[]
+    } catch (error) {
+      console.error('Error fetching Etsy products:', error)
+      return []
+    }
   }
 
   static async findFeatured(): Promise<EtsyProduct[]> {

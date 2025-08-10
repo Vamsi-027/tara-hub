@@ -31,9 +31,16 @@ export function EtsyFeaturedProducts() {
     try {
       const response = await fetch('/api/etsy-products?featured=true')
       const data = await response.json()
-      setProducts(data)
+      // Ensure data is an array before setting it
+      if (Array.isArray(data)) {
+        setProducts(data)
+      } else {
+        console.log('No featured products available')
+        setProducts([])
+      }
     } catch (error) {
       console.error('Error fetching featured products:', error)
+      setProducts([])
     } finally {
       setLoading(false)
     }
@@ -61,7 +68,7 @@ export function EtsyFeaturedProducts() {
     )
   }
 
-  if (products.length === 0) {
+  if (!products || products.length === 0) {
     return null
   }
 
