@@ -61,15 +61,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const success = await deletePost(params.id)
-
-    if (!success) {
+    // Check if post exists first
+    const post = await getPost(params.id)
+    if (!post) {
       const response: APIResponse<null> = {
         success: false,
         error: "Post not found",
       }
       return NextResponse.json(response, { status: 404 })
     }
+
+    // Delete the post
+    await deletePost(params.id)
 
     const response: APIResponse<null> = {
       success: true,

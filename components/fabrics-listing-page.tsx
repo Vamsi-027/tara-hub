@@ -6,14 +6,25 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { fabricSeedData } from "@/lib/fabric-seed-data"
 import { Search, Filter } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
-import { FabricCard } from "@/components/fabric-card" // Import FabricCard
+import { FabricCard } from "@/components/fabric-card"
+import type { Fabric } from "@/lib/types"
 
-export function FabricsListingPage() {
+interface FabricsListingPageProps {
+  initialFabrics?: Fabric[]
+  initialFilters?: {
+    categories: string[]
+    colors: string[]
+  }
+}
+
+export function FabricsListingPage({ 
+  initialFabrics, 
+  initialFilters 
+}: FabricsListingPageProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -22,12 +33,24 @@ export function FabricsListingPage() {
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "all")
   const [colorFilter, setColorFilter] = useState(searchParams.get('color') || "all")
   const [stockFilter, setStockFilter] = useState(searchParams.get('stock') || "all")
+  const [fabrics, setFabrics] = useState(initialFabrics || [])
 
-  const categories = Array.from(new Set(fabricSeedData.map(fabric => fabric.category)))
-  const colors = Array.from(new Set(fabricSeedData.map(fabric => fabric.color)))
+  // Use initial filters if provided, otherwise derive from fabrics
+  const categories = initialFilters?.categories || Array.from(new Set(fabrics.map(fabric => fabric.category)))
+  const colors = initialFilters?.colors || Array.from(new Set(fabrics.map(fabric => fabric.color)))
+
+  // Fetch fabrics if not provided (for client-side navigation)
+  useEffect(() => {
+    if (!initialFabrics) {
+      fetch('/api/fabrics')
+        .then(res => res.json())
+        .then(data => setFabrics(data))
+        .catch(err => console.error('Error fetching fabrics:', err))
+    }
+  }, [])
 
   const filteredFabrics = useMemo(() => {
-    return fabricSeedData.filter(fabric => {
+    return fabrics.filter(fabric => {
       const matchesSearch = fabric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            fabric.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            fabric.composition.toLowerCase().includes(searchTerm.toLowerCase())
@@ -40,7 +63,7 @@ export function FabricsListingPage() {
 
       return matchesSearch && matchesCategory && matchesColor && matchesStock
     })
-  }, [searchTerm, categoryFilter, colorFilter, stockFilter, fabricSeedData])
+  }, [searchTerm, categoryFilter, colorFilter, stockFilter, fabrics])
 
   // Effect to update URL parameters when filters change
   useEffect(() => {

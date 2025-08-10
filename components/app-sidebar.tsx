@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { BarChart3, Calendar, FileText, Home, Package, Palette, Target, BookOpen } from 'lucide-react'
+import { BarChart3, Calendar, FileText, Home, Package, Palette, Target, BookOpen, ShoppingBag } from 'lucide-react'
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 
@@ -61,6 +61,11 @@ const data = {
       title: "Fabrics",
       url: "/admin/fabrics",
       icon: Palette,
+    },
+    {
+      title: "Etsy Products",
+      url: "/admin/etsy-products",
+      icon: ShoppingBag,
     },
   ],
 }

@@ -1,4 +1,5 @@
 import { kv } from '@vercel/kv'
+import { memoryStore } from './memory-store'
 
 export interface BlogPostModel {
   id: string
@@ -79,8 +80,8 @@ export async function createBlogPost(postData: Omit<BlogPostModel, 'id' | 'creat
   }
 
   if (!isKVAvailable()) {
-    console.log('KV not available, returning mock blog post:', post)
-    return post
+    console.log('KV not available, using in-memory store for blog post')
+    return memoryStore.setBlogPost(id, post)
   }
 
   try {
@@ -114,7 +115,7 @@ export async function createBlogPost(postData: Omit<BlogPostModel, 'id' | 'creat
 
 export async function getBlogPost(id: string): Promise<BlogPostModel | null> {
   if (!isKVAvailable()) {
-    return null
+    return memoryStore.getBlogPost(id)
   }
   
   try {
@@ -128,7 +129,7 @@ export async function getBlogPost(id: string): Promise<BlogPostModel | null> {
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPostModel | null> {
   if (!isKVAvailable()) {
-    return null
+    return memoryStore.getBlogPostBySlug(slug)
   }
   
   try {
@@ -150,7 +151,28 @@ export async function getAllBlogPosts(options?: {
   offset?: number
 }): Promise<BlogPostModel[]> {
   if (!isKVAvailable()) {
-    return []
+    let posts = memoryStore.getAllBlogPosts()
+    
+    // Apply filters
+    if (options?.status) {
+      posts = posts.filter(p => p.status === options.status)
+    }
+    if (options?.category) {
+      posts = posts.filter(p => p.category === options.category)
+    }
+    if (options?.tag) {
+      posts = posts.filter(p => p.tags.includes(options.tag))
+    }
+    
+    // Apply pagination
+    if (options?.offset !== undefined) {
+      posts = posts.slice(options.offset)
+    }
+    if (options?.limit !== undefined) {
+      posts = posts.slice(0, options.limit)
+    }
+    
+    return posts
   }
   
   try {
@@ -195,7 +217,25 @@ export async function getAllBlogPosts(options?: {
 
 export async function updateBlogPost(id: string, updates: Partial<BlogPostModel>): Promise<BlogPostModel | null> {
   if (!isKVAvailable()) {
-    return null
+    const existing = memoryStore.getBlogPost(id)
+    if (!existing) return null
+    
+    const updated: BlogPostModel = {
+      ...existing,
+      ...updates,
+      id: existing.id,
+      createdAt: existing.createdAt,
+      updatedAt: new Date().toISOString()
+    }
+    
+    if (updates.title && !updates.slug) {
+      updated.slug = generateSlug(updates.title)
+    }
+    if (updates.content) {
+      updated.readTime = calculateReadTime(updates.content)
+    }
+    
+    return memoryStore.updateBlogPost(id, updated)
   }
   
   try {
@@ -275,7 +315,7 @@ export async function updateBlogPost(id: string, updates: Partial<BlogPostModel>
 
 export async function deleteBlogPost(id: string): Promise<boolean> {
   if (!isKVAvailable()) {
-    return false
+    return memoryStore.deleteBlogPost(id)
   }
   
   try {

@@ -34,6 +34,7 @@ npm run lint
 - **Authentication**: NextAuth.js with Google OAuth provider
 - **Database**: Vercel KV with fallback to in-memory storage
 - **Deployment**: Vercel
+- **Rendering**: ISR (Incremental Static Regeneration) for fabric pages
 
 ### Directory Structure
 - `app/` - Next.js App Router pages and API routes
@@ -52,15 +53,27 @@ npm run lint
 
 ### Key Architectural Patterns
 
-1. **Data Layer**: The application uses Vercel KV for persistence with graceful fallback to in-memory storage when KV is unavailable. All data operations go through `lib/kv.ts`.
+1. **Hybrid Data Strategy (Fabrics)**: 
+   - Static seed data in `lib/fabric-seed-data.ts` for instant loading
+   - Vercel KV for dynamic updates via admin panel
+   - ISR with 60-second revalidation for optimal performance
+   - Automatic sync from seed data to KV on first load
 
-2. **Authentication**: Admin access is restricted to specific email addresses defined in `lib/auth.ts`. The admin role is added to the session based on email matching.
+2. **Data Layer**: The application uses Vercel KV for persistence with graceful fallback to seed data or in-memory storage when KV is unavailable. Data operations go through:
+   - `lib/kv.ts` - General data operations
+   - `lib/fabric-kv.ts` - Fabric-specific KV operations with ISR support
+   - `lib/blog-model.ts` - Blog post data model
 
-3. **API Routes**: RESTful API endpoints in `app/api/` handle CRUD operations. Admin endpoints check session authentication before allowing modifications.
+3. **Authentication**: Admin access is restricted to specific email addresses defined in `lib/auth.ts`. The admin role is added to the session based on email matching.
 
-4. **Component Architecture**: Uses composition pattern with shadcn/ui components built on Radix UI primitives. Components are in `components/` with UI primitives in `components/ui/`.
+4. **API Routes**: RESTful API endpoints in `app/api/` handle CRUD operations. Admin endpoints check session authentication before allowing modifications. Key routes:
+   - `/api/fabrics` - Fabric CRUD with ISR revalidation
+   - `/api/blog` - Blog post management
+   - `/api/posts` - Social media posts
 
-5. **Type Safety**: Comprehensive TypeScript types in `lib/types.ts` and `lib/db-schema.ts` ensure type safety across the application.
+5. **Component Architecture**: Uses composition pattern with shadcn/ui components built on Radix UI primitives. Components are in `components/` with UI primitives in `components/ui/`.
+
+6. **Type Safety**: Comprehensive TypeScript types in `lib/types.ts` and `lib/db-schema.ts` ensure type safety across the application.
 
 ## Environment Variables
 
@@ -110,11 +123,34 @@ All modification endpoints require admin authentication.
 
 The application auto-deploys to Vercel on push to the `main` branch. Configuration is in `vercel.json`.
 
-## Current Status
+## Data Persistence
 
-The repository has uncommitted changes:
-- Modified `.claude/settings.local.json`
-- New directories: `.claude/deep research/`, `app/api/blog/`, `creatives/`
-- New files: `etsy searches.docx`, `lib/blog-model.ts`
+The application uses a dual persistence strategy:
 
-These changes appear to be adding blog functionality and creative assets.
+1. **With Vercel KV** (Production):
+   - Full persistence in Vercel's Redis-compatible database
+   - Data survives application restarts
+   - Requires KV_REST_API_URL and KV_REST_API_TOKEN environment variables
+
+2. **Without Vercel KV** (Development):
+   - Falls back to in-memory store (`lib/memory-store.ts`)
+   - Data persists during application lifecycle
+   - Data is lost on application restart
+   - Useful for local development without KV setup
+
+To set up Vercel KV:
+1. Copy `.env.example` to `.env.local`
+2. Add KV credentials from Vercel dashboard (Storage > KV)
+3. Restart the development server
+
+## Testing Admin Features
+
+1. Start the development server: `npm run dev`
+2. Navigate to `/auth/signin` and login with Google (admin email: varaku@gmail.com)
+3. Access admin panel at `/admin`
+4. Test data entry:
+   - Blog posts: `/admin/blog`
+   - Social media posts: `/admin/posts` and `/admin/calendar`
+   - Products: `/admin/products`
+
+Note: Without KV credentials, data will only persist during the current session.

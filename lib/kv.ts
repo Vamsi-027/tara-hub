@@ -5,6 +5,7 @@ import {
   type Strategy,
   type Fabric,
 } from './types'
+import { memoryStore } from './memory-store'
 
 // Browser-compatible UUID generation
 function generateUUID(): string {
@@ -141,12 +142,13 @@ const initializeFallbackData = () => {
 // --- Post Functions ---
 
 export async function createPost(postData: Omit<Post, 'id'>): Promise<Post> {
+  const id = generateUUID()
+  const post: Post = { id, ...postData }
+  
   if (!isKVAvailable()) {
-    // Return mock post when KV is not available
-    const id = generateUUID()
-    const post: Post = { id, ...postData }
-    console.log('KV not available, returning mock post:', post)
-    return post
+    // Use in-memory store when KV is not available
+    console.log('KV not available, using in-memory store')
+    return memoryStore.setPost(id, post)
   }
   
   try {
@@ -162,13 +164,16 @@ export async function createPost(postData: Omit<Post, 'id'>): Promise<Post> {
 }
 
 export async function getPost(id: string): Promise<Post | null> {
+  if (!isKVAvailable()) {
+    return memoryStore.getPost(id)
+  }
   return await kv.hgetall(`post:${id}`)
 }
 
 export async function getAllPosts(): Promise<Post[]> {
   if (!isKVAvailable()) {
-    // Return empty array when KV is not available
-    return []
+    // Return posts from in-memory store when KV is not available
+    return memoryStore.getAllPosts()
   }
   
   try {
@@ -186,6 +191,12 @@ export async function getAllPosts(): Promise<Post[]> {
 }
 
 export async function updatePost(id: string, postData: Partial<Post>): Promise<Post | null> {
+    if (!isKVAvailable()) {
+      const post = memoryStore.getPost(id)
+      if (!post) return null
+      const updatedPost = { ...post, ...postData, updatedAt: new Date().toISOString() }
+      return memoryStore.setPost(id, updatedPost)
+    }
     const post = await getPost(id)
     if (!post) return null
     const updatedPost = { ...post, ...postData, updatedAt: new Date().toISOString() }
@@ -194,6 +205,10 @@ export async function updatePost(id: string, postData: Partial<Post>): Promise<P
 }
 
 export async function deletePost(id: string): Promise<void> {
+    if (!isKVAvailable()) {
+      memoryStore.deletePost(id)
+      return
+    }
     await kv.del(`post:${id}`)
     await kv.zrem('posts_by_date', id)
 }
