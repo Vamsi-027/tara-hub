@@ -27,9 +27,10 @@ export function Header() {
                 className="lg:w-20 lg:h-20"
                 priority
               />
-              <span className="ml-3 text-xl lg:text-2xl font-bold text-gray-900 hidden sm:block">
-                The Hearth & Home Store
-              </span>
+              <div className="ml-3 hidden sm:block">
+                <span className="text-sm lg:text-base font-medium text-gray-700 block leading-tight">Hearth & Home</span>
+                <span className="text-xl lg:text-2xl font-bold text-gray-900 block leading-tight">Fabric Info</span>
+              </div>
             </Link>
           </div>
 
