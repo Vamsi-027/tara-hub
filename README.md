@@ -1,4 +1,4 @@
-# Tara Hub - Premium Fabric Marketplace
+# Tara Hub - Etsy Store Ops Management 
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://tara-hub.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
