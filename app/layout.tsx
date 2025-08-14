@@ -32,12 +32,35 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "The Hearth & Home Store",
+    "description": "Custom cushions and pillows handcrafted in Missouri. Family-owned for 40+ years.",
+    "url": "https://thehearthandhomestore.com",
+    "telephone": "(636) 337-5200",
+    "email": "info@thehearthandhomestore.com",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "116 Easton St.",
+      "addressLocality": "DeSoto",
+      "addressRegion": "MO",
+      "postalCode": "63020",
+      "addressCountry": "US"
+    },
+    "priceRange": "$$",
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/logo.png" />
         <link rel="shortcut icon" href="/favicon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
       </head>
       <body className={inter.className}>
         <Providers>
