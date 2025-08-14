@@ -40,10 +40,14 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
     async signIn({ user, account, profile }) {
       // Allow sign in only for admin emails
       if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+        // Allow OAuth account creation and linking
+        if (account?.provider === "google") {
+          return true;
+        }
         return true;
       }
       // Reject non-admin users
-      return false;
+      return "/unauthorized";
     },
     async session({ session, user, token }) {
       if (session.user) {
@@ -76,7 +80,7 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
     },
   },
   session: {
-    strategy: db ? 'database' : 'jwt',
+    strategy: 'jwt', // Always use JWT for better OAuth compatibility
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
