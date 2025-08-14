@@ -1,86 +1,37 @@
-# Codebase Analysis - tara-hub
+# Generated Document
+Prompt-based generation would analyze:
 
-## Project Overview
-**Type**: Next.js Application  
-**Generated**: 2025-08-13
+Project: tara-hub
+Files: 149
+Components: 59
+APIs: 12
 
-## Technology Stack
-- Next.js 15
-- TypeScript
-- React 19
-- NextAuth.js
-- Vercel KV
-- Tailwind CSS
+The actual Claude Code Task tool would generate comprehensive content here based on:
+Analyze this project and create a comprehensive codebase analysis report.
 
-## Project Structure
-```
-tara-hub/
-├── app/                    # Next.js 15 App Router
-│   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Home page
-│   ├── api/               # API routes
-│   │   └── auth/          # NextAuth endpoints
-│   └── (dashboard)/       # Dashboard routes
-│       ├── layout.tsx     # Dashboard layout
-│       └── inventory/     # Inventory management
-├── components/            # React components
-│   ├── ui/               # Shadcn/Radix UI components
-│   ├── forms/            # Form components
-│   └── dashboard/        # Dashboard specific
-├── lib/                   # Utility functions
-│   ├── auth.ts           # Auth configuration
-│   ├── db.ts             # Database client
-│   └── utils.ts          # Helper functions
-├── styles/               # Global styles
-├── public/               # Static assets
-└── types/                # TypeScript definitions
-```
+PROJECT: tara-hub
+LOCATION: C:\Users\varak\repos\tara-hub
 
-## Core Features Identified
-- User Authentication
-- Dashboard
-- Data Management
-- Reporting
+FILE STATISTICS:
+- Total files: 149
+- Components: 59
+- API routes: 12
+- Pages: 28
 
-## Architecture Patterns
-- **App Router**: Using Next.js 15 app directory structure
-- **Server Components**: Default React Server Components for performance
-- **API Routes**: RESTful API endpoints in app/api
-- **Authentication**: NextAuth.js with session management
-- **Database**: Vercel KV for data persistence
+KEY FILES FOUND:
+- package.json
+- README.md
+- tsconfig.json
 
-## Dependencies Analysis
-### Core Dependencies
-- `next`: ^15.0.0 - React framework
-- `react`: ^19.0.0 - UI library
-- `typescript`: ^5.0.0 - Type safety
-- `next-auth`: ^4.24.0 - Authentication
+DEPENDENCIES DETECTED:
+- @ai-sdk/openai
+- @auth/core
+- @hookform/resolvers
+- @neondatabase/serverless
+- @next/bundle-analyzer
+- @radix-ui/react-accordion
+- @radix-ui/react-alert-dialog
+- @radix-ui/react-aspect-ratio
+- @rad...
 
-### UI Dependencies
-- `@radix-ui/*`: Component primitives
-- `tailwindcss`: Utility-first CSS
-- `class-variance-authority`: Component variants
-- `clsx`: Class name utilities
-
-### Database & API
-- `@vercel/kv`: Redis-compatible database
-- `zod`: Schema validation
-
-## Code Quality Observations
-- **TypeScript**: Strict mode enabled
-- **ESLint**: Configured with Next.js rules
-- **Component Structure**: Modular and reusable
-- **API Design**: RESTful with proper error handling
-
-## Recommendations
-1. Consider implementing API versioning
-2. Add comprehensive error boundaries
-3. Implement request rate limiting
-4. Add integration tests for critical paths
-5. Consider state management solution for complex data
-
-## Next Steps
-- Review security configurations
-- Analyze performance metrics
-- Document API endpoints
-- Create component library documentation
+[This would be replaced with actual Claude-generated content in production]
