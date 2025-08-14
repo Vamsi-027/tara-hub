@@ -1,0 +1,12 @@
+{"timestamp": "2025-08-12T23:24:58.562289", "phase": "requirements", "agent": "business-analyst", "context_tokens": 234, "output_estimate": 500, "total": 734, "cumulative": 734}
+{"timestamp": "2025-08-12T23:24:59.583380", "phase": "design", "agent": "architect", "context_tokens": 231, "output_estimate": 500, "total": 731, "cumulative": 1465}
+{"timestamp": "2025-08-12T23:25:02.607626", "phase": "implementation", "agent": "developer", "context_tokens": 230, "output_estimate": 500, "total": 730, "cumulative": 2195}
+{"timestamp": "2025-08-12T23:25:03.616914", "phase": "testing", "agent": "qa-engineer", "context_tokens": 230, "output_estimate": 500, "total": 730, "cumulative": 2925}
+{"timestamp": "2025-08-13T01:07:54.632039", "phase": "requirements", "agent": "business-analyst", "context_tokens": 293, "output_estimate": 500, "total": 793, "cumulative": 793}
+{"timestamp": "2025-08-13T01:07:55.658780", "phase": "design", "agent": "architect", "context_tokens": 288, "output_estimate": 500, "total": 788, "cumulative": 1581}
+{"timestamp": "2025-08-13T01:07:56.684835", "phase": "implementation", "agent": "developer", "context_tokens": 287, "output_estimate": 500, "total": 787, "cumulative": 2368}
+{"timestamp": "2025-08-13T01:07:57.711083", "phase": "testing", "agent": "qa-engineer", "context_tokens": 287, "output_estimate": 500, "total": 787, "cumulative": 3155}
+{"timestamp": "2025-08-13T01:16:54.331400", "phase": "requirements", "agent": "business-analyst", "context_tokens": 346, "output_estimate": 500, "total": 846, "cumulative": 846}
+{"timestamp": "2025-08-13T01:16:55.357258", "phase": "design", "agent": "architect", "context_tokens": 339, "output_estimate": 500, "total": 839, "cumulative": 1685}
+{"timestamp": "2025-08-13T01:16:56.375928", "phase": "implementation", "agent": "developer", "context_tokens": 338, "output_estimate": 500, "total": 838, "cumulative": 2523}
+{"timestamp": "2025-08-13T01:16:59.402471", "phase": "testing", "agent": "qa-engineer", "context_tokens": 337, "output_estimate": 500, "total": 837, "cumulative": 3360}
