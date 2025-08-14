@@ -45,14 +45,19 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
       // Reject non-admin users
       return false;
     },
-    async session({ session, user }) {
+    async session({ session, user, token }) {
       if (session.user) {
-        session.user.id = user?.id || '';
-        // Set role based on email
-        if (session.user.email && adminEmails.includes(session.user.email.toLowerCase())) {
-          (session.user as any).role = 'admin';
-        } else {
-          (session.user as any).role = 'user';
+        // Handle both database and JWT sessions
+        if (user) {
+          // Database session
+          session.user.id = user.id;
+          if (session.user.email && adminEmails.includes(session.user.email.toLowerCase())) {
+            (session.user as any).role = 'admin';
+          }
+        } else if (token) {
+          // JWT session
+          session.user.id = token.id as string;
+          (session.user as any).role = token.role;
         }
       }
       return session;
@@ -71,7 +76,7 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
     },
   },
   session: {
-    strategy: 'jwt',
+    strategy: db ? 'database' : 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
