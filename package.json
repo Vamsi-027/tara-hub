@@ -6,11 +6,16 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.66",
     "@auth/core": "latest",
+    "@auth/drizzle-adapter": "^1.10.0",
     "@hookform/resolvers": "^3.9.0",
     "@neondatabase/serverless": "^0.10.1",
     "@next/bundle-analyzer": "^15.0.3",
@@ -48,6 +53,8 @@
     "clsx": "^2.1.1",
     "cmdk": "latest",
     "date-fns": "^4.1.0",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.4",
     "embla-carousel-react": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",

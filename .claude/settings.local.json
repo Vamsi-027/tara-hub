@@ -23,7 +23,10 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(cp:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:tara-hub.vercel.app)"
+      "WebFetch(domain:tara-hub.vercel.app)",
+      "Bash(dir)",
+      "Bash(test:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
