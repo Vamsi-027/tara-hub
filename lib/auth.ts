@@ -29,7 +29,11 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
   },
   callbacks: {
     async session({ session, user }) {
-      const adminEmails = ['varaku@gmail.com']; // Admin email
+      const adminEmails = [
+        'varaku@gmail.com',
+        'batchu.kedareswaraabhinav@gmail.com',
+        'vamsicheruku027@gmail.com'
+      ]; // Admin emails
       
       if (session.user) {
         session.user.id = user.id;
