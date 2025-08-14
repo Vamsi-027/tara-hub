@@ -5,11 +5,19 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from "@/lib/db"
 import { users, accounts, sessions, verificationTokens } from "@/lib/auth-schema"
 
+const adminEmails = [
+  'varaku@gmail.com',
+  'batchu.kedareswaraabhinav@gmail.com',
+  'vamsicheruku027@gmail.com',
+  'admin@deepcrm.ai', // Added admin@deepcrm.ai
+];
+
 const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
     Email({
       server: {
@@ -26,18 +34,22 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
   pages: {
     signIn: "/auth/signin",
     verifyRequest: "/auth/verify-request",
+    error: "/auth/error",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // Allow sign in only for admin emails
+      if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+        return true;
+      }
+      // Reject non-admin users
+      return false;
+    },
     async session({ session, user }) {
-      const adminEmails = [
-        'varaku@gmail.com',
-        'batchu.kedareswaraabhinav@gmail.com',
-        'vamsicheruku027@gmail.com'
-      ]; // Admin emails
-      
       if (session.user) {
-        session.user.id = user.id;
-        if (session.user.email && adminEmails.includes(session.user.email)) {
+        session.user.id = user?.id || '';
+        // Set role based on email
+        if (session.user.email && adminEmails.includes(session.user.email.toLowerCase())) {
           (session.user as any).role = 'admin';
         } else {
           (session.user as any).role = 'user';
@@ -45,6 +57,22 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
       }
       return session;
     },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        // Set role in JWT token
+        if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+          token.role = 'admin';
+        } else {
+          token.role = 'user';
+        }
+      }
+      return token;
+    },
+  },
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
 }

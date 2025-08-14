@@ -6,8 +6,11 @@ import * as schema from './auth-schema';
 // This allows the app to run without a database for non-auth features
 let db: ReturnType<typeof drizzle> | null = null;
 
-if (process.env.DATABASE_URL) {
-  const sql = neon(process.env.DATABASE_URL);
+// Use POSTGRES_URL from Neon (or fallback to DATABASE_URL)
+const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (databaseUrl) {
+  const sql = neon(databaseUrl);
   db = drizzle(sql, { schema });
 }
 

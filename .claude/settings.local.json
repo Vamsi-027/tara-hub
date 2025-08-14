@@ -29,7 +29,9 @@
       "WebFetch(domain:tara-hub.vercel.app)",
       "Bash(dir)",
       "Bash(test:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(node:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []

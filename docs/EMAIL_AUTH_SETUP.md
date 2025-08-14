@@ -66,7 +66,26 @@ npm run db:push
    EMAIL_FROM=Your Name <noreply@yourdomain.com>
    ```
 
-#### Option C: Using Resend
+#### Option C: Using Microsoft 365
+1. Use your Microsoft 365 email credentials
+2. Add to `.env.local`:
+   ```
+   EMAIL_SERVER_USER=your-email@yourdomain.com
+   EMAIL_SERVER_PASSWORD=your-password
+   EMAIL_SERVER_HOST=smtp.office365.com
+   EMAIL_SERVER_PORT=587
+   EMAIL_FROM=Your Name <your-email@yourdomain.com>
+   ```
+   
+   **Important for Microsoft 365:**
+   - If you have 2FA enabled, you may need to create an app password:
+     1. Go to [Microsoft Account Security](https://account.microsoft.com/security)
+     2. Click on "Advanced security options"
+     3. Under "App passwords", create a new app password
+     4. Use this app password instead of your regular password
+   - Ensure SMTP authentication is enabled in your Microsoft 365 admin center
+
+#### Option D: Using Resend
 1. Create a Resend account at [resend.com](https://resend.com)
 2. Get your API key
 3. Add to `.env.local`:
