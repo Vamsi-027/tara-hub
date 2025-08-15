@@ -8,8 +8,8 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
-  id: text('id').primaryKey(),
-  email: text('email').notNull(),
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  email: text('email').notNull().unique(),
   emailVerified: timestamp('email_verified', { mode: 'date' }),
   name: text('name'),
   image: text('image'),
@@ -18,7 +18,7 @@ export const users = pgTable('users', {
 });
 
 export const accounts = pgTable('accounts', {
-  id: text('id').primaryKey(),
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
@@ -37,7 +37,7 @@ export const accounts = pgTable('accounts', {
 });
 
 export const sessions = pgTable('sessions', {
-  id: text('id').primaryKey(),
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   sessionToken: text('session_token').notNull().unique(),
   userId: text('user_id')
     .notNull()
