@@ -1,5 +1,8 @@
-import { kv } from '@vercel/kv'
+import { kvClient, isKVAvailable } from './kv-client'
 import { memoryStore } from './memory-store'
+
+// Use kvClient instead of direct kv import
+const kv = kvClient
 
 export interface BlogPostModel {
   id: string
@@ -48,9 +51,7 @@ export function calculateReadTime(content: string): number {
 }
 
 // Check if KV is available
-const isKVAvailable = () => {
-  return process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
-}
+// isKVAvailable is now imported from kv-client
 
 // Generate UUID
 function generateUUID(): string {
@@ -196,7 +197,15 @@ export async function getAllBlogPosts(options?: {
       postIds = await kv.zrange(key, start, stop, { rev: true })
     }
     
-    if (postIds.length === 0) return []
+    // If KV operation failed, fall back to memory store
+    if (!postIds || postIds.length === 0) {
+      const memPosts = memoryStore.getAllBlogPosts()
+      if (memPosts.length > 0) {
+        console.log('Using in-memory store for blog posts (KV unavailable)')
+        return memPosts
+      }
+      return []
+    }
     
     const pipeline = kv.pipeline()
     postIds.forEach(id => pipeline.hgetall(`blog:${id}`))
@@ -210,8 +219,9 @@ export async function getAllBlogPosts(options?: {
     
     return filtered
   } catch (error) {
-    console.error('Error fetching blog posts from KV:', error)
-    return []
+    console.error('Error fetching blog posts from KV, using fallback:', error)
+    // Fall back to memory store on any error
+    return memoryStore.getAllBlogPosts()
   }
 }
 

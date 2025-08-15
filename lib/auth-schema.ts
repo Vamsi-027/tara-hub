@@ -13,7 +13,7 @@ export const users = pgTable('users', {
   emailVerified: timestamp('email_verified', { mode: 'date' }),
   name: text('name'),
   image: text('image'),
-  role: text('role').default('viewer'), // admin, editor, viewer
+  role: text('role').default('viewer'), // platform_admin, tenant_admin, admin, editor, viewer
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
 });

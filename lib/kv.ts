@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv'
+import { kvClient, isKVAvailable } from './kv-client'
 import {
   type Post,
   type Product,
@@ -22,8 +22,8 @@ function generateUUID(): string {
   })
 }
 
-// Re-export kv for use in other modules
-export { kv }
+// Re-export kv client for backward compatibility
+export const kv = kvClient
 
 // --- Inferred Types (as they were not in lib/types.ts) ---
 // It's recommended to move these to a central types file.
@@ -55,11 +55,6 @@ import {
  seedBlogPosts,
  seedCreativeGuidelines,
 } from "./seed-data"
-
-// Check if KV is available
-const isKVAvailable = () => {
- return process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
-}
 
 // KV Keys
 const KEYS = {
@@ -177,16 +172,27 @@ export async function getAllPosts(): Promise<Post[]> {
   }
   
   try {
-    const postIds = await kv.zrange('posts_by_date', 0, -1, { rev: true })
-    if (postIds.length === 0) return []
+    // Use the new KV client with built-in retry and timeout
+    const postIds = await kvClient.zrange('posts_by_date', 0, -1, { rev: true })
+    
+    // If KV operation failed, fall back to memory store
+    if (!postIds || postIds.length === 0) {
+      const memPosts = memoryStore.getAllPosts()
+      if (memPosts.length > 0) {
+        console.log('Using in-memory store for posts (KV unavailable)')
+        return memPosts
+      }
+      return []
+    }
 
-    const pipeline = kv.pipeline()
+    const pipeline = kvClient.pipeline()
     postIds.forEach(id => pipeline.hgetall(`post:${id}`))
     const results = (await pipeline.exec()) as Post[]
     return results.filter(Boolean)
   } catch (error) {
-    console.error('Error fetching posts from KV:', error)
-    return []
+    console.error('Error fetching posts from KV, using fallback:', error)
+    // Fall back to memory store on any error
+    return memoryStore.getAllPosts()
   }
 }
 

@@ -36,6 +36,7 @@
       "Bash(taskkill:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "defaultMode": "acceptEdits"
   }
 }

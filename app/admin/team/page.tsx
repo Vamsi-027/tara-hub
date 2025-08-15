@@ -54,7 +54,7 @@ interface TeamMember {
   id: string
   email: string
   name: string | null
-  role: 'admin' | 'editor' | 'viewer'
+  role: 'platform_admin' | 'tenant_admin' | 'admin' | 'editor' | 'viewer'
   status: 'active' | 'pending' | 'inactive'
   joinedAt: string
   invitedBy?: string
@@ -69,7 +69,7 @@ export default function TeamManagementPage() {
   
   // Invite form state
   const [inviteEmail, setInviteEmail] = useState("")
-  const [inviteRole, setInviteRole] = useState<'admin' | 'editor' | 'viewer'>('viewer')
+  const [inviteRole, setInviteRole] = useState<'platform_admin' | 'tenant_admin' | 'admin' | 'editor' | 'viewer'>('viewer')
   const [inviting, setInviting] = useState(false)
 
   // Load team members
@@ -169,12 +169,16 @@ export default function TeamManagementPage() {
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'admin':
+      case 'platform_admin':
         return 'destructive'
-      case 'editor':
+      case 'tenant_admin':
+        return 'destructive'
+      case 'admin':
         return 'default'
-      case 'viewer':
+      case 'editor':
         return 'secondary'
+      case 'viewer':
+        return 'outline'
       default:
         return 'outline'
     }
@@ -301,10 +305,22 @@ export default function TeamManagementPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="platform_admin">
+                          <div className="flex flex-col">
+                            <span className="font-medium">Platform Admin</span>
+                            <span className="text-xs text-muted-foreground">Full platform control across all tenants</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="tenant_admin">
+                          <div className="flex flex-col">
+                            <span className="font-medium">Tenant Admin</span>
+                            <span className="text-xs text-muted-foreground">Full control within tenant organization</span>
+                          </div>
+                        </SelectItem>
                         <SelectItem value="admin">
                           <div className="flex flex-col">
                             <span className="font-medium">Admin</span>
-                            <span className="text-xs text-muted-foreground">Full access to all features</span>
+                            <span className="text-xs text-muted-foreground">Administrative access to features</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="editor">
@@ -360,7 +376,7 @@ export default function TeamManagementPage() {
                   </TableCell>
                   <TableCell>
                     <Badge variant={getRoleBadgeVariant(member.role) as any}>
-                      {member.role}
+                      {member.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -422,6 +438,8 @@ export default function TeamManagementPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="platform_admin">Platform Admin</SelectItem>
+                    <SelectItem value="tenant_admin">Tenant Admin</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="editor">Editor</SelectItem>
                     <SelectItem value="viewer">Viewer</SelectItem>

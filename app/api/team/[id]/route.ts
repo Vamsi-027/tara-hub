@@ -12,26 +12,55 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session || (session.user as any)?.role !== 'admin') {
+    // Check if user has admin privileges (platform_admin, tenant_admin, or admin)
+    const userRole = (session.user as any)?.role
+    const hasAdminAccess = userRole && ['platform_admin', 'tenant_admin', 'admin'].includes(userRole)
+    
+    if (!session || !hasAdminAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { role } = await request.json()
     
-    if (!role || !['admin', 'editor', 'viewer'].includes(role)) {
+    // Extended role list with SaaS roles
+    const validRoles = ['platform_admin', 'tenant_admin', 'admin', 'editor', 'viewer']
+    
+    if (!role || !validRoles.includes(role)) {
       return NextResponse.json(
         { error: 'Invalid role' },
         { status: 400 }
       )
     }
 
-    // For now, we'll store role information in a separate system
-    // In production, you'd want to add a roles table or user_roles field
+    if (!db) {
+      return NextResponse.json({
+        message: 'Role updated (no database)',
+        userId: params.id,
+        newRole: role,
+      })
+    }
+
+    // Update the user's role in the database
+    const updatedUser = await db.update(users)
+      .set({ 
+        role: role,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, params.id))
+      .returning()
+    
+    if (!updatedUser.length) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
     
     return NextResponse.json({
       message: 'Role updated successfully',
       userId: params.id,
       newRole: role,
+      user: updatedUser[0],
     })
     
   } catch (error) {
@@ -50,7 +79,11 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session || (session.user as any)?.role !== 'admin') {
+    // Check if user has admin privileges (platform_admin, tenant_admin, or admin)
+    const userRole = (session.user as any)?.role
+    const hasAdminAccess = userRole && ['platform_admin', 'tenant_admin', 'admin'].includes(userRole)
+    
+    if (!session || !hasAdminAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

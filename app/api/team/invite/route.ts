@@ -10,7 +10,11 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session || (session.user as any)?.role !== 'admin') {
+    // Check if user has admin privileges (platform_admin, tenant_admin, or admin)
+    const userRole = (session.user as any)?.role
+    const hasAdminAccess = userRole && ['platform_admin', 'tenant_admin', 'admin'].includes(userRole)
+    
+    if (!session || !hasAdminAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -84,13 +88,14 @@ export async function POST(request: Request) {
 
     // Store invitation in database or memory
     if (db) {
-      // Create a pending user entry
+      // Create a pending user entry with the specified role
       const newUser = await db.insert(users).values({
         id: crypto.randomUUID(),
         email: email.toLowerCase(),
         name: null,
         emailVerified: null,
         image: null,
+        role: role, // Set the role from the invitation
         createdAt: new Date(),
         updatedAt: new Date(),
       }).returning()

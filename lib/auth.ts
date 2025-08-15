@@ -55,9 +55,9 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
         if (user) {
           // Database session
           session.user.id = user.id;
-          if (session.user.email && adminEmails.includes(session.user.email.toLowerCase())) {
-            (session.user as any).role = 'admin';
-          }
+          // Use role from database if available
+          (session.user as any).role = (user as any).role || 
+            (session.user.email && adminEmails.includes(session.user.email.toLowerCase()) ? 'admin' : 'viewer');
         } else if (token) {
           // JWT session
           session.user.id = token.id as string;
@@ -69,12 +69,9 @@ const authOptionsBase: Omit<NextAuthOptions, 'adapter'> = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        // Set role in JWT token
-        if (user.email && adminEmails.includes(user.email.toLowerCase())) {
-          token.role = 'admin';
-        } else {
-          token.role = 'user';
-        }
+        // Set role in JWT token from database or fallback
+        token.role = (user as any).role || 
+          (user.email && adminEmails.includes(user.email.toLowerCase()) ? 'admin' : 'viewer');
       }
       return token;
     },
