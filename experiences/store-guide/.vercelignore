@@ -1,0 +1,20 @@
+# Store Guide Vercel Ignore
+
+# Ignore development files
+.env.local
+.env*.local
+.vscode
+.idea
+*.log
+.DS_Store
+
+# Ignore test files
+__tests__
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Ignore git files
+.git
+.gitignore

@@ -1,12 +1,21 @@
 {
-  "name": "social-media-dashboard",
+  "name": "tara-hub",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@10.2.0",
+  "workspaces": [
+    "packages/*",
+    "experiences/*"
+  ],
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "lint": "next lint",
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
     "start": "next start",
+    "build:admin": "next build",
+    "dev:admin": "next dev",
+    "dev:all": "turbo dev --parallel",
+    "build:all": "turbo build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -84,6 +93,7 @@
     "node-fetch": "^2.7.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.1",
+    "turbo": "^2.5.6",
     "typescript": "^5"
   }
 }

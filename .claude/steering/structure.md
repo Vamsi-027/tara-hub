@@ -4,59 +4,71 @@
 
 ```
 tara-hub/
-├── app/                          # Next.js App Router (Pages & Layouts)
-│   ├── api/
-│   │   └── auth/
-│   │       └── [...nextauth]/
-│   │           └── route.ts      # NextAuth.js API route
+├── app/                          # Admin Dashboard Application ONLY
+│   ├── admin/                   # Admin pages
+│   │   ├── blog/                # Blog management
+│   │   ├── fabrics/             # Fabric inventory
+│   │   ├── products/            # Product management
+│   │   └── page.tsx             # Admin dashboard
+│   ├── api/                     # API Routes
+│   │   ├── auth/                # Authentication endpoints
+│   │   ├── fabrics/             # Fabric CRUD
+│   │   └── products/            # Product endpoints
 │   ├── layout.tsx               # Root layout with providers
-│   └── globals.css              # Global styles
+│   └── page.tsx                 # Redirects to /admin
 │
-├── components/                   # React Components
+├── experiences/                  # Independent Customer Experiences
+│   ├── fabric-store/            # Fabric ordering platform (port 3006)
+│   │   ├── app/                 # Next.js app directory
+│   │   │   ├── browse/          # Browse fabrics page
+│   │   │   ├── checkout/        # Checkout flow
+│   │   │   └── page.tsx         # Store homepage
+│   │   ├── components/          # Experience-specific components
+│   │   ├── package.json         # Independent dependencies
+│   │   ├── next.config.js       # Separate configuration
+│   │   └── tsconfig.json        # TypeScript config
+│   │
+│   └── store-guide/             # Customer store interface (port 3007)
+│       ├── app/                 # Next.js app directory
+│       │   ├── fabrics/         # Fabric catalog
+│       │   ├── products/        # Product catalog
+│       │   └── page.tsx         # Store guide home
+│       ├── package.json         # Independent dependencies
+│       └── next.config.js       # Separate configuration
+│
+├── components/                   # Shared React Components
 │   ├── ui/                      # Base UI Components (Shadcn/ui)
-│   │   ├── button.tsx          # Reusable button component with variants
-│   │   ├── card.tsx            # Card component for content display
-│   │   ├── dialog.tsx          # Modal/dialog components
-│   │   ├── sheet.tsx           # Slide-out panel component
-│   │   └── ...                 # Other Radix UI based components
-│   ├── providers.tsx           # Context providers (Session, Theme)
-│   ├── header.tsx              # Application header with navigation
-│   ├── theme-provider.tsx      # Dark/light theme management
-│   └── ...                     # Feature-specific components
+│   │   ├── button.tsx          # Reusable button component
+│   │   ├── card.tsx            # Card component
+│   │   └── ...                 # Other Radix UI components
+│   ├── admin-dashboard.tsx     # Admin interface components
+│   ├── fabric-*.tsx            # Fabric-related components
+│   └── providers.tsx           # Context providers
 │
-├── lib/                         # Utility Libraries & Configuration
+├── lib/                         # Shared Libraries & Configuration
 │   ├── auth.ts                 # NextAuth.js configuration
-│   ├── auth-schema.ts          # Database schema for authentication
-│   ├── db.ts                   # Database connection & setup
-│   ├── data.ts                 # Application data models and mock data
-│   ├── types.ts                # TypeScript type definitions
-│   ├── utils.ts                # Utility functions (cn, etc.)
-│   ├── config.ts               # Application configuration
-│   └── navigation.ts           # Navigation menu configuration
+│   ├── db.ts                   # Database connection
+│   ├── types.ts                # TypeScript definitions (includes SwatchFabric, SwatchOrder)
+│   ├── fabric-swatch-data.ts   # Fabric sample data
+│   └── utils.ts                # Utility functions
 │
-├── styles/                      # Styling Assets
-│   └── globals.css             # Global CSS with Tailwind imports
+├── hooks/                       # Shared React Hooks
+│   ├── use-auth.ts             # Authentication hook
+│   └── use-api.ts              # API interaction hook
 │
-├── drizzle/                     # Database Migrations (Generated)
-│   └── ...                     # Auto-generated migration files
-│
-├── public/                      # Static Assets
-│   ├── logo.png               # Application logo
-│   └── ...                    # Other static assets
+├── styles/                      # Global Styling Assets
+│   └── globals.css             # Global CSS with Tailwind
 │
 ├── .claude/                     # Claude AI Steering Documents
 │   └── steering/
-│       ├── product.md          # Product vision and requirements
-│       ├── tech.md             # Technical architecture
-│       └── structure.md        # This file - development guidelines
+│       ├── architecture.md      # Updated architecture document
+│       ├── structure.md        # This file - development guidelines
+│       └── ...                 # Other steering docs
 │
-├── package.json                # Dependencies and scripts
-├── next.config.mjs             # Next.js configuration
+├── package.json                # Root dependencies
+├── next.config.mjs             # Main app Next.js configuration
 ├── tailwind.config.ts          # Tailwind CSS configuration
-├── drizzle.config.ts           # Drizzle ORM configuration
 ├── tsconfig.json               # TypeScript configuration
-├── .env.example                # Environment variables template
-├── vercel.json                 # Vercel deployment configuration
 └── README.md                   # Project documentation
 ```
 

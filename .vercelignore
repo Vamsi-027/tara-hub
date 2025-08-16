@@ -1,3 +1,7 @@
+# IMPORTANT: When deploying main admin app, ignore experiences folder
+# Each experience should be deployed as a separate Vercel project
+experiences/
+
 # Ignore development files
 .env.local
 .env*.local

@@ -1,7 +1,8 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
+  "buildCommand": "npm run build:admin",
+  "devCommand": "npm run dev:admin",
   "installCommand": "npm install",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- . ':(exclude)experiences' ':(exclude)packages'"
 }

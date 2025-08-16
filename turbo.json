@@ -1,0 +1,50 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "NEXT_PUBLIC_*",
+        "DATABASE_URL",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "KV_REST_API_URL",
+        "KV_REST_API_TOKEN"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "NEXT_PUBLIC_*",
+        "DATABASE_URL",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "KV_REST_API_URL",
+        "KV_REST_API_TOKEN"
+      ]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": []
+    },
+    "type-check": {
+      "dependsOn": ["^type-check"],
+      "outputs": []
+    },
+    "@tara-hub/ui#build": {
+      "outputs": ["dist/**"],
+      "cache": true
+    },
+    "@tara-hub/lib#build": {
+      "outputs": ["dist/**"],
+      "cache": true
+    }
+  }
+}

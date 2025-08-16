@@ -2,7 +2,7 @@
 
 ## Overview
 
-Tara Hub is a modern full-stack web application built with Next.js 15, serving as both a social media dashboard for content management and a fabric marketplace platform. The architecture follows modern React patterns with server-side rendering, type safety, and component-based design.
+Tara Hub is a modern multi-experience platform built with Next.js 15, featuring a clean separation between admin functionality and customer-facing experiences. The architecture follows a monorepo pattern with independent, deployable experiences that share common resources while maintaining complete isolation.
 
 ## Current Implementation
 
@@ -43,30 +43,69 @@ Tara Hub is a modern full-stack web application built with Next.js 15, serving a
 ### Application Structure
 
 ```
-app/
-├── layout.tsx              # Root layout with providers
-├── page.tsx               # Main landing page (if exists)
-├── admin/
-│   └── page.tsx           # Admin dashboard entry point
-├── api/
-│   └── auth/
-│       └── [...nextauth]/
-│           └── route.ts   # NextAuth API routes
-components/
-├── ui/                    # Shadcn/ui base components
-├── providers.tsx          # Application providers wrapper
-├── admin-dashboard.tsx    # Main admin interface
-├── dashboard-view.tsx     # Dashboard analytics and metrics
-├── app-sidebar.tsx        # Navigation sidebar
-└── theme-provider.tsx     # Theme management
-lib/
-├── auth.ts               # NextAuth configuration
-├── auth-schema.ts        # Database schema for auth tables
-├── db.ts                 # Database connection setup
-├── data.ts               # Static data definitions
-├── types.ts              # TypeScript type definitions
-└── utils.ts              # Utility functions
+tara-hub/
+├── app/                        # Admin Dashboard Application
+│   ├── layout.tsx              # Root layout with providers
+│   ├── page.tsx               # Redirects to /admin
+│   ├── admin/                 # Admin functionality
+│   │   ├── blog/              # Blog management
+│   │   ├── fabrics/           # Fabric inventory management
+│   │   ├── products/          # Product management
+│   │   └── page.tsx           # Admin dashboard
+│   └── api/                   # API routes
+│       ├── auth/              # Authentication endpoints
+│       ├── fabrics/           # Fabric CRUD operations
+│       └── products/          # Product endpoints
+│
+├── experiences/               # Independent Customer Experiences
+│   ├── fabric-store/          # Fabric ordering platform (port 3006)
+│   │   ├── app/               # Next.js app directory
+│   │   ├── components/        # Experience-specific components
+│   │   ├── package.json       # Independent dependencies
+│   │   └── next.config.js     # Separate configuration
+│   │
+│   └── store-guide/           # Customer store interface (port 3007)
+│       ├── app/               # Next.js app directory
+│       ├── package.json       # Independent dependencies
+│       └── next.config.js     # Separate configuration
+│
+├── components/                # Shared UI Components
+│   ├── ui/                    # Shadcn/ui base components
+│   ├── admin-dashboard.tsx    # Admin interface components
+│   └── fabric-*.tsx           # Fabric-related components
+│
+├── lib/                       # Shared Libraries
+│   ├── auth.ts               # NextAuth configuration
+│   ├── db.ts                 # Database connection
+│   ├── types.ts              # TypeScript definitions
+│   ├── fabric-swatch-data.ts # Fabric sample data
+│   └── utils.ts              # Utility functions
+│
+└── hooks/                     # Shared React Hooks
+    ├── use-auth.ts           # Authentication hook
+    └── use-api.ts            # API interaction hook
 ```
+
+### Multi-Experience Architecture
+
+**Experience Isolation**
+- Each experience in `/experiences` is completely independent
+- Separate package.json for dependency management
+- Individual Next.js configuration files
+- Dedicated ports for development (3006, 3007, etc.)
+- Can be deployed to different domains/subdomains
+
+**Shared Resource Strategy**
+- Common components accessed via relative imports from `/components`
+- Shared types and utilities in `/lib`
+- Authentication logic can be shared or isolated per experience
+- Database connections shared through `/lib/db.ts`
+
+**Port Allocation**
+- Port 3000: Admin Dashboard (main app)
+- Port 3006: Fabric Store
+- Port 3007: Store Guide
+- Future experiences: 3008+
 
 ### Component Architecture
 

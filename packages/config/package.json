@@ -1,0 +1,11 @@
+{
+  "name": "@tara-hub/config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.js",
+  "exports": {
+    "./tailwind": "./tailwind.config.ts",
+    "./typescript": "./tsconfig.base.json",
+    "./eslint": "./eslint.config.js"
+  }
+}

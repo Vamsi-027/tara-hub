@@ -1,0 +1,13 @@
+{
+  "name": "tara-hub-store-guide",
+  "buildCommand": "cd ../.. && npm install && cd experiences/store-guide && npm run build",
+  "outputDirectory": ".next",
+  "devCommand": "npm run dev",
+  "installCommand": "echo 'Skipping install - handled by buildCommand'",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_APP_NAME": "Store Guide"
+  },
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- experiences/store-guide packages"
+}
