@@ -62,3 +62,42 @@ export interface Fabric {
   lightFastness?: string
   pillResistance?: string
 }
+
+export interface SwatchFabric extends Fabric {
+  sku: string
+  colorFamily: 'Red' | 'Blue' | 'Green' | 'Yellow' | 'Orange' | 'Purple' | 'Pink' | 'Brown' | 'Gray' | 'Black' | 'White' | 'Neutral'
+  pattern: 'Solid' | 'Striped' | 'Floral' | 'Geometric' | 'Abstract' | 'Textured' | 'Plaid' | 'Damask'
+  usage: 'Indoor' | 'Outdoor' | 'Both'
+  properties: string[]
+  colorHex: string
+}
+
+export interface SwatchCollection {
+  id: string
+  name: string
+  description: string
+  image: string
+}
+
+export interface CustomerInfo {
+  name: string
+  email: string
+  phone: string
+  address: {
+    street: string
+    city: string
+    state: string
+    zip: string
+  }
+}
+
+export interface SwatchOrder {
+  id: string
+  customerInfo: CustomerInfo
+  swatches: string[] // fabric IDs
+  project?: string
+  marketingOptIn: boolean
+  orderDate: string
+  trackingNumber?: string
+  estimatedDelivery?: string
+}

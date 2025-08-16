@@ -1,0 +1,69 @@
+{
+  "entries": {
+    "b15c99774fc5f42cb160c9b7b4159244": {
+      "created": "2025-08-14T01:21:32.145798",
+      "last_accessed": "2025-08-14T01:22:06.707626",
+      "hits": 1,
+      "agent_type": "codebase-analyst",
+      "task_preview": "Perform comprehensive analysis of the project: sca",
+      "token_count": 488
+    },
+    "633a9707e53c4658aa72ae5934e820b9": {
+      "created": "2025-08-14T01:21:33.182375",
+      "last_accessed": "2025-08-14T01:22:06.757681",
+      "hits": 1,
+      "agent_type": "chief-product-manager",
+      "task_preview": "Based on the codebase analysis, create a comprehen",
+      "token_count": 482
+    },
+    "c366caa96d30d8345657b34846c3b971": {
+      "created": "2025-08-14T01:21:34.218071",
+      "last_accessed": "2025-08-14T01:22:06.790565",
+      "hits": 1,
+      "agent_type": "architect",
+      "task_preview": "Create technical steering document based on codeba",
+      "token_count": 484
+    },
+    "6720a7df8b194485543deb61ccfc00a8": {
+      "created": "2025-08-14T01:21:35.287048",
+      "last_accessed": "2025-08-14T01:22:06.820548",
+      "hits": 1,
+      "agent_type": "developer",
+      "task_preview": "Create development guidelines document including: ",
+      "token_count": 442
+    },
+    "80bd598e265dd0ddf5d6d958a61b1b20": {
+      "created": "2025-08-14T01:21:36.426054",
+      "last_accessed": "2025-08-14T01:22:06.850100",
+      "hits": 1,
+      "agent_type": "security-engineer",
+      "task_preview": "Review the project for security considerations: an",
+      "token_count": 434
+    },
+    "e7d31a2ac1dd394f32ec8e84ca9faa3e": {
+      "created": "2025-08-14T01:21:37.491561",
+      "last_accessed": "2025-08-14T01:22:06.879665",
+      "hits": 1,
+      "agent_type": "architect",
+      "task_preview": "Based on the analysis and steering documents, iden",
+      "token_count": 460
+    },
+    "9461b8e881a63a1f906eaa4e8486b6e4": {
+      "created": "2025-08-14T01:21:38.768800",
+      "last_accessed": "2025-08-14T01:22:06.909988",
+      "hits": 1,
+      "agent_type": "steering-context-manager",
+      "task_preview": "Consolidate all steering documents and ensure cons",
+      "token_count": 428
+    }
+  },
+  "access_order": [
+    "b15c99774fc5f42cb160c9b7b4159244",
+    "633a9707e53c4658aa72ae5934e820b9",
+    "c366caa96d30d8345657b34846c3b971",
+    "6720a7df8b194485543deb61ccfc00a8",
+    "80bd598e265dd0ddf5d6d958a61b1b20",
+    "e7d31a2ac1dd394f32ec8e84ca9faa3e",
+    "9461b8e881a63a1f906eaa4e8486b6e4"
+  ]
+}

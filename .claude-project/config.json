@@ -1,12 +1,7 @@
 {
   "project_id": "tara-hub",
   "project_type": "general",
-  "version": "3.0.1",
-  "created": "2025-08-13T15:37:02.246791",
-  "database": "unified",
-  "features": {
-    "memory_management": true,
-    "context_caching": true,
-    "thread_safe": true
-  }
+  "version": "3.0.0",
+  "created": "2025-08-14T01:21:55.450736",
+  "database": "unified"
 }
