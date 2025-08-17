@@ -1,616 +1,558 @@
-# Deployment Steering Document
+# Deployment Steering Document - Tara Hub
 
 ## Overview
 
-Tara Hub uses Vercel as the primary deployment platform, leveraging its seamless integration with Next.js 15 and automatic deployment capabilities. The deployment architecture supports multiple environments with proper configuration management and monitoring.
+Tara Hub uses a **multi-project Vercel deployment strategy** with **Turborepo** and **NPM Workspaces**, where each experience deploys as an independent Vercel project while sharing code through packages. This enables independent scaling, separate domains, and isolated deployments.
 
-## Current Implementation
+## Architecture Overview
 
-### Deployment Platform
-
-**Vercel Hosting**
-- Next.js 15 optimized hosting platform
-- Automatic deployments from GitHub repository
-- Edge network with global CDN distribution
-- Serverless functions for API routes
-- Built-in SSL/TLS certificate management
-
-**Repository Integration**
-- GitHub repository: `https://github.com/varaku1012/tara-hub.git`
-- Automatic deployments on push to `main` branch
-- Preview deployments for pull requests
-- Branch-based deployment strategies
-
-### Environment Configuration
-
-**Production Environment**
-```env
-# Production (.env.production)
-NEXTAUTH_URL=https://tara-hub.vercel.app
-NEXTAUTH_SECRET=production-secret-key
-GOOGLE_CLIENT_ID=production-google-client-id
-GOOGLE_CLIENT_SECRET=production-google-client-secret
-DATABASE_URL=postgresql://production-connection-string
-NODE_ENV=production
+### Deployment Structure
+```
+GitHub Repository (Single Monorepo)
+├── Admin App → Vercel Project: tara-hub-admin → admin.domain.com
+├── Fabric Store → Vercel Project: tara-hub-fabric-store → fabric.domain.com
+└── Store Guide → Vercel Project: tara-hub-store-guide → guide.domain.com
 ```
 
-**Staging Environment**
-```env
-# Staging (.env.staging)
-NEXTAUTH_URL=https://tara-hub-staging.vercel.app
-NEXTAUTH_SECRET=staging-secret-key
-GOOGLE_CLIENT_ID=staging-google-client-id
-GOOGLE_CLIENT_SECRET=staging-google-client-secret
-DATABASE_URL=postgresql://staging-connection-string
-NODE_ENV=staging
-```
+### Build System
+- **Turborepo**: Orchestrates builds with caching and parallel execution
+- **NPM Workspaces**: Manages shared dependencies through packages
+- **Shared Packages**: @tara-hub/ui, @tara-hub/lib, @tara-hub/config
+- **Independent Deployments**: Each experience has its own Vercel project
 
-**Development Environment**
-```env
-# Development (.env.local)
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=development-secret-key
-GOOGLE_CLIENT_ID=development-google-client-id
-GOOGLE_CLIENT_SECRET=development-google-client-secret
-DATABASE_URL=postgresql://local-connection-string
-NODE_ENV=development
-```
+## Vercel Project Configuration
 
-### Build Configuration
+### Project Mapping
+| Application | Vercel Project | Domain | Root Directory | Port |
+|------------|---------------|---------|----------------|------|
+| Admin Dashboard | tara-hub-admin | admin.domain.com | `.` | 3000 |
+| Fabric Store | tara-hub-fabric-store | fabric.domain.com | `experiences/fabric-store` | 3006 |
+| Store Guide | tara-hub-store-guide | guide.domain.com | `experiences/store-guide` | 3007 |
 
-**Next.js Configuration** (`next.config.mjs`)
-```javascript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  images: {
-    domains: ['images.unsplash.com', 'localhost', 'vercel.app'],
-    formats: ['image/webp', 'image/avif'],
-  },
-  
-  // Build optimization
-  experimental: {
-    optimizeCss: true,
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-  },
-  
-  // Security headers
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-        ],
-      },
-    ]
-  },
-  
-  // Redirects
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/admin',
-        permanent: false,
-      },
-    ]
-  },
-}
-
-export default nextConfig
-```
-
-**Package.json Build Scripts**
+### Admin App Configuration (vercel.json)
 ```json
 {
-  "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:ci": "jest --ci --coverage --watchAll=false",
-    "e2e": "cypress open",
-    "e2e:headless": "cypress run"
-  }
+  "framework": "nextjs",
+  "buildCommand": "npm run build:admin",
+  "devCommand": "npm run dev:admin",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- . ':(exclude)experiences' ':(exclude)packages'"
 }
 ```
 
-## Deployment Pipeline
+### Experience Configuration Template
+```json
+{
+  "name": "tara-hub-[experience]",
+  "buildCommand": "cd ../.. && npm install && cd experiences/[name] && npm run build",
+  "outputDirectory": ".next",
+  "devCommand": "npm run dev",
+  "installCommand": "echo 'Handled by buildCommand'",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- experiences/[name] packages"
+}
+```
 
-### Continuous Integration/Continuous Deployment (CI/CD)
+## Deployment Methods
 
-**GitHub Actions Workflow** (`.github/workflows/deploy.yml`)
+### Method 1: Vercel CLI (Initial Setup)
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy Admin App
+cd tara-hub
+vercel --prod
+# Project name: tara-hub-admin
+
+# Deploy Fabric Store
+cd experiences/fabric-store
+vercel --prod
+# Project name: tara-hub-fabric-store
+# Root directory: ./
+
+# Deploy Store Guide
+cd ../store-guide
+vercel --prod
+# Project name: tara-hub-store-guide
+# Root directory: ./
+```
+
+### Method 2: GitHub Integration
+
+1. **Import Repository Three Times** in Vercel Dashboard
+
+**Admin App Setup:**
+```
+Project Name: tara-hub-admin
+Framework: Next.js
+Root Directory: ./
+Build Command: npm run build:admin
+Install Command: npm install
+```
+
+**Fabric Store Setup:**
+```
+Project Name: tara-hub-fabric-store
+Framework: Next.js
+Root Directory: experiences/fabric-store
+Build Command: cd ../.. && npm install && cd experiences/fabric-store && npm run build
+Install Command: echo 'Skip'
+```
+
+**Store Guide Setup:**
+```
+Project Name: tara-hub-store-guide
+Framework: Next.js
+Root Directory: experiences/store-guide
+Build Command: cd ../.. && npm install && cd experiences/store-guide && npm run build
+Install Command: echo 'Skip'
+```
+
+### Method 3: GitHub Actions Automation
+
 ```yaml
 name: Deploy to Vercel
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
 jobs:
-  test:
+  detect-changes:
     runs-on: ubuntu-latest
-    
+    outputs:
+      admin: ${{ steps.filter.outputs.admin }}
+      fabric-store: ${{ steps.filter.outputs.fabric-store }}
+      store-guide: ${{ steps.filter.outputs.store-guide }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Type checking
-      run: npm run type-check
-      
-    - name: Linting
-      run: npm run lint
-      
-    - name: Unit tests
-      run: npm run test:ci
-      
-    - name: Build application
-      run: npm run build
-      env:
-        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            admin:
+              - 'app/**'
+              - 'components/**'
+              - 'lib/**'
+              - 'package.json'
+              - 'turbo.json'
+            fabric-store:
+              - 'experiences/fabric-store/**'
+              - 'packages/**'
+            store-guide:
+              - 'experiences/store-guide/**'
+              - 'packages/**'
 
-  deploy-preview:
-    needs: test
+  deploy-admin:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.admin == 'true'
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install Vercel CLI
-      run: npm install --global vercel@canary
-      
-    - name: Pull Vercel Environment Information
-      run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-      
-    - name: Build Project Artifacts
-      run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-      
-    - name: Deploy to Vercel
-      run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+          vercel-args: '--prod'
 
-  deploy-production:
-    needs: test
+  deploy-fabric-store:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.fabric-store == 'true'
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install Vercel CLI
-      run: npm install --global vercel@canary
-      
-    - name: Pull Vercel Environment Information
-      run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      
-    - name: Build Project Artifacts
-      run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      
-    - name: Deploy to Vercel
-      run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_FABRIC_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./experiences/fabric-store
 
-  e2e-tests:
-    needs: deploy-preview
+  deploy-store-guide:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.store-guide == 'true'
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run E2E tests
-      run: npm run e2e:headless
-      env:
-        CYPRESS_baseUrl: ${{ steps.deploy.outputs.preview-url }}
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_GUIDE_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./experiences/store-guide
 ```
 
-### Database Deployment
+## Environment Variables
 
-**Migration Strategy**
+### Admin App Variables
+```env
+# Authentication
+NEXTAUTH_URL=https://admin.yourdomain.com
+NEXTAUTH_SECRET=[generated-secret]
+GOOGLE_CLIENT_ID=[google-oauth-id]
+GOOGLE_CLIENT_SECRET=[google-oauth-secret]
+
+# Database
+DATABASE_URL=[neon-postgres-url]
+
+# Vercel KV
+KV_REST_API_URL=[vercel-kv-url]
+KV_REST_API_TOKEN=[vercel-kv-token]
+```
+
+### Experience Variables
+```env
+# API Configuration
+NEXT_PUBLIC_API_URL=https://admin.yourdomain.com/api
+NEXT_PUBLIC_APP_NAME=[Experience Name]
+
+# Shared Resources (optional)
+KV_REST_API_URL=[shared-kv-url]
+KV_REST_API_TOKEN=[shared-kv-token]
+```
+
+### Setting Variables via CLI
 ```bash
-# Production migration workflow
-npm run db:generate  # Generate migration files
-npm run db:migrate   # Apply migrations to production database
-
-# Alternative: Direct schema push (development only)
-npm run db:push      # Push schema directly to database
-```
-
-**Database Environment Management**
-```typescript
-// lib/db-migrations.ts
-import { migrate } from 'drizzle-orm/neon-http/migrator'
-import { db } from './db'
-
-export async function runMigrations() {
-  if (process.env.NODE_ENV === 'production') {
-    await migrate(db, { migrationsFolder: './drizzle' })
-    console.log('Migrations completed successfully')
-  }
-}
-
-// Run migrations on deployment
-if (process.env.VERCEL && process.env.NODE_ENV === 'production') {
-  runMigrations().catch(console.error)
-}
-```
-
-### Environment Variables Management
-
-**Vercel Environment Variables**
-```bash
-# Set production environment variables
 vercel env add NEXTAUTH_SECRET production
-vercel env add GOOGLE_CLIENT_ID production
-vercel env add GOOGLE_CLIENT_SECRET production
 vercel env add DATABASE_URL production
-
-# Set staging environment variables
-vercel env add NEXTAUTH_SECRET staging
-vercel env add GOOGLE_CLIENT_ID staging
-vercel env add GOOGLE_CLIENT_SECRET staging
-vercel env add DATABASE_URL staging
-
-# Set development environment variables
-vercel env add NEXTAUTH_SECRET development
+vercel env pull .env.local
 ```
 
-**Environment Variable Validation**
-```typescript
-// lib/env.ts
-import { z } from 'zod'
+## Turborepo Integration
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'staging', 'production']),
-  NEXTAUTH_URL: z.string().url(),
-  NEXTAUTH_SECRET: z.string().min(32),
-  GOOGLE_CLIENT_ID: z.string().min(1),
-  GOOGLE_CLIENT_SECRET: z.string().min(1),
-  DATABASE_URL: z.string().url().optional(),
-})
+### Remote Caching Setup
+```bash
+# Login to Vercel
+npx turbo login
 
-export const env = envSchema.parse(process.env)
+# Link project for remote caching
+npx turbo link
 ```
 
-## Infrastructure Architecture
-
-### Vercel Platform Features
-
-**Edge Network Distribution**
-- Global CDN with 40+ edge locations worldwide
-- Automatic static asset optimization
-- Image optimization with Next.js Image component
-- Brotli compression and HTTP/2 support
-
-**Serverless Functions**
-- API routes deployed as serverless functions
-- Automatic scaling based on demand
-- Cold start optimization
-- 10-second execution timeout
-
-**Performance Monitoring**
-- Real User Monitoring (RUM)
-- Core Web Vitals tracking
-- Function execution metrics
-- Error tracking and alerting
-
-### Database Infrastructure
-
-**Neon Serverless PostgreSQL**
-- Serverless PostgreSQL with automatic scaling
-- Connection pooling and query optimization
-- Point-in-time recovery and branching
-- High availability with 99.95% uptime SLA
-
-**Connection Management**
-```typescript
-// lib/db-connection.ts
-import { neon, neonConfig } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
-
-// Configure connection pooling
-neonConfig.fetchConnectionCache = true
-
-export function createDatabaseConnection() {
-  if (!process.env.DATABASE_URL) {
-    console.warn('DATABASE_URL not set, running without database')
-    return null
-  }
-
-  const sql = neon(process.env.DATABASE_URL)
-  return drizzle(sql, {
-    schema,
-    logger: process.env.NODE_ENV === 'development'
-  })
-}
-```
-
-### Security and Monitoring
-
-**Security Headers**
-- Content Security Policy (CSP)
-- X-Frame-Options protection
-- X-Content-Type-Options
-- Strict Transport Security (HSTS)
-
-**Monitoring and Alerting**
-```typescript
-// lib/monitoring.ts
-export function setupMonitoring() {
-  if (process.env.NODE_ENV === 'production') {
-    // Error tracking
-    process.on('unhandledRejection', (reason, promise) => {
-      console.error('Unhandled Rejection at:', promise, 'reason:', reason)
-      // Send to monitoring service
-    })
-    
-    // Performance monitoring
-    if (typeof window !== 'undefined') {
-      // Client-side performance tracking
-      const observer = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry) => {
-          // Send performance metrics
-        })
-      })
-      observer.observe({ entryTypes: ['navigation', 'measure'] })
+### Build Optimization
+```json
+// turbo.json
+{
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "cache": true
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
     }
   }
 }
 ```
 
-## Deployment Strategies
+### Parallel Builds
+- Shared packages build once and cache
+- Experiences build in parallel
+- Unchanged packages skip rebuild
+- Remote cache shared across team
 
-### Blue-Green Deployment
+## Domain Configuration
 
-**Branch-based Deployments**
-```yaml
-# Production (main branch)
-main → production.tara-hub.vercel.app
+### Custom Domain Setup
 
-# Staging (develop branch)  
-develop → staging.tara-hub.vercel.app
-
-# Feature branches
-feature/* → feature-branch.tara-hub.vercel.app
-```
-
-**Preview Deployments**
-- Automatic preview URLs for all pull requests
-- Full environment isolation
-- Database branching for testing
-- Automatic cleanup after PR closure
-
-### Rollback Strategy
-
-**Vercel Deployments Management**
 ```bash
-# List recent deployments
-vercel ls
-
-# Promote specific deployment to production
-vercel promote <deployment-url>
-
-# Rollback to previous deployment
-vercel rollback
+# Via CLI
+vercel domains add admin.yourdomain.com --project tara-hub-admin
+vercel domains add fabric.yourdomain.com --project tara-hub-fabric-store
+vercel domains add guide.yourdomain.com --project tara-hub-store-guide
 ```
 
-**Database Rollback**
-```sql
--- Emergency rollback procedures
--- 1. Stop application traffic
--- 2. Restore from point-in-time backup
--- 3. Validate data integrity
--- 4. Resume traffic
+### DNS Configuration
+```
+Type: CNAME
+Name: admin
+Value: cname.vercel-dns.com
+
+Type: CNAME  
+Name: fabric
+Value: cname.vercel-dns.com
+
+Type: CNAME
+Name: guide
+Value: cname.vercel-dns.com
 ```
 
-### Performance Optimization
+## Build & Deployment Optimization
 
-**Build Optimization**
-- Tree shaking for unused code elimination
-- Bundle splitting for optimal loading
-- Static asset optimization
-- Service worker for caching (planned)
+### Ignore Build Commands
+Prevent unnecessary rebuilds using path-based triggers:
 
-**Runtime Optimization**
-- Edge function deployment
-- Database connection pooling
-- CDN caching strategies
-- Image optimization pipeline
+**Admin App:**
+```bash
+git diff HEAD^ HEAD --quiet -- . ':(exclude)experiences' ':(exclude)packages'
+```
 
-## Monitoring and Maintenance
+**Experiences:**
+```bash
+git diff HEAD^ HEAD --quiet -- experiences/[name] packages
+```
 
-### Application Monitoring
+### Build Performance
+```javascript
+// next.config.js
+module.exports = {
+  experimental: {
+    externalDir: true, // Support packages outside app directory
+    optimizeCss: true,
+    optimizePackageImports: ['@tara-hub/ui', '@tara-hub/lib']
+  }
+}
+```
 
-**Vercel Analytics Integration**
+### Function Configuration
+```json
+{
+  "functions": {
+    "app/api/**.ts": {
+      "maxDuration": 10
+    }
+  },
+  "images": {
+    "domains": ["images.unsplash.com"],
+    "formats": ["image/webp", "image/avif"]
+  }
+}
+```
+
+## Monitoring & Analytics
+
+### Vercel Analytics Integration
 ```typescript
-// app/layout.tsx
+// app/layout.tsx or experiences/*/app/layout.tsx
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }) {
   return (
     <html>
       <body>
         {children}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
 }
 ```
 
-**Custom Monitoring Dashboard**
+### Enable Per Project
+1. Go to Project Settings → Analytics → Enable
+2. Go to Project Settings → Speed Insights → Enable
+3. Each project has independent analytics
+
+## Preview Deployments
+
+### Automatic Preview URLs
+- Format: `[project]-[branch]-[team].vercel.app`
+- Created for every push
+- Comments added to PRs
+
+### Preview Protection
 ```typescript
-// lib/metrics.ts
-export class MetricsCollector {
-  static trackPageView(page: string) {
-    if (process.env.NODE_ENV === 'production') {
-      // Send to analytics service
-      fetch('/api/analytics/pageview', {
-        method: 'POST',
-        body: JSON.stringify({ page, timestamp: Date.now() })
+// middleware.ts
+export function middleware(request: Request) {
+  const url = new URL(request.url)
+  
+  if (url.hostname.includes('vercel.app')) {
+    const auth = request.headers.get('authorization')
+    
+    if (!auth || !isValidAuth(auth)) {
+      return new Response('Unauthorized', {
+        status: 401,
+        headers: { 'WWW-Authenticate': 'Basic' }
       })
     }
+  }
+}
+```
+
+## Rollback Procedures
+
+### Via Dashboard
+1. Go to Deployments tab
+2. Find previous deployment
+3. Click "..." → "Promote to Production"
+
+### Via CLI
+```bash
+# List deployments
+vercel ls --project tara-hub-admin
+
+# Rollback specific project
+vercel rollback [deployment-url]
+```
+
+## Production Checklist
+
+### Pre-Deployment
+- [ ] Run `npx turbo build` locally
+- [ ] Check `npx turbo type-check`
+- [ ] Run `npx turbo test`
+- [ ] Update environment variables
+- [ ] Check Turborepo cache
+
+### Deployment Order
+1. Deploy shared packages changes first
+2. Deploy admin app
+3. Deploy experiences
+4. Verify all builds succeed
+
+### Post-Deployment
+- [ ] Test each deployed URL
+- [ ] Check authentication flows
+- [ ] Verify API endpoints
+- [ ] Monitor error rates
+- [ ] Check Analytics dashboard
+
+## Troubleshooting
+
+### Common Issues
+
+#### Workspace Package Not Found
+```json
+// Ensure buildCommand includes npm install
+"buildCommand": "cd ../.. && npm install && cd experiences/[name] && npm run build"
+```
+
+#### Out of Memory Error
+```json
+// Increase memory in package.json
+"scripts": {
+  "build": "NODE_OPTIONS='--max-old-space-size=4096' next build"
+}
+```
+
+#### Module Resolution Issues
+```javascript
+// next.config.js
+module.exports = {
+  experimental: {
+    externalDir: true
+  }
+}
+```
+
+### Debug Commands
+```bash
+# Check environment variables
+vercel env ls
+
+# View build logs
+vercel logs [deployment-url]
+
+# Inspect domain configuration
+vercel domains inspect [domain]
+```
+
+## Cost Optimization
+
+### Strategies
+1. **Use Turborepo caching** - Reduce build minutes
+2. **ISR/SSG** - Reduce function invocations
+3. **Image optimization** - Reduce bandwidth
+4. **Path-based deploys** - Skip unchanged apps
+
+### Resource Monitoring
+```bash
+# Check usage
+vercel billing
+
+# Or in Dashboard
+# Team Settings → Usage
+```
+
+### Limits (Pro Plan)
+- Build Minutes: 6000/month
+- Bandwidth: 1TB/month
+- Function Invocations: 1M/month
+- Edge Middleware: 1M/month
+
+## Security Best Practices
+
+### Environment Variables
+- Different secrets per environment
+- Never commit `.env` files
+- Rotate secrets regularly
+- Use encrypted storage
+
+### Headers Configuration
+```javascript
+// next.config.js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=()' }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### API Protection
+```typescript
+// app/api/protected/route.ts
+import { auth } from '@/auth'
+
+export async function GET(request: Request) {
+  const session = await auth()
+  
+  if (!session?.user) {
+    return new Response('Unauthorized', { status: 401 })
   }
   
-  static trackError(error: Error, context?: any) {
-    console.error('Application Error:', error, context)
-    
-    if (process.env.NODE_ENV === 'production') {
-      // Send to error tracking service
-      fetch('/api/analytics/error', {
-        method: 'POST',
-        body: JSON.stringify({
-          message: error.message,
-          stack: error.stack,
-          context,
-          timestamp: Date.now()
-        })
-      })
-    }
-  }
+  // Handle authenticated request
 }
 ```
 
-### Health Checks
+## Future Enhancements
 
-**Application Health Endpoint**
+### Planned Improvements
+1. **Edge Functions** - Deploy to edge for lower latency
+2. **Database Read Replicas** - Multi-region data access
+3. **Automated Testing** - E2E tests in preview deploys
+4. **Cost Allocation** - Per-experience billing tracking
+5. **Canary Deployments** - Gradual rollout strategy
+
+### Infrastructure as Code
 ```typescript
-// app/api/health/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-
-export async function GET(request: NextRequest) {
-  try {
-    // Check database connectivity
-    if (db) {
-      await db.execute('SELECT 1')
-    }
-    
-    // Check external service connectivity
-    const checks = {
-      database: db ? 'healthy' : 'not configured',
-      timestamp: new Date().toISOString(),
-      version: process.env.VERCEL_GIT_COMMIT_SHA || 'unknown'
-    }
-    
-    return NextResponse.json({
-      status: 'healthy',
-      checks
-    })
-    
-  } catch (error) {
-    return NextResponse.json({
-      status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+// infrastructure/vercel-config.ts
+export const projects = [
+  {
+    name: 'tara-hub-admin',
+    env: adminEnvVars,
+    domains: ['admin.domain.com']
+  },
+  {
+    name: 'tara-hub-fabric-store',
+    env: fabricEnvVars,
+    domains: ['fabric.domain.com']
   }
-}
+]
 ```
 
-### Backup and Recovery
-
-**Automated Backup Strategy**
-- Daily automated database backups via Neon
-- Configuration backup in version control
-- Environment variable backup in secure storage
-- Static asset backup via CDN
-
-**Disaster Recovery Plan**
-1. **Service Outage Response**
-   - Monitor service status
-   - Implement fallback strategies
-   - Communicate with stakeholders
-
-2. **Data Recovery Procedures**
-   - Point-in-time recovery from Neon backups
-   - Configuration restoration from Git
-   - Environment variable restoration
-
-3. **Business Continuity**
-   - Service level agreements (SLA)
-   - Recovery time objectives (RTO)
-   - Recovery point objectives (RPO)
-
-## Future Deployment Enhancements
-
-### Multi-Region Deployment
-
-**Global Distribution Strategy**
-- Edge regions for reduced latency
-- Database read replicas
-- CDN optimization for global users
-- Regional failover capabilities
-
-### Advanced CI/CD Features
-
-**Automated Testing Pipeline**
-- Visual regression testing
-- Performance benchmarking
-- Security vulnerability scanning
-- Accessibility testing
-
-**Infrastructure as Code**
-```typescript
-// infrastructure/vercel.ts
-export const vercelConfig = {
-  projects: [{
-    name: 'tara-hub-production',
-    framework: 'nextjs',
-    buildCommand: 'npm run build',
-    devCommand: 'npm run dev',
-    installCommand: 'npm ci',
-    environmentVariables: productionEnvVars
-  }]
-}
-```
-
-This deployment architecture provides a robust, scalable, and maintainable foundation for the Tara Hub application with automated processes and comprehensive monitoring.
+This deployment architecture leverages Turborepo and NPM Workspaces for optimal build performance while maintaining independent deployments for each experience.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Tara Hub is a modern multi-experience platform built with Next.js 15, featuring a clean separation between admin functionality and customer-facing experiences. The architecture follows a monorepo pattern with independent, deployable experiences that share common resources while maintaining complete isolation.
+Tara Hub is a modern multi-experience platform built with Next.js 15, featuring a clean separation between admin functionality and customer-facing experiences. The architecture follows a **Turborepo-powered monorepo pattern** with **NPM Workspaces** for optimal dependency management, enabling independent deployable experiences that share common resources through dedicated packages while maintaining complete isolation.
 
 ## Current Implementation
 
@@ -35,10 +35,17 @@ Tara Hub is a modern multi-experience platform built with Next.js 15, featuring 
 - Client-side state with React hooks (useState, useEffect)
 - Session management through NextAuth.js providers
 
+**Build & Development Tools**
+- Turborepo for optimized builds with caching and parallel execution
+- NPM Workspaces for dependency management and package sharing
+- Shared packages architecture (@tara-hub/ui, @tara-hub/lib)
+
 **Deployment & Infrastructure**
 - Vercel platform for hosting and deployment
+- Independent Vercel projects per experience
 - Automatic deployments from GitHub main branch
 - Edge runtime optimization where applicable
+- Smart deployment triggers based on changed paths
 
 ### Application Structure
 
@@ -60,30 +67,39 @@ tara-hub/
 ├── experiences/               # Independent Customer Experiences
 │   ├── fabric-store/          # Fabric ordering platform (port 3006)
 │   │   ├── app/               # Next.js app directory
-│   │   ├── components/        # Experience-specific components
-│   │   ├── package.json       # Independent dependencies
+│   │   ├── package.json       # Uses @tara-hub/* packages
+│   │   ├── vercel.json        # Independent deployment config
 │   │   └── next.config.js     # Separate configuration
 │   │
 │   └── store-guide/           # Customer store interface (port 3007)
 │       ├── app/               # Next.js app directory
-│       ├── package.json       # Independent dependencies
+│       ├── package.json       # Uses @tara-hub/* packages
+│       ├── vercel.json        # Independent deployment config
 │       └── next.config.js     # Separate configuration
 │
-├── components/                # Shared UI Components
-│   ├── ui/                    # Shadcn/ui base components
-│   ├── admin-dashboard.tsx    # Admin interface components
-│   └── fabric-*.tsx           # Fabric-related components
+├── packages/                  # NPM Workspace Packages (NEW)
+│   ├── ui/                    # @tara-hub/ui package
+│   │   ├── components/        # All shared UI components
+│   │   ├── index.ts          # Package exports
+│   │   └── package.json      # Package definition
+│   │
+│   ├── lib/                   # @tara-hub/lib package
+│   │   ├── utils/            # Utility functions
+│   │   ├── types/            # TypeScript definitions
+│   │   ├── hooks/            # React hooks
+│   │   ├── data/             # Shared data
+│   │   └── package.json      # Package definition
+│   │
+│   └── config/               # @tara-hub/config package
+│       └── package.json      # Shared configurations
 │
-├── lib/                       # Shared Libraries
-│   ├── auth.ts               # NextAuth configuration
-│   ├── db.ts                 # Database connection
-│   ├── types.ts              # TypeScript definitions
-│   ├── fabric-swatch-data.ts # Fabric sample data
-│   └── utils.ts              # Utility functions
+├── components/                # Legacy components (being migrated)
+├── lib/                       # Legacy libraries (being migrated)
+├── hooks/                     # Legacy hooks (being migrated)
 │
-└── hooks/                     # Shared React Hooks
-    ├── use-auth.ts           # Authentication hook
-    └── use-api.ts            # API interaction hook
+├── turbo.json                # Turborepo configuration
+├── package.json              # Root with workspaces config
+└── vercel.json               # Admin app deployment config
 ```
 
 ### Multi-Experience Architecture
@@ -95,11 +111,14 @@ tara-hub/
 - Dedicated ports for development (3006, 3007, etc.)
 - Can be deployed to different domains/subdomains
 
-**Shared Resource Strategy**
-- Common components accessed via relative imports from `/components`
-- Shared types and utilities in `/lib`
-- Authentication logic can be shared or isolated per experience
-- Database connections shared through `/lib/db.ts`
+**Shared Resource Strategy (Turborepo + NPM Workspaces)**
+- Common components in `@tara-hub/ui` package - zero duplication
+- Shared utilities and types in `@tara-hub/lib` package
+- Import from packages: `import { Button } from '@tara-hub/ui'`
+- Single source of truth with automatic dependency resolution
+- Turborepo caching for unchanged packages
+- Authentication logic shared through packages
+- Database connections shared through `@tara-hub/lib`
 
 **Port Allocation**
 - Port 3000: Admin Dashboard (main app)
@@ -176,9 +195,11 @@ tara-hub/
 
 **Import Organization**
 - External libraries first
+- Workspace packages (`@tara-hub/ui`, `@tara-hub/lib`)
 - Internal components and utilities
 - Type imports clearly separated
-- Absolute imports using @ alias for project root
+- Package imports for shared resources
+- Local imports using relative paths or aliases
 
 **Component Structure**
 ```typescript
@@ -270,9 +291,26 @@ export function ComponentName({ props }: ComponentProps) {
 - Database testing with test fixtures
 
 ### Deployment Process
-- Automatic deployment through Vercel GitHub integration
-- Environment variable management through Vercel dashboard
-- Database migrations handled through Drizzle Kit
-- Build-time type checking and linting
+
+**Independent Vercel Projects**
+- Each experience deploys to its own Vercel project
+- Admin app: `tara-hub-admin`
+- Fabric Store: `tara-hub-fabric-store`  
+- Store Guide: `tara-hub-store-guide`
+
+**Build Commands**
+- Admin: `npm run build:admin`
+- Experiences: `cd ../.. && npm install && cd experiences/[name] && npm run build`
+- Turborepo handles dependency building
+
+**Deployment Triggers**
+- Path-based ignore commands prevent unnecessary builds
+- Only rebuilds when relevant files change
+- Shared packages trigger rebuilds for dependent apps
+
+**Development Workflow**
+- Local: `npx turbo dev` (all apps parallel)
+- Individual: `npm run dev:admin` or experience-specific
+- Turborepo caching speeds up rebuilds
 
 This architecture provides a solid foundation for a modern, scalable web application while maintaining developer productivity and code quality.

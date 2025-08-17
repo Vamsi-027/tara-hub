@@ -17,14 +17,39 @@ tara-hub/
 │   ├── layout.tsx               # Root layout with providers
 │   └── page.tsx                 # Redirects to /admin
 │
+├── packages/                     # NPM Workspace Packages (Shared Code)
+│   ├── ui/                      # @tara-hub/ui - Shared UI Components
+│   │   ├── components/          # All UI components from shadcn/ui
+│   │   │   ├── button.tsx      # Button component
+│   │   │   ├── card.tsx        # Card component
+│   │   │   ├── dialog.tsx      # Dialog component
+│   │   │   └── ...             # Other UI components
+│   │   ├── index.ts            # Package exports
+│   │   └── package.json        # Package configuration
+│   │
+│   ├── lib/                     # @tara-hub/lib - Shared Libraries
+│   │   ├── utils/              # Utility functions
+│   │   │   ├── cn.ts          # Class name utility
+│   │   │   └── utils.ts       # General utilities
+│   │   ├── types/              # TypeScript definitions
+│   │   │   └── types.ts       # Shared types
+│   │   ├── hooks/              # React hooks
+│   │   ├── data/               # Shared data
+│   │   │   └── fabric-swatch-data.ts
+│   │   ├── index.ts            # Package exports
+│   │   └── package.json        # Package configuration
+│   │
+│   └── config/                  # @tara-hub/config - Shared Configs
+│       └── package.json         # Configuration package
+│
 ├── experiences/                  # Independent Customer Experiences
 │   ├── fabric-store/            # Fabric ordering platform (port 3006)
 │   │   ├── app/                 # Next.js app directory
 │   │   │   ├── browse/          # Browse fabrics page
 │   │   │   ├── checkout/        # Checkout flow
 │   │   │   └── page.tsx         # Store homepage
-│   │   ├── components/          # Experience-specific components
-│   │   ├── package.json         # Independent dependencies
+│   │   ├── package.json         # Uses @tara-hub/* packages
+│   │   ├── vercel.json          # Deployment configuration
 │   │   ├── next.config.js       # Separate configuration
 │   │   └── tsconfig.json        # TypeScript config
 │   │
@@ -33,26 +58,24 @@ tara-hub/
 │       │   ├── fabrics/         # Fabric catalog
 │       │   ├── products/        # Product catalog
 │       │   └── page.tsx         # Store guide home
-│       ├── package.json         # Independent dependencies
+│       ├── package.json         # Uses @tara-hub/* packages
+│       ├── vercel.json          # Deployment configuration
 │       └── next.config.js       # Separate configuration
 │
-├── components/                   # Shared React Components
-│   ├── ui/                      # Base UI Components (Shadcn/ui)
-│   │   ├── button.tsx          # Reusable button component
-│   │   ├── card.tsx            # Card component
-│   │   └── ...                 # Other Radix UI components
+├── components/                   # Legacy Components (Migrated to packages/ui)
+│   ├── ui/                      # Being moved to @tara-hub/ui
 │   ├── admin-dashboard.tsx     # Admin interface components
 │   ├── fabric-*.tsx            # Fabric-related components
 │   └── providers.tsx           # Context providers
 │
-├── lib/                         # Shared Libraries & Configuration
+├── lib/                         # Legacy Libraries (Migrated to packages/lib)
 │   ├── auth.ts                 # NextAuth.js configuration
 │   ├── db.ts                   # Database connection
-│   ├── types.ts                # TypeScript definitions (includes SwatchFabric, SwatchOrder)
-│   ├── fabric-swatch-data.ts   # Fabric sample data
-│   └── utils.ts                # Utility functions
+│   ├── types.ts                # Being moved to @tara-hub/lib/types
+│   ├── fabric-swatch-data.ts   # Being moved to @tara-hub/lib/data
+│   └── utils.ts                # Being moved to @tara-hub/lib/utils
 │
-├── hooks/                       # Shared React Hooks
+├── hooks/                       # Legacy Hooks (Migrated to packages/lib/hooks)
 │   ├── use-auth.ts             # Authentication hook
 │   └── use-api.ts              # API interaction hook
 │
@@ -65,10 +88,12 @@ tara-hub/
 │       ├── structure.md        # This file - development guidelines
 │       └── ...                 # Other steering docs
 │
-├── package.json                # Root dependencies
+├── turbo.json                  # Turborepo configuration
+├── package.json                # Root with NPM workspaces config
 ├── next.config.mjs             # Main app Next.js configuration
 ├── tailwind.config.ts          # Tailwind CSS configuration
 ├── tsconfig.json               # TypeScript configuration
+├── vercel.json                 # Admin app deployment config
 └── README.md                   # Project documentation
 ```
 
@@ -173,7 +198,7 @@ components/
 └── shared/               # Shared business components
 ```
 
-### Import Organization
+### Import Organization (Updated for Packages)
 ```typescript
 // 1. React and Next.js imports
 import React from 'react'
@@ -182,22 +207,21 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 // 2. External library imports
-import { Button } from '@radix-ui/react-button'
 import { format } from 'date-fns'
 import { z } from 'zod'
 
-// 3. Internal component imports (alphabetical)
-import { Button } from '@/components/ui/button'
-import { Dialog } from '@/components/ui/dialog'
-import { Header } from '@/components/header'
+// 3. Workspace package imports (NEW)
+import { Button, Card, Dialog } from '@tara-hub/ui'
+import { cn, formatCurrency } from '@tara-hub/lib/utils'
+import type { SwatchFabric, SwatchOrder } from '@tara-hub/lib/types'
+import { useAuth } from '@tara-hub/lib/hooks'
 
-// 4. Internal utility imports
-import { cn } from '@/lib/utils'
-import { config } from '@/lib/config'
-import { db } from '@/lib/data'
+// 4. Local/internal imports (experience-specific)
+import { LocalComponent } from './components/local'
+import { localUtil } from './utils/local'
 
 // 5. Type imports (with 'type' keyword)
-import type { User, Post, Fabric } from '@/lib/types'
+import type { LocalType } from './types'
 ```
 
 ## Data Flow Architecture
@@ -337,6 +361,42 @@ describe('Button Component', () => {
   })
 })
 ```
+
+## Turborepo & Workspace Management
+
+### Development Commands
+```bash
+# Start all apps in parallel
+npx turbo dev
+
+# Start specific app
+npm run dev:admin      # Admin dashboard
+cd experiences/fabric-store && npm run dev  # Fabric store
+
+# Build all apps
+npx turbo build
+
+# Build specific app
+npm run build:admin
+```
+
+### Package Management
+```bash
+# Install dependencies (from root)
+npm install
+
+# Add dependency to specific package
+npm install [package] -w @tara-hub/ui
+
+# Update workspace packages
+npm update
+```
+
+### Turborepo Features
+- **Caching**: Unchanged packages are cached
+- **Parallel Execution**: Multiple apps run simultaneously
+- **Smart Rebuilds**: Only affected apps rebuild
+- **Remote Caching**: Available with Vercel
 
 ## Configuration Management
 
@@ -513,4 +573,25 @@ npm run db:studio    # Open Drizzle Studio for inspection
 - **Database Health**: Connection pool monitoring via Neon dashboard
 - **Bundle Analysis**: Regular bundle size audits with `@next/bundle-analyzer`
 
-## Project Type: nextjs-marketing-saas
+## AI Context Guidelines
+
+### Key Architecture Points for Claude
+1. **Monorepo with Turborepo**: Always use Turborepo commands
+2. **NPM Workspaces**: Shared code in `/packages` folder
+3. **Import Pattern**: Use `@tara-hub/ui` and `@tara-hub/lib`
+4. **Independent Deployments**: Each experience has its own Vercel project
+5. **Port Allocation**: Admin (3000), Fabric Store (3006), Store Guide (3007)
+
+### Common Tasks
+- **Add UI Component**: Add to `packages/ui/components`
+- **Add Utility**: Add to `packages/lib/utils`
+- **Add New Experience**: Create in `/experiences` with own package.json
+- **Update Imports**: Change from `@/components` to `@tara-hub/ui`
+
+### Build & Deploy
+- **Local Dev**: `npx turbo dev`
+- **Production Build**: `npx turbo build`
+- **Deploy Admin**: Push to main, deploys to `tara-hub-admin`
+- **Deploy Experience**: Push to main, each deploys independently
+
+## Project Type: nextjs-turborepo-multi-experience

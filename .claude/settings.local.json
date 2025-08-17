@@ -34,7 +34,8 @@
       "Bash(npm run:*)",
       "Bash(grep:*)",
       "Bash(taskkill:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(npx next:*)"
     ],
     "deny": [],
     "ask": [],
