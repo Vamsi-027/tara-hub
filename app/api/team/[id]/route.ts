@@ -1,118 +1,143 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { users } from '@/lib/auth-schema'
-import { eq } from 'drizzle-orm'
+import { NextRequest, NextResponse } from 'next/server';
+import { legacyUsers } from '@/lib/legacy-auth-schema';
+import { db } from '@/lib/db';
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+import { eq } from 'drizzle-orm';
 
+// PATCH /api/team/[id] - Update team member role
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    // Verify authentication
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
     
-    // Check if user has admin privileges (platform_admin, tenant_admin, or admin)
-    const userRole = (session.user as any)?.role
-    const hasAdminAccess = userRole && ['platform_admin', 'tenant_admin', 'admin'].includes(userRole)
-    
-    if (!session || !hasAdminAccess) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { role } = await request.json()
     
-    // Extended role list with SaaS roles
-    const validRoles = ['platform_admin', 'tenant_admin', 'admin', 'editor', 'viewer']
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as any;
     
-    if (!role || !validRoles.includes(role)) {
-      return NextResponse.json(
-        { error: 'Invalid role' },
-        { status: 400 }
-      )
+    // Only admin roles can update team members
+    if (!['admin', 'platform_admin', 'tenant_admin'].includes(decoded.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
-
-    if (!db) {
-      return NextResponse.json({
-        message: 'Role updated (no database)',
-        userId: params.id,
-        newRole: role,
-      })
+    
+    const { role } = await request.json();
+    
+    if (!role) {
+      return NextResponse.json({ error: 'Role is required' }, { status: 400 });
     }
-
-    // Update the user's role in the database
-    const updatedUser = await db.update(users)
+    
+    // Validate role
+    const validRoles = ['platform_admin', 'tenant_admin', 'admin', 'editor', 'viewer'];
+    if (!validRoles.includes(role)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+    }
+    
+    // Prevent self-modification of role (to avoid locking oneself out)
+    const userToUpdate = await db.select().from(legacyUsers).where(eq(legacyUsers.id, params.id)).limit(1);
+    if (userToUpdate.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    
+    if (userToUpdate[0].email === decoded.email) {
+      return NextResponse.json({ error: 'Cannot modify your own role' }, { status: 400 });
+    }
+    
+    // Update user role
+    const updatedUser = await db
+      .update(legacyUsers)
       .set({ 
-        role: role,
+        role,
         updatedAt: new Date()
       })
-      .where(eq(users.id, params.id))
-      .returning()
+      .where(eq(legacyUsers.id, params.id))
+      .returning();
     
-    if (!updatedUser.length) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
+    if (updatedUser.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     
-    return NextResponse.json({
+    console.log('✅ Team member role updated:', updatedUser[0].email, 'to role:', updatedUser[0].role);
+    
+    return NextResponse.json({ 
       message: 'Role updated successfully',
-      userId: params.id,
-      newRole: role,
-      user: updatedUser[0],
-    })
+      user: {
+        id: updatedUser[0].id,
+        email: updatedUser[0].email,
+        name: updatedUser[0].name,
+        role: updatedUser[0].role,
+        status: 'active',
+        joinedAt: updatedUser[0].createdAt.toISOString(),
+      }
+    });
     
   } catch (error) {
-    console.error('Error updating member:', error)
+    console.error('Error updating team member:', error);
     return NextResponse.json(
-      { error: 'Failed to update member' },
+      { error: 'Failed to update team member' }, 
       { status: 500 }
-    )
+    );
   }
 }
 
+// DELETE /api/team/[id] - Remove team member
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    // Verify authentication
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
     
-    // Check if user has admin privileges (platform_admin, tenant_admin, or admin)
-    const userRole = (session.user as any)?.role
-    const hasAdminAccess = userRole && ['platform_admin', 'tenant_admin', 'admin'].includes(userRole)
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     
-    if (!session || !hasAdminAccess) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Prevent self-deletion
-    if (params.id === (session.user as any)?.id) {
-      return NextResponse.json(
-        { error: 'Cannot remove yourself' },
-        { status: 400 }
-      )
-    }
-
-    if (!db) {
-      return NextResponse.json({
-        message: 'Member removed (no database)',
-      })
-    }
-
-    // Delete user from database
-    await db.delete(users).where(eq(users.id, params.id))
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as any;
     
-    return NextResponse.json({
+    // Only admin roles can remove team members
+    if (!['admin', 'platform_admin', 'tenant_admin'].includes(decoded.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+    
+    // Prevent self-deletion (to avoid locking oneself out)
+    const userToDelete = await db.select().from(legacyUsers).where(eq(legacyUsers.id, params.id)).limit(1);
+    if (userToDelete.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    
+    if (userToDelete[0].email === decoded.email) {
+      return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
+    }
+    
+    // Delete user
+    const deletedUser = await db
+      .delete(legacyUsers)
+      .where(eq(legacyUsers.id, params.id))
+      .returning();
+    
+    if (deletedUser.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    
+    console.log('✅ Team member removed:', deletedUser[0].email);
+    
+    return NextResponse.json({ 
       message: 'Team member removed successfully',
-    })
+      user: deletedUser[0]
+    });
     
   } catch (error) {
-    console.error('Error removing member:', error)
+    console.error('Error removing team member:', error);
     return NextResponse.json(
-      { error: 'Failed to remove member' },
+      { error: 'Failed to remove team member' }, 
       { status: 500 }
-    )
+    );
   }
 }

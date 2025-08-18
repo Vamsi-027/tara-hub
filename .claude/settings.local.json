@@ -35,7 +35,12 @@
       "Bash(grep:*)",
       "Bash(taskkill:*)",
       "Bash(git reset:*)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(npx tsx:*)",
+      "Bash(mv:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(npm test)"
     ],
     "deny": [],
     "ask": [],

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { cookies } from 'next/headers'
+import * as jwt from 'jsonwebtoken'
 import {
   getFabric,
   updateFabric,
@@ -37,11 +37,31 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any)?.role !== 'admin') {
+    // Check authentication using custom JWT
+    const cookieStore = await cookies()
+    const token = cookieStore.get('auth-token')?.value
+    
+    if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: { message: 'Unauthorized' } },
+        { status: 401 }
+      )
+    }
+    
+    let user: any
+    try {
+      user = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as any
+      // Check if user has admin role
+      if (!user.role || !['admin', 'super_admin', 'administrator'].includes(user.role.toLowerCase())) {
+        return NextResponse.json(
+          { error: { message: 'Insufficient permissions' } },
+          { status: 403 }
+        )
+      }
+    } catch (error) {
+      console.error('JWT verification error:', error)
+      return NextResponse.json(
+        { error: { message: 'Invalid token' } },
         { status: 401 }
       )
     }
@@ -77,11 +97,31 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any)?.role !== 'admin') {
+    // Check authentication using custom JWT
+    const cookieStore = await cookies()
+    const token = cookieStore.get('auth-token')?.value
+    
+    if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: { message: 'Unauthorized' } },
+        { status: 401 }
+      )
+    }
+    
+    let user: any
+    try {
+      user = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as any
+      // Check if user has admin role
+      if (!user.role || !['admin', 'super_admin', 'administrator'].includes(user.role.toLowerCase())) {
+        return NextResponse.json(
+          { error: { message: 'Insufficient permissions' } },
+          { status: 403 }
+        )
+      }
+    } catch (error) {
+      console.error('JWT verification error:', error)
+      return NextResponse.json(
+        { error: { message: 'Invalid token' } },
         { status: 401 }
       )
     }

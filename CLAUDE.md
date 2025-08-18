@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-This file provides project documentation and development guidelines for this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-This is a Next.js 15 e-commerce application for The Hearth & Home Store (custom cushions and pillows). The application features product catalogs, admin dashboard, blog functionality, and SEO optimization.
+Tara Hub - A Next.js 15 fabric marketplace platform built with Turbo monorepo architecture, featuring admin dashboard, email-based authentication with magic links, and hybrid data persistence using PostgreSQL + Redis.
 
 ## Development Commands
 
@@ -12,145 +12,239 @@ This is a Next.js 15 e-commerce application for The Hearth & Home Store (custom 
 # Install dependencies
 npm install
 
-# Development server
-npm run dev
+# Development (Monorepo with Turbo)
+npm run dev               # Start all apps in parallel
+npm run dev:admin         # Start admin app only (port 3000)
+npm run dev:all           # Explicit parallel start for all apps
 
-# Build for production
-npm run build
+# Individual experience apps
+cd experiences/fabric-store && npm run dev    # Port 3006
+cd experiences/store-guide && npm run dev     # Port 3007
 
-# Start production server
-npm run start
+# Build
+npm run build             # Build all apps with Turbo
+npm run build:admin       # Build admin app only
+npm run build:all         # Build all apps explicitly
 
-# Run linting
-npm run lint
+# Database (Drizzle ORM)
+npm run db:generate       # Generate Drizzle migrations from schema
+npm run db:migrate        # Apply pending migrations
+npm run db:push           # Push schema changes directly (dev)
+npm run db:studio         # Open Drizzle Studio GUI
+
+# Code Quality
+npm run lint              # ESLint via Turbo across all packages
+npm run type-check        # TypeScript checking (if configured)
+
+# Testing
+npm run test              # Run Vitest tests
+npm run test:unit         # Unit tests with coverage
+npm run test:watch        # Watch mode for development
+npm run test:ui           # Vitest UI interface
 ```
 
-## Architecture
+## High-Level Architecture
 
-### Tech Stack
-- **Framework**: Next.js 15 with App Router
-- **Styling**: Tailwind CSS with custom components
-- **UI Components**: Radix UI primitives wrapped in shadcn/ui components
-- **Authentication**: NextAuth.js with Google OAuth provider
-- **Database**: Vercel KV with fallback to in-memory storage
-- **Deployment**: Vercel
-- **Rendering**: ISR (Incremental Static Regeneration) for fabric pages
+### Monorepo Structure (Turbo)
+- **Root App**: Admin dashboard at `/app/admin/` (main auth and management)
+- **experiences/fabric-store**: Customer-facing fabric browsing (port 3006)
+- **experiences/store-guide**: Store guide application (port 3007)  
+- **packages/**: Shared libraries (planned for future use)
+- **Workspace orchestration**: Turbo with parallel builds and dev servers
 
-### Directory Structure
-- `app/` - Next.js App Router pages and API routes
-  - `admin/` - Protected admin dashboard pages
-  - `api/` - API endpoints for posts, products, blog, strategy
-  - `auth/` - Authentication pages
-  - `blog/` - Public blog pages with dynamic routes
-- `components/` - React components
-  - `ui/` - Reusable UI primitives from shadcn/ui
-- `lib/` - Core utilities and business logic
-  - `auth.ts` - NextAuth configuration (admin: varaku@gmail.com)
-  - `kv.ts` - Database abstraction layer with Vercel KV
-  - `blog-model.ts` - Blog post data model
-  - `types.ts` - TypeScript type definitions
-- `hooks/` - Custom React hooks for data fetching
+### Core Technology Stack
+- **Framework**: Next.js 15 with App Router and React 19
+- **Monorepo**: Turbo for build orchestration and workspace management
+- **Database**: Drizzle ORM with PostgreSQL (Neon) + Vercel KV (Redis) for caching
+- **Authentication**: Custom email-based magic link system with JWT (replaced NextAuth)
+- **UI**: Radix UI primitives + shadcn/ui components + Tailwind CSS
+- **Storage**: Cloudflare R2 for image uploads and asset management
+- **Email**: Resend API for magic link delivery and notifications
+- **Deployment**: Vercel with automatic deployments on main branch
 
-### Key Architectural Patterns
+### Authentication Architecture
 
-1. **Hybrid Data Strategy (Fabrics)**: 
-   - Static seed data in `lib/fabric-seed-data.ts` for instant loading
-   - Vercel KV for dynamic updates via admin panel
-   - ISR with 60-second revalidation for optimal performance
-   - Automatic sync from seed data to KV on first load
+**Custom Magic Link System** (replaces NextAuth):
+- Email-based passwordless authentication using Resend API
+- JWT tokens with HTTP-only cookies (30-day expiry)
+- Admin whitelist enforcement in `lib/auth.ts`
+- Custom middleware for route protection
+- Backward compatibility with legacy database schema
 
-2. **Data Layer**: The application uses Vercel KV for persistence with graceful fallback to seed data or in-memory storage when KV is unavailable. Data operations go through:
-   - `lib/kv.ts` - General data operations
-   - `lib/fabric-kv.ts` - Fabric-specific KV operations with ISR support
-   - `lib/blog-model.ts` - Blog post data model
+**Key Authentication Files**:
+- `lib/auth-utils.ts` - Token generation, verification, user management
+- `lib/email-service.ts` - Professional HTML email templates via Resend
+- `app/api/auth/signin/route.ts` - Magic link generation endpoint
+- `app/api/auth/verify/route.ts` - Token verification and session creation
+- `middleware.ts` - Custom JWT-based route protection
+- `components/auth/magic-link-form.tsx` - Client-side authentication UI
 
-3. **Authentication**: Admin access is restricted to specific email addresses defined in `lib/auth.ts`. The admin role is added to the session based on email matching.
+### Data Persistence Strategy
 
-4. **API Routes**: RESTful API endpoints in `app/api/` handle CRUD operations. Admin endpoints check session authentication before allowing modifications. Key routes:
-   - `/api/fabrics` - Fabric CRUD with ISR revalidation
-   - `/api/blog` - Blog post management
-   - `/api/posts` - Social media posts
+**Hybrid Architecture**:
+- **PostgreSQL** (Drizzle ORM): User accounts, sessions, relational data
+- **Vercel KV** (Redis): Content caching, fabric catalog, performance optimization
+- **In-memory fallback**: Development mode when KV unavailable
+- **Static seed data**: `lib/fabric-seed-data.ts` for initial fabric catalog
 
-5. **Component Architecture**: Uses composition pattern with shadcn/ui components built on Radix UI primitives. Components are in `components/` with UI primitives in `components/ui/`.
+**Database Schema** (`lib/db/schema/fabrics.schema.ts`):
+- Comprehensive fabric schema with 60+ fields including inventory, performance ratings, certifications
+- Full-text search with PostgreSQL GIN indexes
+- Audit trails, price history, stock movement tracking
+- Zod validation schemas for type safety
 
-6. **Type Safety**: Comprehensive TypeScript types in `lib/types.ts` and `lib/db-schema.ts` ensure type safety across the application.
+### API Architecture
 
-## Environment Variables
+**RESTful Design** in `app/api/`:
+- **Public routes**: Fabric catalog, blog posts (GET only)
+- **Admin-protected routes**: All CUD operations require authentication
+- **Bulk operations**: `/api/v1/fabrics/bulk` for mass import/export
+- **ISR integration**: 60-second revalidation for performance
+- **Error handling**: Standardized responses with proper HTTP status codes
 
-Required environment variables (set in `.env.local`):
+### Component Patterns
 
+**Next.js 15 App Router**:
+- Server components by default for optimal performance
+- Client components with explicit 'use client' directive
+- Async/await searchParams handling for Next.js 15 compatibility
+- Suspense boundaries for loading states
+
+**UI Architecture**:
+- shadcn/ui components built on Radix UI primitives
+- Tailwind CSS with custom design system
+- Responsive design patterns optimized for fabric marketplace
+- Custom hooks in `hooks/` for data fetching and state management
+
+## Critical Configuration
+
+### Environment Variables (.env.local)
 ```env
-# Authentication
-NEXTAUTH_URL=https://your-domain.vercel.app
-NEXTAUTH_SECRET=your-generated-secret
+# Database (PostgreSQL - Required)
+DATABASE_URL=postgresql://user:password@host:5432/database
+POSTGRES_URL=postgresql://...  # Alternative name
 
-# Google OAuth (for admin access)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
+# Authentication (Required)
+NEXTAUTH_URL=http://localhost:3000  # or production domain
+NEXTAUTH_SECRET=your-jwt-secret  # Generate: openssl rand -base64 32
 
-# Vercel KV (optional, falls back to in-memory)
-KV_REST_API_URL=your-kv-url
-KV_REST_API_TOKEN=your-kv-token
+# Email Authentication (Required for magic links)
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+RESEND_FROM_EMAIL="Tara Hub Admin <admin@deepcrm.ai>"
+
+# Google OAuth (Legacy - still used for fallback)
+GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=...
+
+# Vercel KV (Optional - improves performance)
+KV_REST_API_URL=https://...upstash.io
+KV_REST_API_TOKEN=...
+
+# Cloudflare R2 (Required for image uploads)
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=...
 ```
 
-## Important Configuration
+### Admin Access Configuration
+**Whitelisted admin emails** in `lib/auth.ts`:
+- varaku@gmail.com
+- batchu.kedareswaraabhinav@gmail.com  
+- vamsicheruku027@gmail.com
+- admin@deepcrm.ai
 
 ### Build Configuration
-The project has TypeScript and ESLint errors temporarily ignored in `next.config.mjs`:
-- `eslint.ignoreDuringBuilds: true`
-- `typescript.ignoreBuildErrors: true`
-
-These should be addressed when making significant changes.
-
-### Admin Access
-Admin functionality is restricted to users with emails listed in `lib/auth.ts`. Currently set to `varaku@gmail.com`.
+**Known Issues in next.config.mjs**:
+- ESLint and TypeScript errors temporarily ignored for builds
+- Address these when making significant architectural changes
 
 ### Path Aliases
-The project uses `@/` as a path alias for the root directory, configured in `tsconfig.json`.
+- `@/*` maps to project root (configured in tsconfig.json)
+- Consistent across all monorepo packages
 
-## API Endpoints
+## Key API Endpoints
 
-Key API routes:
-- `/api/auth/[...nextauth]` - Authentication endpoints
-- `/api/blog` - Blog post CRUD operations
-- `/api/posts` - Social media post management
-- `/api/products` - Product catalog management
-- `/api/strategy` - Marketing strategy content
+### Public Routes
+- `GET /api/fabrics` - Fabric catalog with filtering and pagination
+- `GET /api/blog` - Published blog posts
+- `GET /api/auth/session` - Current user session info
 
-All modification endpoints require admin authentication.
+### Admin-Protected Routes  
+- `POST/PUT/DELETE /api/fabrics` - Fabric management
+- `POST /api/v1/fabrics/bulk` - Bulk fabric operations
+- `POST/PUT/DELETE /api/blog/[id]` - Blog content management
+- `POST/PUT/DELETE /api/posts` - Social media posts
+- `POST/PUT/DELETE /api/products` - Product management
+
+### Authentication Routes
+- `POST /api/auth/signin` - Generate magic link for email
+- `GET /api/auth/verify` - Verify magic link token and create session
+- `POST /api/auth/signout` - Destroy session
+
+## Development Workflow
+
+### Initial Setup
+1. **Clone and install**: `git clone ... && cd tara-hub && npm install`
+2. **Environment setup**: Copy `.env.example` to `.env.local` and configure
+3. **Database setup**: `npm run db:push` to sync schema
+4. **Start development**: `npm run dev:admin` for admin, or `npm run dev` for all apps
+
+### Common Development Tasks
+
+**Adding new fabric data**:
+1. Update schema in `lib/db/schema/fabrics.schema.ts`
+2. Generate migration: `npm run db:generate`  
+3. Apply migration: `npm run db:push`
+4. Update seed data in `lib/fabric-seed-data.ts`
+
+**Testing authentication**:
+1. Ensure RESEND_API_KEY is configured
+2. Visit `http://localhost:3000/auth/signin`
+3. Enter whitelisted admin email for magic link
+4. Check email for magic link (15-minute expiry)
+
+**Monorepo development**:
+- Use `npm run dev` to start all apps simultaneously
+- Individual apps run on different ports (admin: 3000, fabric-store: 3006, store-guide: 3007)
+- Turbo handles dependency management and build optimization
+
+### Database Management
+
+**Schema Evolution**:
+- Primary schemas in `lib/db/schema/` with comprehensive Drizzle definitions
+- Legacy compatibility maintained in `lib/legacy-auth-schema.ts`
+- Use `npm run db:studio` for visual database inspection
+- Seed data management via `/api/seed` endpoint
+
+**Performance Optimization**:
+- KV caching layer for frequently accessed data
+- ISR with 60-second revalidation for fabric pages
+- Full-text search indexes on fabric content
+- Optimistic concurrency control with version fields
 
 ## Deployment
 
-The application auto-deploys to Vercel on push to the `main` branch. Configuration is in `vercel.json`.
+**Vercel Configuration**:
+- Auto-deploy on push to main branch
+- Environment variables configured in Vercel dashboard
+- Turbo build optimization for faster deployments
+- Custom domains and SSL handled by Vercel
 
-## Data Persistence
+**Production URLs**:
+- Main site: https://tara-hub.vercel.app
+- Admin panel: https://tara-hub.vercel.app/admin
 
-The application uses a dual persistence strategy:
+## Testing Strategy
 
-1. **With Vercel KV** (Production):
-   - Full persistence in Vercel's Redis-compatible database
-   - Data survives application restarts
-   - Requires KV_REST_API_URL and KV_REST_API_TOKEN environment variables
+**Framework Setup**:
+- Vitest configured for unit testing
+- Testing Library for React component tests
+- Coverage reporting available via `npm run test:unit`
+- Test UI dashboard via `npm run test:ui`
 
-2. **Without Vercel KV** (Development):
-   - Falls back to in-memory store (`lib/memory-store.ts`)
-   - Data persists during application lifecycle
-   - Data is lost on application restart
-   - Useful for local development without KV setup
-
-To set up Vercel KV:
-1. Copy `.env.example` to `.env.local`
-2. Add KV credentials from Vercel dashboard (Storage > KV)
-3. Restart the development server
-
-## Testing Admin Features
-
-1. Start the development server: `npm run dev`
-2. Navigate to `/auth/signin` and login with Google (admin email: varaku@gmail.com)
-3. Access admin panel at `/admin`
-4. Test data entry:
-   - Blog posts: `/admin/blog`
-   - Social media posts: `/admin/posts` and `/admin/calendar`
-   - Products: `/admin/products`
-
-Note: Without KV credentials, data will only persist during the current session.
+**Key Testing Areas**:
+- Authentication flow (magic links, JWT tokens)
+- Database schema validation (Zod + Drizzle)
+- API endpoint authentication and authorization
+- Component rendering and user interactions

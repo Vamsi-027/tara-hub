@@ -3,7 +3,7 @@
 import * as React from "react"
 import { BarChart3, Calendar, FileText, Home, Package, Palette, Target, BookOpen, ShoppingBag, Users } from 'lucide-react'
 import Link from "next/link"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/hooks/use-auth"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -76,12 +76,12 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session } = useSession()
+  const { user: authUser } = useAuth()
   
   const user = {
-    name: session?.user?.name || "Admin",
-    email: session?.user?.email || "admin@tarahub.com",
-    avatar: session?.user?.image || "/placeholder-user.jpg",
+    name: authUser?.name || "Admin",
+    email: authUser?.email || "admin@tarahub.com",
+    avatar: "/placeholder-user.jpg", // We don't have image in our auth system yet
   }
   
   return (

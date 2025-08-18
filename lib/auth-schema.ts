@@ -5,6 +5,7 @@ import {
   varchar,
   primaryKey,
   integer,
+  boolean,
 } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
@@ -14,6 +15,11 @@ export const users = pgTable('users', {
   name: text('name'),
   image: text('image'),
   role: text('role').default('viewer'), // platform_admin, tenant_admin, admin, editor, viewer
+  hashedPassword: text('hashed_password'), // For password auth
+  twoFactorEnabled: boolean('two_factor_enabled').default(false),
+  twoFactorSecret: text('two_factor_secret'),
+  lastLoginAt: timestamp('last_login_at', { mode: 'date' }),
+  accountStatus: text('account_status').default('active'), // active, suspended, pending
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
 });
@@ -48,14 +54,21 @@ export const sessions = pgTable('sessions', {
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
-export const verificationTokens = pgTable(
-  'verification_tokens',
-  {
-    identifier: text('identifier').notNull(),
-    token: text('token').notNull(),
-    expires: timestamp('expires', { mode: 'date' }).notNull(),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.identifier, table.token] }),
-  })
-);
+export const verificationTokens = pgTable('verification_tokens', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  identifier: text('identifier').notNull(), // email address
+  token: text('token').notNull(),
+  type: text('type').notNull(), // 'email_verification', 'magic_link', 'password_reset'
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+  used: boolean('used').default(false),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+export const loginAttempts = pgTable('login_attempts', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  email: text('email').notNull(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  success: boolean('success').notNull(),
+  attemptedAt: timestamp('attempted_at', { mode: 'date' }).defaultNow().notNull(),
+});

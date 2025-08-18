@@ -1,72 +1,47 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { users } from '@/lib/auth-schema'
+import { NextRequest, NextResponse } from 'next/server';
+import { legacyUsers } from '@/lib/legacy-auth-schema';
+import { db } from '@/lib/db';
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
+// GET /api/team - List all team members
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    // Verify authentication
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
     
-    // Check if user has admin privileges (platform_admin, tenant_admin, or admin)
-    const userRole = (session.user as any)?.role
-    const hasAdminAccess = userRole && ['platform_admin', 'tenant_admin', 'admin'].includes(userRole)
-    
-    if (!session || !hasAdminAccess) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    if (!db) {
-      // Fallback to static list if no database
-      const adminEmails = [
-        'varaku@gmail.com',
-        'batchu.kedareswaraabhinav@gmail.com',
-        'vamsicheruku027@gmail.com',
-        'admin@deepcrm.ai',
-      ]
-      
-      const mockTeamMembers = adminEmails.map((email, index) => ({
-        id: `user-${index + 1}`,
-        email,
-        name: email.split('@')[0].replace('.', ' ').split(' ').map(w => 
-          w.charAt(0).toUpperCase() + w.slice(1)
-        ).join(' '),
-        role: 'admin',
-        status: 'active',
-        joinedAt: new Date(Date.now() - index * 86400000).toISOString(),
-      }))
-      
-      return NextResponse.json(mockTeamMembers)
+    
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as any;
+    
+    // Only admin roles can view team members
+    if (!['admin', 'platform_admin', 'tenant_admin'].includes(decoded.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
-
-    // Fetch all users from database
-    const teamMembers = await db.select().from(users)
     
-    // Map users to team member format with roles from database
-    const adminEmails = [
-      'varaku@gmail.com',
-      'batchu.kedareswaraabhinav@gmail.com',
-      'vamsicheruku027@gmail.com',
-      'admin@deepcrm.ai',
-    ]
+    // Get all users
+    const users = await db.select().from(legacyUsers);
     
-    const formattedMembers = teamMembers.map(user => ({
+    // Transform to match TeamMember interface
+    const teamMembers = users.map(user => ({
       id: user.id,
       email: user.email,
       name: user.name,
-      // Use role from database, fallback to admin check for legacy users
-      role: user.role || (adminEmails.includes(user.email.toLowerCase()) ? 'admin' : 'viewer'),
-      status: 'active',
-      joinedAt: user.createdAt?.toISOString() || new Date().toISOString(),
-    }))
+      role: user.role || 'viewer',
+      status: 'active', // For now, all users are active
+      joinedAt: user.createdAt.toISOString(),
+    }));
     
-    return NextResponse.json(formattedMembers)
+    return NextResponse.json(teamMembers);
     
   } catch (error) {
-    console.error('Error fetching team members:', error)
+    console.error('Error fetching team members:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch team members' },
+      { error: 'Failed to fetch team members' }, 
       { status: 500 }
-    )
+    );
   }
 }

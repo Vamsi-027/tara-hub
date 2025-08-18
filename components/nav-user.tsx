@@ -1,7 +1,7 @@
 "use client"
 
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react'
-import { signOut } from 'next-auth/react'
+import { signOut } from '@/hooks/use-auth'
 
 import {
   Avatar,

@@ -1,6 +1,7 @@
 import { kv } from '@vercel/kv'
 import type { Fabric } from './types'
 import { fabricSeedData } from './fabric-seed-data'
+import { memoryStore } from './memory-store'
 
 // Check if KV is available
 const isKVAvailable = () => {
@@ -22,7 +23,16 @@ function generateUUID(): string {
 // Initialize KV with seed data if empty
 export async function initializeFabrics(): Promise<void> {
   if (!isKVAvailable()) {
-    console.log('KV not available, skipping fabric initialization')
+    console.log('KV not available, initializing memory store with seed data')
+    // Initialize memory store with seed data if empty
+    const existingFabrics = memoryStore.getAllFabrics()
+    if (existingFabrics.length === 0) {
+      console.log('Initializing memory store with seed data...')
+      for (const fabric of fabricSeedData) {
+        memoryStore.setFabric(fabric.id!, fabric)
+      }
+      console.log(`Initialized ${fabricSeedData.length} fabrics in memory store`)
+    }
     return
   }
 
@@ -52,7 +62,8 @@ export async function createFabric(fabricData: Omit<Fabric, 'id'>): Promise<Fabr
   const fabric: Fabric = { ...fabricData, id }
 
   if (!isKVAvailable()) {
-    console.log('KV not available, returning fabric without persistence:', fabric)
+    console.log('KV not available, using memory store')
+    memoryStore.setFabric(id, fabric)
     return fabric
   }
 
@@ -85,8 +96,8 @@ export async function createFabric(fabricData: Omit<Fabric, 'id'>): Promise<Fabr
 
 export async function getFabric(id: string): Promise<Fabric | null> {
   if (!isKVAvailable()) {
-    // Fallback to seed data
-    return fabricSeedData.find(f => f.id === id) || null
+    // Use memory store
+    return memoryStore.getFabric(id)
   }
 
   try {
@@ -105,8 +116,8 @@ export async function getAllFabrics(filters?: {
   inStock?: boolean
 }): Promise<Fabric[]> {
   if (!isKVAvailable()) {
-    // Return filtered seed data
-    let fabrics = [...fabricSeedData]
+    // Use memory store
+    let fabrics = memoryStore.getAllFabrics()
     if (filters?.category) {
       fabrics = fabrics.filter(f => f.category === filters.category)
     }
@@ -167,8 +178,12 @@ export async function getAllFabrics(filters?: {
 
 export async function updateFabric(id: string, updates: Partial<Fabric>): Promise<Fabric | null> {
   if (!isKVAvailable()) {
-    console.log('KV not available, cannot update fabric')
-    return null
+    console.log('KV not available, using memory store')
+    const existing = memoryStore.getFabric(id)
+    if (!existing) return null
+    const updated = { ...existing, ...updates, id }
+    memoryStore.setFabric(id, updated)
+    return updated
   }
 
   try {
@@ -210,8 +225,8 @@ export async function updateFabric(id: string, updates: Partial<Fabric>): Promis
 
 export async function deleteFabric(id: string): Promise<boolean> {
   if (!isKVAvailable()) {
-    console.log('KV not available, cannot delete fabric')
-    return false
+    console.log('KV not available, using memory store')
+    return memoryStore.deleteFabric(id)
   }
 
   try {

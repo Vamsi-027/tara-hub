@@ -7,6 +7,16 @@ const nextConfig = {
   // Temporarily ignore build errors for quick deployment
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+  // Webpack configuration to prevent worker conflicts
+  webpack: (config, { isServer }) => {
+    // Disable Jest workers for builds
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      'jest-worker': false,
+    }
+    
+    return config
+  },
 }
 
 export default nextConfig
