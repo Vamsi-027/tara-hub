@@ -111,7 +111,20 @@ export default function TeamManagementPage() {
       })
 
       if (response.ok) {
-        toast.success(`Invitation sent to ${inviteEmail}`)
+        const result = await response.json()
+        
+        if (result.emailSent) {
+          toast.success(`Invitation sent to ${inviteEmail}`)
+        } else if (result.success) {
+          toast.success(`User ${inviteEmail} added successfully`)
+          if (result.instructions) {
+            toast.info(result.instructions, { duration: 10000 })
+          }
+          if (result.emailError) {
+            toast.warning(`Note: Email not sent - ${result.emailError}`, { duration: 8000 })
+          }
+        }
+        
         setInviteEmail("")
         setInviteRole('viewer')
         setInviteDialogOpen(false)
@@ -119,6 +132,9 @@ export default function TeamManagementPage() {
       } else {
         const error = await response.json()
         toast.error(error.message || "Failed to send invitation")
+        if (error.warning) {
+          toast.warning(error.warning, { duration: 8000 })
+        }
       }
     } catch (error) {
       toast.error("Error sending invitation")

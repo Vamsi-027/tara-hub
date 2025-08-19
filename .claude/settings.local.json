@@ -40,7 +40,10 @@
       "Bash(npx tsx:*)",
       "Bash(mv:*)",
       "Bash(npx kill-port:*)",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(ls:*)",
+      "Bash(git fetch:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": [],
