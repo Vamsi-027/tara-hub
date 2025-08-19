@@ -394,6 +394,7 @@ export function useFabric(id: string, include?: string[]): UseFabricReturn {
       const response = await api.updateFabric(id, data);
       setFabric(response.data);
       toast.success('Fabric updated successfully');
+      return response.data; // Return the updated fabric data
     } catch (err: any) {
       toast.error(err.message);
       throw err;

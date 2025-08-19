@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { EtsyProductModel } from '@/lib/etsy-product-model'
 
 export async function GET(
@@ -25,7 +23,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions)
+  const session = await null
   
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -50,7 +48,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions)
+  const session = await null
   
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

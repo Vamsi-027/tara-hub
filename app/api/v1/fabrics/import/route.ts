@@ -4,9 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { fabricService } from '@/lib/services/fabric.service';
+import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt';
 import { insertFabricSchema } from '@/lib/db/schema/fabrics-simple.schema';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -430,12 +429,9 @@ async function parseExcel(fileBuffer: Buffer): Promise<{ data: any[][]; headers:
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email || session.user.email !== 'varaku@gmail.com') {
-      return NextResponse.json(
-        { error: { message: 'Unauthorized. Admin access required.' } },
-        { status: 401 }
-      );
+    const { allowed, error, userId } = await checkJWTAuth(PERMISSIONS.CREATE);
+    if (!allowed) {
+      return error!;
     }
 
     // Get form data
@@ -572,12 +568,9 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email || session.user.email !== 'varaku@gmail.com') {
-      return NextResponse.json(
-        { error: { message: 'Unauthorized. Admin access required.' } },
-        { status: 401 }
-      );
+    const { allowed, error, userId } = await checkJWTAuth(PERMISSIONS.CREATE);
+    if (!allowed) {
+      return error!;
     }
 
     // Create sample CSV template

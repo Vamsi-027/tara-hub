@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import {
   getBlogPost,
   updateBlogPost,
@@ -43,7 +41,7 @@ export async function PUT(
 ) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    const session = await null
     if (!session || (session.user as any)?.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -89,7 +87,7 @@ export async function DELETE(
 ) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    const session = await null
     if (!session || (session.user as any)?.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized' },

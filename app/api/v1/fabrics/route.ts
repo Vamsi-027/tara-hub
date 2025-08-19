@@ -5,10 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/custom-auth';
 import { fabricService } from '@/lib/services/fabric.service';
 import { z } from 'zod';
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
 // ============================================
 // REQUEST/RESPONSE HELPERS
@@ -60,17 +61,30 @@ function errorResponse(
 async function checkPermission(
   permission: 'read' | 'create' | 'update' | 'delete'
 ): Promise<{ allowed: boolean; userId?: string; error?: NextResponse }> {
-  const session = await getServerSession(authOptions);
-  
-  if (!session) {
-    return {
-      allowed: false,
-      error: errorResponse('Authentication required', 401),
-    };
-  }
-  
-  const userRole = (session.user as any)?.role;
-  const userId = (session.user as any)?.id;
+  try {
+    // Get JWT token from cookies
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
+    
+    if (!token) {
+      return {
+        allowed: false,
+        error: errorResponse('Authentication required', 401)
+      };
+    }
+    
+    // Verify JWT token
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as any;
+    
+    if (!decoded || !decoded.email) {
+      return {
+        allowed: false,
+        error: errorResponse('Invalid token', 401),
+      };
+    }
+    
+    const userRole = decoded.role;
+    const userId = decoded.userId;
   
   // Permission matrix
   const permissions = {
@@ -88,6 +102,12 @@ async function checkPermission(
   }
   
   return { allowed: true, userId };
+  } catch (error) {
+    return {
+      allowed: false,
+      error: errorResponse('Authentication failed', 401),
+    };
+  }
 }
 
 // ============================================
@@ -270,17 +290,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Check authentication and create permission
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return errorResponse('Authentication required', 401);
+    const { allowed, userId, error } = await checkPermission('create');
+    if (!allowed) {
+      return error!;
     }
-    
-    const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin') {
-      return errorResponse('Admin access required', 403);
-    }
-    
-    const userId = (session.user as any)?.id || session.user?.email;
     
     // Parse request body
     const body = await request.json();

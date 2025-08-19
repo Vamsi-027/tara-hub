@@ -216,10 +216,20 @@ export function ImageUpload({
                     <img
                       src={image}
                       alt={`Fabric image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder-image.png'
+                      className="w-full h-full object-cover transition-opacity duration-200"
+                      loading="lazy"
+                      onLoad={(e) => {
+                        (e.target as HTMLImageElement).style.opacity = '1'
                       }}
+                      onError={(e) => {
+                        const img = e.target as HTMLImageElement
+                        if (!img.src.includes('placeholder-image.png')) {
+                          console.warn(`Failed to load image: ${img.src}`)
+                          img.src = '/placeholder-image.png'
+                          img.style.opacity = '0.5'
+                        }
+                      }}
+                      style={{ opacity: '0' }}
                     />
                     
                     {/* Primary badge */}

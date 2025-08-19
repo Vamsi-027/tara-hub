@@ -39,8 +39,7 @@ import { toast } from "sonner"
 import Link from "next/link"
 
 const fabricTypes = [
-  'Upholstery', 'Drapery', 'Multi-Purpose', 'Outdoor', 
-  'Trim', 'Leather', 'Vinyl', 'Sheer', 'Blackout', 'Lining'
+  'Upholstery', 'Drapery', 'Multi-Purpose', 'Outdoor', 'Sheer', 'Blackout'
 ]
 
 const fabricStatuses = [

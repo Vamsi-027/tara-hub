@@ -1,18 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { Resend } from 'resend'
+import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt'
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    // Check if user has admin privileges
-    const userRole = (session.user as any)?.role
-    const hasAdminAccess = userRole && ['platform_admin', 'tenant_admin', 'admin'].includes(userRole)
-    
-    if (!session || !hasAdminAccess) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { allowed, error } = await checkJWTAuth(PERMISSIONS.ADMIN_ONLY);
+    if (!allowed) {
+      return error!;
     }
 
     const { testEmail } = await request.json()

@@ -145,7 +145,9 @@ export class R2StorageV3 {
       })
       
       const result = await r2Client.send(command)
-      const body = await result.Body?.transformToString()
+      
+      // Handle binary data properly for images
+      const body = await result.Body?.transformToByteArray()
       
       return {
         success: true,

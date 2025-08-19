@@ -1,0 +1,36 @@
+{
+  "name": "tara-hub-admin-deployment",
+  "version": "1.0.0",
+  "description": "Deployment tools for Tara Hub Admin Dashboard",
+  "scripts": {
+    "deploy": "node deploy.js",
+    "deploy:preview": "node deploy.js --preview",
+    "deploy:production": "node deploy.js --production",
+    "deploy:vercel": "node deploy-modular.js vercel",
+    "deploy:vercel:prod": "node deploy-modular.js vercel --prod",
+    "deploy:database": "node deploy-modular.js database",
+    "deploy:railway": "node deploy-modular.js railway",
+    "deploy:env": "node deploy-modular.js env --all",
+    "deploy:status": "node deploy-modular.js status",
+    "deploy:history": "node deploy-modular.js history",
+    "rollback:vercel": "node deploy-modular.js rollback vercel",
+    "hotfix": "node deploy-modular.js vercel --prod --skip-tests",
+    "validate:env": "node env-validator.js",
+    "validate:env:prod": "node env-validator.js --production",
+    "test:predeploy": "node pre-deploy-test.js",
+    "seed:data": "node ../../scripts/seed-data.js",
+    "check:all": "npm run validate:env:prod && npm run test:predeploy",
+    "quick:menu": "node -e \"require('os').platform() === 'win32' ? require('child_process').exec('powershell -File deploy-quick.ps1') : require('child_process').exec('./deploy-quick.sh')\""
+  },
+  "keywords": [
+    "deployment",
+    "vercel",
+    "tara-hub",
+    "admin"
+  ],
+  "author": "Tara Hub Team",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  }
+}

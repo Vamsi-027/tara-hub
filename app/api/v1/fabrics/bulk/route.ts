@@ -4,10 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { fabricService } from '@/lib/services/fabric.service';
 import { z } from 'zod';
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
 // ============================================
 // HELPERS
@@ -46,17 +46,30 @@ function errorResponse(
 async function checkPermission(
   permission: 'create' | 'update' | 'delete'
 ): Promise<{ allowed: boolean; userId?: string; error?: NextResponse }> {
-  const session = await getServerSession(authOptions);
-  
-  if (!session) {
-    return {
-      allowed: false,
-      error: errorResponse('Authentication required', 401),
-    };
-  }
-  
-  const userRole = (session.user as any)?.role;
-  const userId = (session.user as any)?.id;
+  try {
+    // Get JWT token from cookies
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
+    
+    if (!token) {
+      return {
+        allowed: false,
+        error: errorResponse('Authentication required', 401)
+      };
+    }
+    
+    // Verify JWT token
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as any;
+    
+    if (!decoded || !decoded.email) {
+      return {
+        allowed: false,
+        error: errorResponse('Invalid token', 401),
+      };
+    }
+    
+    const userRole = decoded.role;
+    const userId = decoded.userId;
   
   const permissions = {
     create: ['editor', 'admin', 'tenant_admin', 'platform_admin'],
@@ -72,6 +85,12 @@ async function checkPermission(
   }
   
   return { allowed: true, userId };
+  } catch (error) {
+    return {
+      allowed: false,
+      error: errorResponse('Authentication failed', 401),
+    };
+  }
 }
 
 // ============================================

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { R2StorageV3 } from '@/lib/r2-client-v3';
 import { nanoid } from 'nanoid';
+import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
@@ -187,12 +188,9 @@ export async function POST(request: NextRequest) {
 // GET endpoint to test R2 configuration
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email || session.user.email !== 'varaku@gmail.com') {
-      return NextResponse.json(
-        { error: { message: 'Unauthorized' } },
-        { status: 401 }
-      );
+    const { allowed, error } = await checkJWTAuth(PERMISSIONS.ADMIN_ONLY);
+    if (!allowed) {
+      return error!;
     }
 
     const config = R2StorageV3.getConfig();

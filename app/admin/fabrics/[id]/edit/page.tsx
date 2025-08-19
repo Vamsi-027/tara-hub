@@ -39,8 +39,7 @@ import { toast } from "sonner"
 import Link from "next/link"
 
 const fabricTypes = [
-  'Upholstery', 'Drapery', 'Multi-Purpose', 'Outdoor', 
-  'Trim', 'Leather', 'Vinyl', 'Sheer', 'Blackout', 'Lining'
+  'Upholstery', 'Drapery', 'Multi-Purpose', 'Outdoor', 'Sheer', 'Blackout'
 ]
 
 const fabricStatuses = [
@@ -48,6 +47,8 @@ const fabricStatuses = [
 ]
 
 const stockUnits = ['yards', 'meters', 'feet', 'rolls', 'pieces', 'hides']
+
+// No helper function needed - using actual database values directly
 
 interface EditFabricPageProps {
   params: Promise<{ id: string }>
@@ -256,13 +257,14 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
       }
       
       await update(fabricData)
-      setShowSuccess(true)
-      toast.success('Fabric updated successfully')
       
-      // Navigate back to view page after successful update
+      setShowSuccess(true)
+      toast.success('Fabric updated successfully! Redirecting to view page...')
+      
+      // Wait a bit longer to let user see the updated images before navigating
       setTimeout(() => {
         router.push(`/admin/fabrics/${fabricId}`)
-      }, 1500)
+      }, 2500)
       
     } catch (err: any) {
       console.error('Failed to update fabric:', err)
@@ -671,6 +673,7 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
               </CardHeader>
               <CardContent>
                 <ImageUpload
+                  key={`images-${fabric?.updatedAt}-${formData.images?.length}`}
                   images={formData.images || []}
                   onChange={(images) => handleChange('images', images)}
                   maxImages={20}

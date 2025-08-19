@@ -37,11 +37,12 @@ export const fabricTypeEnum = pgEnum('fabric_type', [
 ]);
 
 export const fabricStatusEnum = pgEnum('fabric_status', [
-  'active',
-  'inactive',
-  'discontinued',
-  'coming_soon',
-  'out_of_stock'
+  'Active',
+  'Discontinued', 
+  'Out of Stock',
+  'Coming Soon',
+  'Sale',
+  'Clearance'
 ]);
 
 export const durabilityRatingEnum = pgEnum('durability_rating', [
@@ -309,7 +310,7 @@ export const updateFabricSchema = insertFabricSchema.partial().omit({ id: true }
 export const fabricFilterSchema = z.object({
   search: z.string().optional(),
   type: z.array(z.enum(['Upholstery', 'Drapery', 'Multi-Purpose', 'Outdoor', 'Sheer', 'Blackout'])).optional(),
-  status: z.array(z.enum(['active', 'inactive', 'discontinued', 'coming_soon', 'out_of_stock'])).optional(),
+  status: z.array(z.enum(['Active', 'Discontinued', 'Out of Stock', 'Coming Soon', 'Sale', 'Clearance'])).optional(),
   manufacturer: z.array(z.string()).optional(),
   collection: z.array(z.string()).optional(),
   priceMin: z.number().min(0).optional(),

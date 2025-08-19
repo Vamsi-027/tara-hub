@@ -45,7 +45,18 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
                 alt={fabric.name}
                 width={600}
                 height={600}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-opacity duration-200"
+                onLoad={(e) => {
+                  (e.target as HTMLImageElement).style.opacity = '1'
+                }}
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement
+                  if (!img.src.includes('placeholder-image.png')) {
+                    console.warn(`Failed to load fabric image: ${img.src}`)
+                    img.src = '/placeholder-image.png'
+                  }
+                }}
+                style={{ opacity: '0' }}
               />
             </div>
             
@@ -60,11 +71,21 @@ export function FabricDetailPage({ fabric }: FabricDetailPageProps) {
                   }`}
                 >
                   <Image
-                    src={image || "/placeholder.svg"}
+                    src={image || "/placeholder-image.png"}
                     alt={`${fabric.name} view ${index + 1}`}
                     width={150}
                     height={150}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-opacity duration-200"
+                    onLoad={(e) => {
+                      (e.target as HTMLImageElement).style.opacity = '1'
+                    }}
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement
+                      if (!img.src.includes('placeholder-image.png')) {
+                        img.src = '/placeholder-image.png'
+                      }
+                    }}
+                    style={{ opacity: '0' }}
                   />
                 </button>
               ))}

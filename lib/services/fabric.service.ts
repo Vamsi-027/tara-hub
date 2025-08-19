@@ -167,7 +167,20 @@ export class FabricService {
    */
   async update(id: string, data: any, userId: string): Promise<Fabric | null> {
     // Validate input
-    const validated = data; // Skip validation for now
+    // Data cleaning for required fields with empty strings
+    const cleanedData = { ...data };
+    
+    // Ensure type field has a valid value (required field)
+    if (!cleanedData.type || cleanedData.type.trim() === '') {
+      cleanedData.type = 'Upholstery'; // Default value
+    }
+    
+    // Ensure status field has a valid value (required field)  
+    if (!cleanedData.status || cleanedData.status.trim() === '') {
+      cleanedData.status = 'Active'; // Default value
+    }
+    
+    const validated = cleanedData; // Skip schema validation for now
     
     // Check if fabric exists
     const existing = await fabricRepository.findById(id);
