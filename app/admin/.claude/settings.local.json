@@ -8,7 +8,11 @@
       "Bash(powershell:*)",
       "Bash(mkdir:*)",
       "Bash(git rm:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(git add:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": [],

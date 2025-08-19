@@ -6,6 +6,7 @@
  */
 
 const { execSync } = require('child_process');
+const path = require('path');
 
 // Colors for console output
 const colors = {
@@ -21,34 +22,36 @@ function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
+const scriptsDir = path.join(__dirname);
+
 const presets = {
   'admin-only': {
     description: 'Deploy only admin app to production',
-    command: 'node scripts/deploy-admin.js --prod --skip-typecheck --skip-lint'
+    command: `node ${path.join(scriptsDir, 'deploy-admin.js')} --prod --skip-typecheck --skip-lint`
   },
   'admin-preview': {
     description: 'Quick preview deployment of admin app',
-    command: 'node scripts/deploy-admin.js --skip-typecheck --skip-lint --skip-build'
+    command: `node ${path.join(scriptsDir, 'deploy-admin.js')} --skip-typecheck --skip-lint --skip-build`
   },
   'experiences': {
     description: 'Deploy both experience apps',
-    command: 'node scripts/deploy-all.js --prod --skip-admin --parallel'
+    command: `node ${path.join(scriptsDir, 'deploy-all.js')} --prod --skip-admin --parallel`
   },
   'all-prod': {
     description: 'Deploy everything to production',
-    command: 'node scripts/deploy-all.js --prod --parallel'
+    command: `node ${path.join(scriptsDir, 'deploy-all.js')} --prod --parallel`
   },
   'all-preview': {
     description: 'Deploy everything to preview',
-    command: 'node scripts/deploy-all.js --parallel'
+    command: `node ${path.join(scriptsDir, 'deploy-all.js')} --parallel`
   },
   'fabric-store': {
     description: 'Deploy fabric store to production',
-    command: 'node scripts/deploy-fabric-store.js --prod'
+    command: `node ${path.join(scriptsDir, 'deploy-fabric-store.js')} --prod`
   },
   'store-guide': {
     description: 'Deploy store guide to production',
-    command: 'node scripts/deploy-store-guide.js --prod'
+    command: `node ${path.join(scriptsDir, 'deploy-store-guide.js')} --prod`
   },
   'hotfix': {
     description: 'Emergency deployment (skips all checks)',
