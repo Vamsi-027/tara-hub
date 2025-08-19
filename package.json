@@ -23,7 +23,20 @@
     "test": "vitest",
     "test:unit": "vitest run --coverage",
     "test:watch": "vitest --watch",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "deploy": "node scripts/deploy-all.js",
+    "deploy:prod": "node scripts/deploy-all.js --prod --parallel",
+    "deploy:preview": "node scripts/deploy-all.js --parallel",
+    "deploy:admin": "node scripts/deploy-admin.js --prod",
+    "deploy:admin-preview": "node scripts/deploy-admin.js",
+    "deploy:fabric-store": "node scripts/deploy-fabric-store.js --prod",
+    "deploy:store-guide": "node scripts/deploy-store-guide.js --prod",
+    "deploy:experiences": "node scripts/deploy-all.js --prod --skip-admin --parallel",
+    "deploy:all": "node scripts/deploy-all.js --prod --parallel",
+    "deploy:quick": "node scripts/quick-deploy.js",
+    "deploy:setup": "node scripts/setup-deployment.js",
+    "vercel:env": "vercel env pull .env.local",
+    "vercel:link": "vercel link"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.66",

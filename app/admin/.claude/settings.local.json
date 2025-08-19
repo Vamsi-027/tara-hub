@@ -6,7 +6,9 @@
       "Bash(curl:*)",
       "Bash(taskkill:*)",
       "Bash(powershell:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(git rm:*)",
+      "Bash(vercel:*)"
     ],
     "deny": [],
     "ask": [],
