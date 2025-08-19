@@ -4,9 +4,9 @@ import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt'
 
 export async function POST(request: Request) {
   try {
-    const { allowed, error } = await checkJWTAuth(PERMISSIONS.ADMIN_ONLY);
+    const { allowed, error: authError } = await checkJWTAuth(PERMISSIONS.ADMIN_ONLY);
     if (!allowed) {
-      return error!;
+      return authError!;
     }
 
     const { testEmail } = await request.json()
