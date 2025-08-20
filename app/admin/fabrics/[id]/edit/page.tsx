@@ -225,8 +225,6 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
         durabilityRating: fabric.durabilityRating || '',
         cleaningCode: fabric.cleaningCode || '',
         currency: fabric.currency || 'USD',
-        priceUnit: fabric.priceUnit || 'per_yard',
-        procurementCost: fabric.procurementCost || fabric.cost ? String(fabric.procurementCost || fabric.cost) : '',
         supplierId: fabric.supplierId || '',
         supplierName: fabric.supplierName || '',
         stockQuantity: fabric.stockQuantity ? String(fabric.stockQuantity) : '0',
@@ -306,9 +304,6 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
     }
     
     // Procurement validations
-    if (formData.procurementCost && parseFloat(formData.procurementCost) <= 0) {
-      errors.procurementCost = 'Procurement cost must be greater than 0'
-    }
     
     if (formData.supplierId && !formData.supplierName) {
       errors.supplierName = 'Supplier name is required when Supplier ID is provided'
@@ -414,10 +409,6 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
         
         // Handle type conversions for specific fields
         switch(field) {
-          case 'procurementCost':
-            // Map procurementCost to cost field in database
-            updates['cost'] = value ? parseFloat(value) : null
-            break
           case 'width':
           case 'weight':
             updates[field] = value ? parseFloat(value) : null

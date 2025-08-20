@@ -99,13 +99,6 @@ export class FabricRepository extends BaseRepository<typeof fabrics, Fabric, New
       conditions.push(inArray(fabrics.collection, filter.collection));
     }
     
-    // Price range filter
-    if (filter.priceMin !== undefined) {
-      conditions.push(gte(fabrics.retailPrice, filter.priceMin.toString()));
-    }
-    if (filter.priceMax !== undefined) {
-      conditions.push(lte(fabrics.retailPrice, filter.priceMax.toString()));
-    }
     
     // Stock filter
     if (filter.inStock === true) {
@@ -159,9 +152,6 @@ export class FabricRepository extends BaseRepository<typeof fabrics, Fabric, New
         break;
       case 'sku':
         orderByExpression = direction(fabrics.sku);
-        break;
-      case 'price':
-        orderByExpression = direction(fabrics.retailPrice);
         break;
       case 'stock':
         orderByExpression = direction(fabrics.stockQuantity);
@@ -491,78 +481,6 @@ export class FabricRepository extends BaseRepository<typeof fabrics, Fabric, New
       .limit(limit);
   }
   
-  // ============================================
-  // PRICING MANAGEMENT
-  // ============================================
-  
-  /**
-   * Update fabric pricing
-   */
-  async updatePricing(
-    fabricId: string,
-    retailPrice: number,
-    wholesalePrice?: number,
-    reason?: string,
-    effectiveDate?: Date,
-    userId?: string
-  ): Promise<Fabric | null> {
-    return await this.transaction(async (tx) => {
-      const fabric = await tx
-        .select()
-        .from(fabrics)
-        .where(eq(fabrics.id, fabricId))
-        .limit(1)
-        .then(r => r[0]);
-      
-      if (!fabric) return null;
-      
-      // Record price history
-      await tx.insert(fabricPriceHistory).values({
-        id: crypto.randomUUID(),
-        fabricId,
-        retailPrice: retailPrice.toString(),
-        wholesalePrice: wholesalePrice?.toString(),
-        effectiveDate: effectiveDate || new Date(),
-        reason,
-        createdAt: new Date(),
-        createdBy: userId,
-      });
-      
-      // Update current price if effective immediately
-      if (!effectiveDate || effectiveDate <= new Date()) {
-        const updated = await tx
-          .update(fabrics)
-          .set({
-            retailPrice: retailPrice.toString(),
-            wholesalePrice: wholesalePrice?.toString(),
-            updatedAt: new Date(),
-            updatedBy: userId,
-          })
-          .where(eq(fabrics.id, fabricId))
-          .returning()
-          .then(r => r[0]);
-        
-        return updated;
-      }
-      
-      return fabric;
-    });
-  }
-  
-  /**
-   * Get price history
-   */
-  async getPriceHistory(
-    fabricId: string,
-    limit: number = 20
-  ): Promise<any[]> {
-    return await this.db
-      .select()
-      .from(fabricPriceHistory)
-      .where(eq(fabricPriceHistory.fabricId, fabricId))
-      .orderBy(desc(fabricPriceHistory.effectiveDate))
-      .limit(limit);
-  }
   
   // ============================================
   // ANALYTICS & METRICS
@@ -664,9 +582,8 @@ export class FabricRepository extends BaseRepository<typeof fabrics, Fabric, New
     manufacturers: string[];
     collections: string[];
     colors: string[];
-    priceRange: { min: number; max: number };
   }> {
-    const [types, manufacturers, collections, colors, priceRange] = await Promise.all([
+    const [types, manufacturers, collections, colors] = await Promise.all([
       // Get unique types
       this.db
         .selectDistinct({ value: fabrics.type })
@@ -697,19 +614,6 @@ export class FabricRepository extends BaseRepository<typeof fabrics, Fabric, New
         .where(and(eq(fabrics.status, 'active'), isNull(fabrics.deletedAt)))
         .orderBy(asc(fabrics.primaryColor))
         .then(r => r.map(row => row.value).filter(Boolean)),
-      
-      // Get price range
-      this.db
-        .select({
-          min: sql`MIN(${fabrics.retailPrice})::numeric`,
-          max: sql`MAX(${fabrics.retailPrice})::numeric`,
-        })
-        .from(fabrics)
-        .where(and(eq(fabrics.status, 'active'), isNull(fabrics.deletedAt)))
-        .then(r => ({
-          min: parseFloat(r[0]?.min) || 0,
-          max: parseFloat(r[0]?.max) || 0,
-        })),
     ]);
     
     return {
@@ -717,7 +621,6 @@ export class FabricRepository extends BaseRepository<typeof fabrics, Fabric, New
       manufacturers,
       collections,
       colors,
-      priceRange,
     };
   }
 }

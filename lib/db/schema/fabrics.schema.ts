@@ -58,11 +58,6 @@ export const fabrics = pgTable('fabrics', {
   colors: jsonb('colors').default([]).notNull(),
   colorFamily: varchar('color_family', { length: 50 }),
   
-  // Pricing
-  retailPrice: numeric('retail_price', { precision: 10, scale: 2 }).notNull(),
-  wholesalePrice: numeric('wholesale_price', { precision: 10, scale: 2 }),
-  salePrice: numeric('sale_price', { precision: 10, scale: 2 }),
-  cost: numeric('cost', { precision: 10, scale: 2 }),
   
   // Inventory
   stockQuantity: numeric('stock_quantity', { precision: 10, scale: 2 }).default('0').notNull(),
@@ -132,10 +127,6 @@ export const insertFabricSchema = z.object({
   pattern: z.string().optional(),
   colors: z.array(z.string()).default([]),
   colorFamily: z.string().optional(),
-  retailPrice: z.number().positive("Retail price must be greater than 0"),
-  wholesalePrice: z.number().positive().nullable().optional(),
-  salePrice: z.number().positive().nullable().optional(),
-  cost: z.number().positive().nullable().optional(),
   stockQuantity: z.number().min(0, "Stock quantity cannot be negative"),
   stockUnit: z.string().default('yards'),
   lowStockThreshold: z.number().int().min(0).default(10),
@@ -167,8 +158,6 @@ export interface FabricFilter {
   inStock?: boolean;
   isFeatured?: boolean;
   isActive?: boolean;
-  priceMin?: number;
-  priceMax?: number;
   widthMin?: number;
   widthMax?: number;
   createdAfter?: Date;
@@ -176,6 +165,6 @@ export interface FabricFilter {
 }
 
 export interface FabricSort {
-  field: 'name' | 'sku' | 'price' | 'stock' | 'createdAt' | 'updatedAt';
+  field: 'name' | 'sku' | 'stock' | 'createdAt' | 'updatedAt';
   direction: 'asc' | 'desc';
 }

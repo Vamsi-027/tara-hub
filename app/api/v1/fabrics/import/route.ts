@@ -39,12 +39,6 @@ interface ParsedFabricData {
   pattern?: string;
   primaryColor?: string;
   secondaryColors?: string[];
-  retailPrice: number;
-  wholesalePrice?: number;
-  costPrice?: number;
-  procurementCost?: number;
-  currency?: string;
-  priceUnit?: string;
   stockQuantity: number;
   reservedQuantity?: number;
   availableQuantity?: number;
@@ -161,22 +155,6 @@ const columnMappings: Record<string, string> = {
   // 'swatch_url': 'swatchImage',
   // 'thumbnail': 'swatchImage',
   
-  // Pricing
-  'retail_price': 'retailPrice',
-  'price': 'retailPrice',
-  'list_price': 'retailPrice',
-  'msrp': 'retailPrice',
-  
-  'wholesale_price': 'wholesalePrice',
-  'trade_price': 'wholesalePrice',
-  
-  'cost_price': 'costPrice',
-  'cost': 'costPrice',
-  'unit_cost': 'costPrice',
-  
-  'procurement_cost': 'procurementCost',
-  'currency': 'currency',
-  'price_unit': 'priceUnit',
   
   // Inventory Management
   'stock_quantity': 'stockQuantity',
@@ -459,7 +437,7 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
     
     // Handle empty values for required fields
     if ((cellValue === undefined || cellValue === null || cellValue === '') && 
-        (mappedField === 'retailPrice' || mappedField === 'stockQuantity')) {
+        mappedField === 'stockQuantity') {
       // Set default value for required numeric fields
       fabric[mappedField] = 0;
       console.log(`[parseRow] Setting default for ${mappedField}: 0`);
@@ -480,30 +458,6 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
         // case 'images':
         // case 'swatchImage':
         //   break;
-        case 'retailPrice':
-        case 'wholesalePrice':
-        case 'costPrice':
-        case 'procurementCost':
-          // For retailPrice, we must ensure it's never undefined/null
-          const parsedPrice = parseNumber(value, false); // Never allow null for prices
-          fabric[mappedField] = parsedPrice !== null ? parsedPrice : 0;
-          // Debug logging for price fields
-          if (mappedField === 'retailPrice' && rowIndex <= 3) {
-            console.log(`[parseRow] Row ${rowIndex} - retailPrice processing:`, {
-              index,
-              header,
-              normalizedHeader,
-              cellValue,
-              originalValue: value,
-              parsedPrice,
-              finalValue: fabric[mappedField]
-            });
-          }
-          break;
-        case 'currency':
-        case 'priceUnit':
-          fabric[mappedField] = value || (mappedField === 'currency' ? 'USD' : 'per_yard');
-          break;
         case 'width':
         case 'weight':
           fabric[mappedField] = parseNumber(value, true);
@@ -604,16 +558,11 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
   if (fabric.stockQuantity === undefined || fabric.stockQuantity === null) {
     fabric.stockQuantity = 0;
   }
-  if (fabric.retailPrice === undefined || fabric.retailPrice === null) {
-    fabric.retailPrice = 0;
-  }
   
   // Debug logging to trace the issue
-  if (fabric.retailPrice === undefined || fabric.retailPrice === null || 
-      fabric.stockQuantity === undefined || fabric.stockQuantity === null) {
+  if (fabric.stockQuantity === undefined || fabric.stockQuantity === null) {
     console.log('Missing required fields in parsed row:', {
       sku: fabric.sku,
-      retailPrice: fabric.retailPrice,
       stockQuantity: fabric.stockQuantity,
       headers: headers,
       row: row
@@ -770,10 +719,7 @@ export async function POST(request: NextRequest) {
         console.log(`[Row ${i + 2}] Parsed data:`, {
           sku: fabricData?.sku,
           name: fabricData?.name,
-          retailPrice: fabricData?.retailPrice,
           stockQuantity: fabricData?.stockQuantity,
-          hasRetailPrice: fabricData?.retailPrice !== undefined && fabricData?.retailPrice !== null,
-          retailPriceType: typeof fabricData?.retailPrice,
           stockQuantityType: typeof fabricData?.stockQuantity
         });
         
@@ -787,20 +733,16 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Check for required fields (allow 0 for numeric fields)
-        if (!fabricData.sku || !fabricData.name || 
-            fabricData.retailPrice === undefined || fabricData.retailPrice === null) {
+        // Check for required fields
+        if (!fabricData.sku || !fabricData.name) {
           console.error(`[Row ${i + 2}] Validation failed:`, {
             hasSku: !!fabricData.sku,
-            hasName: !!fabricData.name,
-            retailPrice: fabricData.retailPrice,
-            retailPriceUndefined: fabricData.retailPrice === undefined,
-            retailPriceNull: fabricData.retailPrice === null
+            hasName: !!fabricData.name
           });
           result.errors.push({
             row: i + 2,
             data: fabricData,
-            error: 'Missing required fields: SKU, Name, and Retail Price are required'
+            error: 'Missing required fields: SKU and Name are required'
           });
           result.failureCount++;
           continue;
@@ -833,9 +775,6 @@ export async function POST(request: NextRequest) {
           weight: fabricData.weight,
           pattern: fabricData.pattern,
           colors: fabricData.secondaryColors || [],
-          retailPrice: fabricData.retailPrice,
-          wholesalePrice: fabricData.wholesalePrice,
-          cost: fabricData.costPrice,
           stockQuantity: fabricData.stockQuantity || 0,
           stockUnit: 'yards',
           status: fabricData.status || 'Active',
@@ -844,10 +783,6 @@ export async function POST(request: NextRequest) {
         };
 
         // Final safety check before service call
-        if (dbFabricData.retailPrice === undefined || dbFabricData.retailPrice === null) {
-          dbFabricData.retailPrice = 0;
-          console.log(`[Import] Warning: retailPrice was undefined for SKU ${dbFabricData.sku}, set to 0`);
-        }
         if (dbFabricData.stockQuantity === undefined || dbFabricData.stockQuantity === null) {
           dbFabricData.stockQuantity = 0;
           console.log(`[Import] Warning: stockQuantity was undefined for SKU ${dbFabricData.sku}, set to 0`);
@@ -901,7 +836,6 @@ export async function GET(request: NextRequest) {
       [
         'sku', 'name', 'description', 'type', 'manufacturer_name', 'collection',
         'fiber_content', 'width', 'weight', 'pattern', 'primary_color', 'secondary_colors',
-        'retail_price', 'currency', 'price_unit',
         'stock_quantity', 'reserved_quantity', 'available_quantity', 'minimum_order', 'increment_quantity',
         'reorder_point', 'reorder_quantity', 'lead_time_days', 'is_custom_order',
         'warehouse_location', 'bin_location', 'roll_count',
@@ -913,7 +847,6 @@ export async function GET(request: NextRequest) {
         'FAB-001', 'Premium Velvet - Emerald Green', 'Luxurious velvet perfect for upholstery',
         'Upholstery', 'Luxury Textiles', 'Spring 2024', '100% Cotton Velvet',
         '54', '12.5', 'Solid', 'Emerald Green', 'Forest Green,Dark Green',
-        '45.99', 'USD', 'per_yard',
         '250.5', '25', '225.5', '1', '0.5',
         '50', '100', '14', 'false',
         'A-12', 'B-34-5', '3',
@@ -925,7 +858,6 @@ export async function GET(request: NextRequest) {
         'FAB-002', 'Linen Blend - Natural', 'Natural linen blend for drapery',
         'Drapery', 'Natural Fibers Co', 'Classics', '55% Linen, 45% Cotton',
         '60', '8.2', 'Plain Weave', 'Natural', 'Cream,Off-White',
-        '32.50', 'USD', 'per_yard',
         '175', '10', '165', '2', '1',
         '30', '75', '21', 'false',
         'C-08', 'D-15-2', '2',

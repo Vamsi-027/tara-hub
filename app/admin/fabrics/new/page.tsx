@@ -124,9 +124,6 @@ export default function NewFabricPage() {
     thickness: '',
     durabilityRating: '',
     cleaningCode: '',
-    currency: 'USD',
-    priceUnit: 'per_yard',
-    procurementCost: '',
     supplierId: '',
     supplierName: '',
     stockQuantity: '0',
@@ -201,25 +198,6 @@ export default function NewFabricPage() {
       errors.name = 'Name must be at least 3 characters'
     }
     
-    if (!formData.retailPrice) {
-      errors.retailPrice = 'Retail price is required'
-    } else if (parseFloat(formData.retailPrice) <= 0) {
-      errors.retailPrice = 'Price must be greater than 0'
-    }
-    
-    // Optional numeric validations
-    if (formData.wholesalePrice && parseFloat(formData.wholesalePrice) <= 0) {
-      errors.wholesalePrice = 'Wholesale price must be greater than 0'
-    }
-    
-    if (formData.salePrice && parseFloat(formData.salePrice) <= 0) {
-      errors.salePrice = 'Sale price must be greater than 0'
-    }
-    
-    if (formData.salePrice && formData.retailPrice && 
-        parseFloat(formData.salePrice) >= parseFloat(formData.retailPrice)) {
-      errors.salePrice = 'Sale price must be less than retail price'
-    }
     
     if (formData.width && parseFloat(formData.width) <= 0) {
       errors.width = 'Width must be greater than 0'
@@ -268,9 +246,6 @@ export default function NewFabricPage() {
       // Find first tab with error
       if (validationErrors.sku || validationErrors.name || validationErrors.description) {
         setActiveTab('basic')
-      } else if (validationErrors.retailPrice || validationErrors.wholesalePrice || 
-                 validationErrors.salePrice || validationErrors.cost) {
-        setActiveTab('pricing')
       } else if (validationErrors.stockQuantity) {
         setActiveTab('inventory')
       }
@@ -290,10 +265,6 @@ export default function NewFabricPage() {
         ...formData,
         slug,
         colors: colors.length > 0 ? colors : ['Default'],
-        retailPrice: parseFloat(formData.retailPrice),
-        wholesalePrice: formData.wholesalePrice ? parseFloat(formData.wholesalePrice) : null,
-        salePrice: formData.salePrice ? parseFloat(formData.salePrice) : null,
-        cost: formData.cost ? parseFloat(formData.cost) : null,
         width: formData.width ? parseFloat(formData.width) : null,
         weight: formData.weight ? parseFloat(formData.weight) : null,
         stockQuantity: parseInt(formData.stockQuantity),

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { 
   Plus, Search, Edit, Trash2, Filter, Download, Upload, 
-  Package, DollarSign, MoreVertical, Eye, Grid3X3, List
+  Package, MoreVertical, Eye, Grid3X3, List
 } from "lucide-react"
 import { FabricCardEnhanced, FabricCardSkeleton } from "@/components/admin/fabric-card-enhanced"
 import { EmptyState } from "@/components/empty-state"
@@ -98,13 +98,6 @@ export default function AdminFabricsPage() {
     router.push(`/admin/fabrics/${id}`)
   }
 
-  const formatPrice = (price: string | number) => {
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(numPrice)
-  }
 
   if (error) {
     return (
@@ -226,8 +219,6 @@ export default function AdminFabricsPage() {
                 <SelectItem value="createdAt:asc">Oldest First</SelectItem>
                 <SelectItem value="name:asc">Name (A-Z)</SelectItem>
                 <SelectItem value="name:desc">Name (Z-A)</SelectItem>
-                <SelectItem value="price:asc">Price (Low to High)</SelectItem>
-                <SelectItem value="price:desc">Price (High to Low)</SelectItem>
                 <SelectItem value="stock:asc">Stock (Low to High)</SelectItem>
                 <SelectItem value="stock:desc">Stock (High to Low)</SelectItem>
               </SelectContent>
@@ -425,15 +416,6 @@ export default function AdminFabricsPage() {
                       )}
                       
                       <div className="flex items-center gap-6 text-sm">
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium">{formatPrice(fabric.retailPrice)}</span>
-                          {fabric.salePrice && (
-                            <span className="text-green-600 ml-2">
-                              Sale: {formatPrice(fabric.salePrice)}
-                            </span>
-                          )}
-                        </div>
                         <div className="flex items-center gap-1">
                           <Package className="h-4 w-4 text-gray-400" />
                           <span>{fabric.stockQuantity} {fabric.stockUnit}</span>

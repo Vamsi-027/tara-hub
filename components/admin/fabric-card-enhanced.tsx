@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { 
   Eye, Edit, Trash2, MoreVertical, Package, 
-  DollarSign, Ruler, Palette, Image as ImageIcon
+  Ruler, Palette, Image as ImageIcon
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -23,7 +23,6 @@ interface FabricCardProps {
     description?: string
     type: string
     status: string
-    retailPrice: number | string
     stockQuantity: number
     stockUnit: string
     images: string[]
@@ -263,9 +262,6 @@ export function FabricCardEnhanced({ fabric, onView, onEdit, onDelete }: FabricC
           <div className="flex items-center justify-between pt-2 border-t">
             <div className="flex items-center gap-1">
               <DollarSign className="h-4 w-4 text-green-600" />
-              <span className="font-bold text-lg text-green-600">
-                ${typeof fabric.retailPrice === 'string' ? parseFloat(fabric.retailPrice) : fabric.retailPrice}
-              </span>
             </div>
             
             <div className="text-right">
