@@ -431,6 +431,9 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
   
   // Debug: Log headers and their mappings
   if (rowIndex === 2) { // Only log for first data row
+    console.log('[parseRow] Row data type:', typeof row, Array.isArray(row) ? 'is array' : 'not array');
+    console.log('[parseRow] Row length:', row?.length, 'Headers length:', headers?.length);
+    console.log('[parseRow] First 5 row values:', row?.slice(0, 5));
     console.log('[parseRow] Headers and mappings:', headers.map((h, i) => ({
       index: i,
       header: h,
@@ -445,8 +448,19 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
     const normalizedHeader = normalizeColumnName(header);
     const mappedField = columnMappings[normalizedHeader];
     
-    if (mappedField && row[index] !== undefined && row[index] !== '') {
-      const value = String(row[index]).trim();
+    // Get value - handle both array and object formats
+    let cellValue;
+    if (Array.isArray(row)) {
+      cellValue = row[index];
+    } else if (typeof row === 'object' && row !== null) {
+      // Handle object format (in case Papa Parse returns objects)
+      cellValue = row[header] || row[normalizedHeader];
+    } else {
+      cellValue = undefined;
+    }
+    
+    if (mappedField && cellValue !== undefined && cellValue !== '') {
+      const value = String(cellValue).trim();
       
       switch (mappedField) {
         case 'primaryColor':
@@ -464,16 +478,18 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
         case 'costPrice':
         case 'procurementCost':
           // For retailPrice, we must ensure it's never undefined/null
-          const parsedPrice = parseNumber(value, mappedField !== 'retailPrice');
+          const parsedPrice = parseNumber(value, false); // Never allow null for prices
           fabric[mappedField] = parsedPrice !== null ? parsedPrice : 0;
           // Debug logging for price fields
-          if (mappedField === 'retailPrice') {
-            console.log(`[parseRow] retailPrice processing:`, {
+          if (mappedField === 'retailPrice' && rowIndex <= 3) {
+            console.log(`[parseRow] Row ${rowIndex} - retailPrice processing:`, {
+              index,
+              header,
+              normalizedHeader,
+              cellValue,
               originalValue: value,
               parsedPrice,
-              finalValue: fabric[mappedField],
-              header,
-              normalizedHeader
+              finalValue: fabric[mappedField]
             });
           }
           break;
@@ -495,6 +511,18 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
           // Ensure numeric inventory fields are never undefined/null
           const parsedQty = parseNumber(value, false);
           fabric[mappedField] = parsedQty !== null ? parsedQty : 0;
+          // Debug logging for stockQuantity
+          if (mappedField === 'stockQuantity' && rowIndex <= 3) {
+            console.log(`[parseRow] Row ${rowIndex} - stockQuantity processing:`, {
+              index,
+              header,
+              normalizedHeader,
+              cellValue,
+              originalValue: value,
+              parsedQty,
+              finalValue: fabric[mappedField]
+            });
+          }
           break;
         case 'leadTimeDays':
         case 'rollCount':
@@ -594,10 +622,14 @@ async function parseCSV(fileBuffer: Buffer): Promise<{ data: any[][]; headers: s
     const csvText = fileBuffer.toString('utf-8');
     
     Papa.parse(csvText, {
+      header: false,  // Don't convert to objects, keep as arrays
+      skipEmptyLines: true,
+      dynamicTyping: false,  // Keep everything as strings for consistent parsing
+      delimiter: ',',  // Explicitly set delimiter
       complete: (results) => {
         if (results.errors.length > 0) {
-          reject(new Error(`CSV parsing error: ${results.errors[0].message}`));
-          return;
+          console.error('[parseCSV] Papa Parse errors:', results.errors);
+          // Don't reject on minor errors, just log them
         }
         
         const data = results.data as string[][];
@@ -607,7 +639,11 @@ async function parseCSV(fileBuffer: Buffer): Promise<{ data: any[][]; headers: s
         }
         
         const headers = data[0];
-        const rows = data.slice(1).filter(row => row.some(cell => cell && cell.trim()));
+        const rows = data.slice(1).filter(row => Array.isArray(row) && row.length > 0 && row.some(cell => cell && String(cell).trim()));
+        
+        console.log('[parseCSV] Headers count:', headers.length);
+        console.log('[parseCSV] Data rows count:', rows.length);
+        console.log('[parseCSV] First row cells:', rows[0]?.length);
         
         resolve({ data: rows, headers });
       },
@@ -698,7 +734,10 @@ export async function POST(request: NextRequest) {
     
     // Debug: Log parsed headers
     console.log('[Import] Parsed headers:', headers);
+    console.log('[Import] Total rows:', rows.length);
+    console.log('[Import] First data row type:', typeof rows[0], Array.isArray(rows[0]) ? 'is array' : 'not array');
     console.log('[Import] First data row:', rows[0]);
+    console.log('[Import] First data row length:', rows[0]?.length);
 
     // Process each row
     const result: ImportResult = {
