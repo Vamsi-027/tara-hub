@@ -8,7 +8,7 @@ import { neon, neonConfig, Pool as NeonPool } from '@neondatabase/serverless';
 import { drizzle as drizzleHttp } from 'drizzle-orm/neon-http';
 import { drizzle as drizzleNode } from 'drizzle-orm/node-postgres';
 import { Pool as PgPool } from 'pg';
-import * as schema from './schema/fabrics-simple.schema';
+import * as schema from './schema/fabrics.schema';
 
 // Configure Neon for serverless
 neonConfig.fetchConnectionCache = true;
