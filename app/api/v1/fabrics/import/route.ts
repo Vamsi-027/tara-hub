@@ -531,7 +531,7 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
     }
   });
   
-  // Set defaults
+  // Set defaults and ensure required fields
   fabric.type = fabric.type || 'Upholstery';
   fabric.status = fabric.status || 'Active';
   fabric.stockUnit = fabric.stockUnit || 'yards';
@@ -539,7 +539,26 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
   fabric.isActive = fabric.isActive !== undefined ? fabric.isActive : true;
   fabric.isFeatured = fabric.isFeatured !== undefined ? fabric.isFeatured : false;
   fabric.colors = fabric.colors || [];
-  fabric.stockQuantity = fabric.stockQuantity || 0;
+  
+  // Ensure required fields have values (even if 0)
+  if (fabric.stockQuantity === undefined || fabric.stockQuantity === null) {
+    fabric.stockQuantity = 0;
+  }
+  if (fabric.retailPrice === undefined || fabric.retailPrice === null) {
+    fabric.retailPrice = 0;
+  }
+  
+  // Debug logging to trace the issue
+  if (fabric.retailPrice === undefined || fabric.retailPrice === null || 
+      fabric.stockQuantity === undefined || fabric.stockQuantity === null) {
+    console.log('Missing required fields in parsed row:', {
+      sku: fabric.sku,
+      retailPrice: fabric.retailPrice,
+      stockQuantity: fabric.stockQuantity,
+      headers: headers,
+      row: row
+    });
+  }
   
   return fabric as ParsedFabricData;
 }
@@ -678,8 +697,9 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Check for required fields
-        if (!fabricData.sku || !fabricData.name || !fabricData.retailPrice) {
+        // Check for required fields (allow 0 for numeric fields)
+        if (!fabricData.sku || !fabricData.name || 
+            fabricData.retailPrice === undefined || fabricData.retailPrice === null) {
           result.errors.push({
             row: i + 2,
             data: fabricData,
