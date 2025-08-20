@@ -443,23 +443,30 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
     })));
   }
   
+  // CRITICAL FIX: Ensure row is properly formatted as array
+  const rowData = Array.isArray(row) ? row : Object.values(row);
+  
   // Map columns to fabric fields
   headers.forEach((header, index) => {
     const normalizedHeader = normalizeColumnName(header);
     const mappedField = columnMappings[normalizedHeader];
     
-    // Get value - handle both array and object formats
-    let cellValue;
-    if (Array.isArray(row)) {
-      cellValue = row[index];
-    } else if (typeof row === 'object' && row !== null) {
-      // Handle object format (in case Papa Parse returns objects)
-      cellValue = row[header] || row[normalizedHeader];
-    } else {
-      cellValue = undefined;
+    // Get value from array
+    const cellValue = rowData[index];
+    
+    // Skip if no mapping or no value
+    if (!mappedField) return;
+    
+    // Handle empty values for required fields
+    if ((cellValue === undefined || cellValue === null || cellValue === '') && 
+        (mappedField === 'retailPrice' || mappedField === 'stockQuantity')) {
+      // Set default value for required numeric fields
+      fabric[mappedField] = 0;
+      console.log(`[parseRow] Setting default for ${mappedField}: 0`);
+      return;
     }
     
-    if (mappedField && cellValue !== undefined && cellValue !== '') {
+    if (cellValue !== undefined && cellValue !== null && cellValue !== '') {
       const value = String(cellValue).trim();
       
       switch (mappedField) {
@@ -866,6 +873,16 @@ export async function POST(request: NextRequest) {
           cleaning_code: fabricData.cleaningCode
         };
 
+        // Final safety check before service call
+        if (dbFabricData.retail_price === undefined || dbFabricData.retail_price === null) {
+          dbFabricData.retail_price = 0;
+          console.log(`[Import] Warning: retail_price was undefined for SKU ${dbFabricData.sku}, set to 0`);
+        }
+        if (dbFabricData.stock_quantity === undefined || dbFabricData.stock_quantity === null) {
+          dbFabricData.stock_quantity = 0;
+          console.log(`[Import] Warning: stock_quantity was undefined for SKU ${dbFabricData.sku}, set to 0`);
+        }
+        
         // Create fabric using service (which will handle its own validation)
         await fabricService.create(dbFabricData, userId || 'admin');
         result.successCount++;
