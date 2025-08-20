@@ -82,12 +82,48 @@ When adding new deployment scripts:
 Required environment variables are documented in:
 - [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md#environment-variables-setup)
 
+## 🔐 Environment Variables Management
+
+### Automated Environment Setup
+```bash
+# Validate current setup
+npm run env:validate
+
+# Generate templates from .env.local
+npm run env:generate
+
+# Push to all Vercel projects
+npm run env:push
+
+# Interactive management
+npm run env:manage
+
+# Deploy with environment sync
+npm run deploy:with-env
+npm run deploy:prod-with-env
+```
+
+### Manual Environment Management
+```bash
+# Push to specific project and environment
+node deployment/vercel/scripts/manage-env-vars.js push admin production
+node deployment/vercel/scripts/manage-env-vars.js push fabric-store development
+
+# Pull from Vercel
+node deployment/vercel/scripts/manage-env-vars.js pull admin development
+
+# Generate CI/CD template
+node deployment/vercel/scripts/manage-env-vars.js ci
+```
+
 ## 💡 Tips
 
 - All scripts use relative paths and work from any directory
 - Scripts include error handling and rollback capabilities
 - Use `--help` flag on any script for usage information
 - Run `npm run deploy:quick` for preset deployment options
+- Use `npm run env:validate` before deployments to catch missing variables
+- Environment variables are automatically categorized by app requirements
 
 ## 🛠 Maintenance
 

@@ -66,10 +66,36 @@ async function deployApp(name, script, color) {
   }
 }
 
+async function setupEnvironmentVariables() {
+  log('\n🔐 Setting up environment variables...', 'magenta');
+  
+  try {
+    const envScript = path.join(__dirname, 'manage-env-vars.js');
+    const env = process.argv.includes('--prod') ? 'production' : 'development';
+    
+    // Push env vars for each app
+    for (const app of ['admin', 'fabric-store', 'store-guide']) {
+      try {
+        log(`  Pushing env vars for ${app}...`, 'blue');
+        execSync(`node ${envScript} push ${app} ${env}`, { stdio: 'pipe' });
+        log(`  ✅ ${app} environment configured`, 'green');
+      } catch (error) {
+        log(`  ⚠️  Failed to push env vars for ${app}`, 'yellow');
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    log('⚠️  Environment variable setup failed', 'yellow');
+    return false;
+  }
+}
+
 async function deployAll() {
   const startTime = Date.now();
   const isProd = process.argv.includes('--prod');
   const isParallel = process.argv.includes('--parallel');
+  const withEnv = process.argv.includes('--with-env');
   const appsToSkip = process.argv
     .filter(arg => arg.startsWith('--skip-'))
     .map(arg => arg.replace('--skip-', ''));
@@ -78,6 +104,7 @@ async function deployAll() {
   
   log(`Mode: ${isProd ? 'PRODUCTION' : 'PREVIEW'}`, isProd ? 'red' : 'yellow');
   log(`Strategy: ${isParallel ? 'PARALLEL' : 'SEQUENTIAL'}`, 'blue');
+  log(`Environment Sync: ${withEnv ? 'ENABLED' : 'DISABLED'}`, 'magenta');
   
   if (appsToSkip.length > 0) {
     log(`Skipping: ${appsToSkip.join(', ')}`, 'yellow');
@@ -102,6 +129,11 @@ async function deployAll() {
     }
   } catch (error) {
     log('⚠️  Git check skipped', 'yellow');
+  }
+
+  // Setup environment variables if requested
+  if (withEnv) {
+    await setupEnvironmentVariables();
   }
 
   // Install dependencies once for all
@@ -204,6 +236,7 @@ Usage:
 Options:
   --prod          Deploy to production (default: preview)
   --parallel      Deploy all apps in parallel (faster)
+  --with-env      Push environment variables to Vercel
   --force         Deploy even with uncommitted changes
   --skip-install  Skip npm install step
   --skip-admin    Skip admin app deployment

@@ -35,6 +35,13 @@
     "deploy:all": "node deployment/vercel/scripts/deploy-all.js --prod --parallel",
     "deploy:quick": "node deployment/vercel/scripts/quick-deploy.js",
     "deploy:setup": "node deployment/vercel/scripts/setup-deployment.js",
+    "env:manage": "node deployment/vercel/scripts/manage-env-vars.js",
+    "env:generate": "node deployment/vercel/scripts/manage-env-vars.js generate",
+    "env:push": "node deployment/vercel/scripts/manage-env-vars.js push",
+    "env:pull": "node deployment/vercel/scripts/manage-env-vars.js pull",
+    "env:validate": "node deployment/vercel/scripts/manage-env-vars.js validate",
+    "deploy:with-env": "node deployment/vercel/scripts/deploy-all.js --with-env",
+    "deploy:prod-with-env": "node deployment/vercel/scripts/deploy-all.js --prod --parallel --with-env",
     "vercel:env": "vercel env pull .env.local",
     "vercel:link": "vercel link"
   },

@@ -12,7 +12,9 @@
       "Bash(mv:*)",
       "Bash(cp:*)",
       "Bash(git add:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git push:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": [],
