@@ -12,7 +12,7 @@ import {
   NewFabric,
   FabricFilter,
   FabricSort 
-} from '@/lib/db/schema/fabrics-simple.schema';
+} from '@/lib/db/schema/fabrics.schema';
 import { db } from '@/lib/db/client';
 
 export class FabricRepository extends BaseRepository<typeof fabrics, Fabric, NewFabric> {

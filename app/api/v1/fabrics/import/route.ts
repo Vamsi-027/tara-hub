@@ -820,67 +820,37 @@ export async function POST(request: NextRequest) {
 
         processedSkus.add(fabricData.sku);
 
-        // Map parsed data to database schema format
+        // Map parsed data to database schema format (using camelCase for simple schema)
         const dbFabricData = {
           sku: fabricData.sku,
           name: fabricData.name,
           description: fabricData.description,
           type: fabricData.type,
-          manufacturer_name: fabricData.manufacturerName || fabricData.brand,
-          supplier_name: fabricData.supplierName,
+          brand: fabricData.manufacturerName || fabricData.brand,
           collection: fabricData.collection,
-          fiber_content: fabricData.fiberContent ? 
-            (typeof fabricData.fiberContent === 'string' ? 
-              [{ fiber: fabricData.fiberContent, percentage: 100 }] : 
-              fabricData.fiberContent) : undefined,
+          material: fabricData.fiberContent,
           width: fabricData.width,
           weight: fabricData.weight,
           pattern: fabricData.pattern,
-          primary_color: fabricData.primaryColor,
-          secondary_colors: fabricData.secondaryColors,
-          retail_price: fabricData.retailPrice,
-          wholesale_price: fabricData.wholesalePrice,
-          cost_price: fabricData.costPrice,
-          procurement_cost: fabricData.procurementCost,
-          currency: fabricData.currency || 'USD',
-          price_unit: fabricData.priceUnit || 'per_yard',
-          stock_quantity: fabricData.stockQuantity || 0,
-          reserved_quantity: fabricData.reservedQuantity || 0,
-          available_quantity: fabricData.availableQuantity || 0,
-          minimum_order: fabricData.minimumOrder || 1,
-          increment_quantity: fabricData.incrementQuantity || 1,
-          reorder_point: fabricData.reorderPoint,
-          reorder_quantity: fabricData.reorderQuantity,
-          lead_time_days: fabricData.leadTimeDays,
-          is_custom_order: fabricData.isCustomOrder || false,
-          warehouse_location: fabricData.warehouseLocation,
-          bin_location: fabricData.binLocation,
-          roll_count: fabricData.rollCount,
+          colors: fabricData.secondaryColors || [],
+          retailPrice: fabricData.retailPrice,
+          wholesalePrice: fabricData.wholesalePrice,
+          cost: fabricData.costPrice,
+          stockQuantity: fabricData.stockQuantity || 0,
+          stockUnit: 'yards',
           status: fabricData.status || 'Active',
-          durability_rating: fabricData.durabilityRating,
-          martindale: fabricData.martindale,
-          wyzenbeek: fabricData.wyzenbeek,
-          lightfastness: fabricData.lightfastness,
-          pilling_resistance: fabricData.pillingResistance,
-          is_stain_resistant: fabricData.isStainResistant || false,
-          is_fade_resistant: fabricData.isFadeResistant || false,
-          is_water_resistant: fabricData.isWaterResistant || false,
-          is_pet_friendly: fabricData.isPetFriendly || false,
-          is_outdoor_safe: fabricData.isOutdoorSafe || false,
-          is_fire_retardant: fabricData.isFireRetardant || false,
-          is_bleach_cleanable: fabricData.isBleachCleanable || false,
-          is_antimicrobial: fabricData.isAntimicrobial || false,
-          cleaning_code: fabricData.cleaningCode
+          isActive: true,
+          isFeatured: false
         };
 
         // Final safety check before service call
-        if (dbFabricData.retail_price === undefined || dbFabricData.retail_price === null) {
-          dbFabricData.retail_price = 0;
-          console.log(`[Import] Warning: retail_price was undefined for SKU ${dbFabricData.sku}, set to 0`);
+        if (dbFabricData.retailPrice === undefined || dbFabricData.retailPrice === null) {
+          dbFabricData.retailPrice = 0;
+          console.log(`[Import] Warning: retailPrice was undefined for SKU ${dbFabricData.sku}, set to 0`);
         }
-        if (dbFabricData.stock_quantity === undefined || dbFabricData.stock_quantity === null) {
-          dbFabricData.stock_quantity = 0;
-          console.log(`[Import] Warning: stock_quantity was undefined for SKU ${dbFabricData.sku}, set to 0`);
+        if (dbFabricData.stockQuantity === undefined || dbFabricData.stockQuantity === null) {
+          dbFabricData.stockQuantity = 0;
+          console.log(`[Import] Warning: stockQuantity was undefined for SKU ${dbFabricData.sku}, set to 0`);
         }
         
         // Create fabric using service (which will handle its own validation)

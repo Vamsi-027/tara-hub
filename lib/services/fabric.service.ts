@@ -11,7 +11,7 @@ import {
   FabricFilter, 
   FabricSort,
   insertFabricSchema
-} from '@/lib/db/schema/fabrics-simple.schema';
+} from '@/lib/db/schema/fabrics.schema';
 import { PaginatedResult } from '@/lib/repositories/base.repository';
 import { redis } from '@/lib/cache/redis';
 import { z } from 'zod';
