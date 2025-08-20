@@ -29,24 +29,38 @@ interface ParsedFabricData {
   name: string;
   description?: string;
   type: string;
+  manufacturerName?: string;
   brand?: string;
+  supplierName?: string;
   collection?: string;
-  material?: string;
+  fiberContent?: string;
   width?: number;
   weight?: number;
   pattern?: string;
-  colors?: string[];
+  primaryColor?: string;
+  secondaryColors?: string[];
   retailPrice: number;
   wholesalePrice?: number;
-  salePrice?: number;
-  cost?: number;
+  costPrice?: number;
+  procurementCost?: number;
+  currency?: string;
+  priceUnit?: string;
   stockQuantity: number;
-  stockUnit?: string;
-  lowStockThreshold?: number;
+  reservedQuantity?: number;
+  availableQuantity?: number;
+  minimumOrder?: number;
+  incrementQuantity?: number;
+  reorderPoint?: number;
+  reorderQuantity?: number;
+  leadTimeDays?: number;
+  isCustomOrder?: boolean;
+  warehouseLocation?: string;
+  binLocation?: string;
+  rollCount?: number;
   status?: string;
   isActive?: boolean;
   isFeatured?: boolean;
-  // New fields for store-guide experience
+  // Performance fields
   durabilityRating?: string;
   martindale?: number;
   wyzenbeek?: number;
@@ -689,11 +703,61 @@ export async function POST(request: NextRequest) {
 
         processedSkus.add(fabricData.sku);
 
-        // Validate against schema
-        const validated = insertFabricSchema.parse(fabricData);
+        // Map parsed data to database schema format
+        const dbFabricData = {
+          sku: fabricData.sku,
+          name: fabricData.name,
+          description: fabricData.description,
+          type: fabricData.type,
+          manufacturer_name: fabricData.manufacturerName || fabricData.brand,
+          supplier_name: fabricData.supplierName,
+          collection: fabricData.collection,
+          fiber_content: fabricData.fiberContent ? 
+            (typeof fabricData.fiberContent === 'string' ? 
+              [{ fiber: fabricData.fiberContent, percentage: 100 }] : 
+              fabricData.fiberContent) : undefined,
+          width: fabricData.width,
+          weight: fabricData.weight,
+          pattern: fabricData.pattern,
+          primary_color: fabricData.primaryColor,
+          secondary_colors: fabricData.secondaryColors,
+          retail_price: fabricData.retailPrice,
+          wholesale_price: fabricData.wholesalePrice,
+          cost_price: fabricData.costPrice,
+          procurement_cost: fabricData.procurementCost,
+          currency: fabricData.currency || 'USD',
+          price_unit: fabricData.priceUnit || 'per_yard',
+          stock_quantity: fabricData.stockQuantity || 0,
+          reserved_quantity: fabricData.reservedQuantity || 0,
+          available_quantity: fabricData.availableQuantity || 0,
+          minimum_order: fabricData.minimumOrder || 1,
+          increment_quantity: fabricData.incrementQuantity || 1,
+          reorder_point: fabricData.reorderPoint,
+          reorder_quantity: fabricData.reorderQuantity,
+          lead_time_days: fabricData.leadTimeDays,
+          is_custom_order: fabricData.isCustomOrder || false,
+          warehouse_location: fabricData.warehouseLocation,
+          bin_location: fabricData.binLocation,
+          roll_count: fabricData.rollCount,
+          status: fabricData.status || 'Active',
+          durability_rating: fabricData.durabilityRating,
+          martindale: fabricData.martindale,
+          wyzenbeek: fabricData.wyzenbeek,
+          lightfastness: fabricData.lightfastness,
+          pilling_resistance: fabricData.pillingResistance,
+          is_stain_resistant: fabricData.isStainResistant || false,
+          is_fade_resistant: fabricData.isFadeResistant || false,
+          is_water_resistant: fabricData.isWaterResistant || false,
+          is_pet_friendly: fabricData.isPetFriendly || false,
+          is_outdoor_safe: fabricData.isOutdoorSafe || false,
+          is_fire_retardant: fabricData.isFireRetardant || false,
+          is_bleach_cleanable: fabricData.isBleachCleanable || false,
+          is_antimicrobial: fabricData.isAntimicrobial || false,
+          cleaning_code: fabricData.cleaningCode
+        };
 
-        // Create fabric
-        await fabricService.create(validated, userId || 'admin');
+        // Create fabric using service (which will handle its own validation)
+        await fabricService.create(dbFabricData, userId || 'admin');
         result.successCount++;
 
       } catch (error: any) {
