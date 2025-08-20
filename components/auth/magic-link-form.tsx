@@ -33,15 +33,26 @@ export function MagicLinkForm({ onSuccess, className = '' }: MagicLinkFormProps)
     setIsSuccess(false);
 
     try {
-      const response = await fetch('/api/auth/signin', {
+      // Use absolute URL in production
+      const baseUrl = window.location.origin;
+      const apiUrl = `${baseUrl}/api/auth/signin`;
+      
+      console.log('Sending magic link request to:', apiUrl);
+      console.log('Email:', email.trim());
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email: email.trim() }),
+        credentials: 'same-origin',
       });
 
       const data = await response.json();
+      
+      console.log('Response status:', response.status);
+      console.log('Response data:', data);
 
       if (response.ok) {
         setIsSuccess(true);
@@ -51,6 +62,7 @@ export function MagicLinkForm({ onSuccess, className = '' }: MagicLinkFormProps)
         // Clear form after success
         setEmail('');
       } else {
+        console.error('Error response:', data);
         setError(data.error || 'Something went wrong. Please try again.');
         
         // Show retry info for rate limiting

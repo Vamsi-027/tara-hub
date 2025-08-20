@@ -7,4 +7,5 @@ export const adminEmails = [
   'batchu.kedareswaraabhinav@gmail.com',
   'vamsicheruku027@gmail.com',
   'admin@deepcrm.ai',
+  'rkvankayalapati@gemini-us.com',
 ]

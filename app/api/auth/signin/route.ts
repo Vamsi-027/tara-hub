@@ -60,14 +60,50 @@ export async function POST(request: NextRequest) {
     const token = await createVerificationToken(email, 'magic_link', 15);
     
     // Send magic link email
-    const emailService = EmailService.getInstance();
-    await emailService.sendMagicLink(email, token, request.nextUrl.origin);
-    
-    return NextResponse.json({ 
-      message: 'Magic link sent successfully! Check your email to sign in.',
-      success: true,
-      email: email // Return sanitized email for UI feedback
-    });
+    try {
+      console.log('📧 Attempting to send email to:', email);
+      console.log('🔑 Token created:', token.substring(0, 10) + '...');
+      console.log('🌐 Origin:', request.nextUrl.origin);
+      
+      const emailService = EmailService.getInstance();
+      const emailResult = await emailService.sendMagicLink(email, token, request.nextUrl.origin);
+      
+      console.log('✅ Email send result:', emailResult);
+      
+      // Check if there was an explicit error
+      if (emailResult?.error) {
+        console.error('❌ Email service returned error:', emailResult.error);
+        const errorMessage = typeof emailResult.error === 'object' 
+          ? JSON.stringify(emailResult.error) 
+          : emailResult.error;
+        throw new Error(`Email service error: ${errorMessage}`);
+      }
+      
+      // Get email ID from either format
+      const emailId = emailResult?.data?.id || emailResult?.id || 'sent';
+      console.log('✅ Email sent with ID:', emailId);
+      
+      return NextResponse.json({ 
+        message: 'Magic link sent successfully! Check your email to sign in.',
+        success: true,
+        email: email, // Return sanitized email for UI feedback
+        emailId: emailId
+      });
+    } catch (emailError: any) {
+      console.error('❌ Failed to send email:', emailError);
+      console.error('Error details:', {
+        message: emailError.message,
+        stack: emailError.stack,
+        response: emailError.response
+      });
+      
+      // Return a more specific error
+      return NextResponse.json({
+        error: 'Failed to send magic link email. Please try again.',
+        details: emailError.message,
+        email: email
+      }, { status: 500 });
+    }
     
   } catch (error) {
     console.error('Magic link signin error:', error);
