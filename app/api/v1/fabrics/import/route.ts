@@ -455,6 +455,16 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
           // For retailPrice, we must ensure it's never undefined/null
           const parsedPrice = parseNumber(value, mappedField !== 'retailPrice');
           fabric[mappedField] = parsedPrice !== null ? parsedPrice : 0;
+          // Debug logging for price fields
+          if (mappedField === 'retailPrice') {
+            console.log(`[parseRow] retailPrice processing:`, {
+              originalValue: value,
+              parsedPrice,
+              finalValue: fabric[mappedField],
+              header,
+              normalizedHeader
+            });
+          }
           break;
         case 'currency':
         case 'priceUnit':
@@ -691,6 +701,17 @@ export async function POST(request: NextRequest) {
       try {
         const fabricData = parseRow(rows[i], headers, i + 2); // +2 for 1-based + header row
         
+        // Enhanced debugging
+        console.log(`[Row ${i + 2}] Parsed data:`, {
+          sku: fabricData?.sku,
+          name: fabricData?.name,
+          retailPrice: fabricData?.retailPrice,
+          stockQuantity: fabricData?.stockQuantity,
+          hasRetailPrice: fabricData?.retailPrice !== undefined && fabricData?.retailPrice !== null,
+          retailPriceType: typeof fabricData?.retailPrice,
+          stockQuantityType: typeof fabricData?.stockQuantity
+        });
+        
         if (!fabricData) {
           result.errors.push({
             row: i + 2,
@@ -704,6 +725,13 @@ export async function POST(request: NextRequest) {
         // Check for required fields (allow 0 for numeric fields)
         if (!fabricData.sku || !fabricData.name || 
             fabricData.retailPrice === undefined || fabricData.retailPrice === null) {
+          console.error(`[Row ${i + 2}] Validation failed:`, {
+            hasSku: !!fabricData.sku,
+            hasName: !!fabricData.name,
+            retailPrice: fabricData.retailPrice,
+            retailPriceUndefined: fabricData.retailPrice === undefined,
+            retailPriceNull: fabricData.retailPrice === null
+          });
           result.errors.push({
             row: i + 2,
             data: fabricData,
