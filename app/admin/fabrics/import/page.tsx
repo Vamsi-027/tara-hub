@@ -163,62 +163,56 @@ export default function FabricImportPage() {
             <p className="font-semibold">Before you start:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>Download the template to see the required format and column headers</li>
-              <li>Ensure your data includes at minimum: SKU, Name, Type, and Retail Price</li>
+              <li>Ensure your data includes at minimum: SKU, Name, Manufacturer Name, and Retail Price</li>
               <li>File size limit: 5MB, formats supported: CSV, XLS, XLSX</li>
               <li>The system will automatically map common column names to fabric fields</li>
-              <li><strong>Images:</strong> Use comma-separated URLs in the 'images' column (up to 20 images per fabric)</li>
-              <li><strong>Image formats:</strong> JPG, JPEG, PNG, WebP, GIF supported</li>
-              <li>Ensure all image URLs are publicly accessible and properly formatted</li>
+              <li><strong>New inventory fields:</strong> Stock quantity, Reserved quantity, Available quantity, Reorder points, Warehouse locations</li>
+              <li><strong>Images are NOT handled via CSV:</strong> Upload images separately after import through the fabric edit interface</li>
             </ul>
           </div>
         </AlertDescription>
       </Alert>
 
-      {/* Image Handling Guide */}
-      <Card className="bg-blue-50 border-blue-200">
+      {/* Inventory Management Guide */}
+      <Card className="bg-green-50 border-green-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-800">
-            <Eye className="h-5 w-5" />
-            Handling Fabric Images in CSV Import
+          <CardTitle className="flex items-center gap-2 text-green-800">
+            <FileSpreadsheet className="h-5 w-5" />
+            Inventory Management Fields
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <h4 className="font-semibold text-blue-800 mb-2">Image URL Format:</h4>
-              <div className="space-y-2 text-blue-700">
-                <p><strong>Single Image:</strong></p>
-                <code className="block bg-blue-100 p-2 rounded text-xs">
-                  https://example.com/fabric1.jpg
-                </code>
-                
-                <p><strong>Multiple Images (comma-separated):</strong></p>
-                <code className="block bg-blue-100 p-2 rounded text-xs">
-                  https://example.com/main.jpg,<br />
-                  https://example.com/detail.jpg,<br />
-                  https://example.com/texture.jpg
-                </code>
-              </div>
+              <h4 className="font-semibold text-green-800 mb-2">Stock Tracking:</h4>
+              <ul className="list-disc list-inside space-y-1 text-green-700">
+                <li><strong>stock_quantity:</strong> Total inventory on hand</li>
+                <li><strong>reserved_quantity:</strong> Allocated to orders</li>
+                <li><strong>available_quantity:</strong> Free for new orders</li>
+                <li><strong>minimum_order:</strong> Minimum purchase quantity</li>
+                <li><strong>increment_quantity:</strong> Order multiples (e.g., 0.5 yards)</li>
+              </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-blue-800 mb-2">Best Practices:</h4>
-              <ul className="list-disc list-inside space-y-1 text-blue-700">
-                <li>Use high-quality images (min 800x600px)</li>
-                <li>First image becomes the primary showcase</li>
-                <li>Include texture/detail shots for better representation</li>
-                <li>Ensure URLs are publicly accessible</li>
-                <li>Use HTTPS URLs when possible</li>
-                <li>Test URLs before importing</li>
+              <h4 className="font-semibold text-green-800 mb-2">Reorder Management:</h4>
+              <ul className="list-disc list-inside space-y-1 text-green-700">
+                <li><strong>reorder_point:</strong> Trigger for reordering</li>
+                <li><strong>reorder_quantity:</strong> Amount to reorder</li>
+                <li><strong>lead_time_days:</strong> Supplier delivery time</li>
+                <li><strong>warehouse_location:</strong> Storage area code</li>
+                <li><strong>bin_location:</strong> Specific shelf/bin</li>
+                <li><strong>roll_count:</strong> Number of physical rolls</li>
               </ul>
             </div>
           </div>
 
-          <div className="bg-blue-100 p-3 rounded">
-            <p className="font-semibold text-blue-800 mb-1">💡 Pro Tip:</p>
-            <p className="text-blue-700">
-              For best results, use a CDN or image hosting service like Cloudinary, AWS S3, or similar. 
-              The system supports up to 20 images per fabric for comprehensive showcasing.
+          <div className="bg-yellow-100 p-3 rounded border border-yellow-300">
+            <p className="font-semibold text-yellow-800 mb-1">⚠️ Important Note:</p>
+            <p className="text-yellow-700">
+              Images are no longer handled through CSV import. After importing your fabric data, 
+              use the individual fabric edit pages to upload and manage images. This provides better 
+              control over image quality and organization.
             </p>
           </div>
         </CardContent>

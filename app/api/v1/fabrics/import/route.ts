@@ -90,19 +90,26 @@ const columnMappings: Record<string, string> = {
   'category': 'type',
   'product_type': 'type',
   
-  'brand': 'brand',
-  'manufacturer': 'brand',
-  'supplier': 'brand',
+  // Manufacturer Information
+  'manufacturer_name': 'manufacturerName',
+  'manufacturer': 'manufacturerName',
+  'brand': 'manufacturerName',
+  'maker': 'manufacturerName',
+  
+  'supplier_name': 'supplierName',
+  'supplier': 'supplierName',
+  'vendor': 'supplierName',
   
   'collection': 'collection',
   'series': 'collection',
   'line': 'collection',
   
   // Specifications
-  'material': 'material',
-  'fabric_material': 'material',
-  'composition': 'material',
-  'content': 'material',
+  'fiber_content': 'fiberContent',
+  'material': 'fiberContent',
+  'fabric_material': 'fiberContent',
+  'composition': 'fiberContent',
+  'content': 'fiberContent',
   
   'width': 'width',
   'fabric_width': 'width',
@@ -117,24 +124,28 @@ const columnMappings: Record<string, string> = {
   'print': 'pattern',
   
   // Colors
-  'colors': 'colors',
-  'available_colors': 'colors',
-  'color_options': 'colors',
-  'colorways': 'colors',
+  'primary_color': 'primaryColor',
+  'main_color': 'primaryColor',
+  'color': 'primaryColor',
   
-  // Images
-  'images': 'images',
-  'image_urls': 'images',
-  'photos': 'images',
-  'pictures': 'images',
-  'image_url': 'images',
-  'photo_url': 'images',
-  'primary_image': 'images',
-  'main_image': 'images',
+  'secondary_colors': 'secondaryColors',
+  'colors': 'secondaryColors',
+  'available_colors': 'secondaryColors',
+  'color_options': 'secondaryColors',
+  'colorways': 'secondaryColors',
   
-  'swatch_image': 'swatchImage',
-  'swatch_url': 'swatchImage',
-  'thumbnail': 'swatchImage',
+  // Images - EXCLUDED FROM IMPORT (handled separately)
+  // 'images': 'images',
+  // 'image_urls': 'images',
+  // 'photos': 'images',
+  // 'pictures': 'images',
+  // 'image_url': 'images',
+  // 'photo_url': 'images',
+  // 'primary_image': 'images',
+  // 'main_image': 'images',
+  // 'swatch_image': 'swatchImage',
+  // 'swatch_url': 'swatchImage',
+  // 'thumbnail': 'swatchImage',
   
   // Pricing
   'retail_price': 'retailPrice',
@@ -144,30 +155,66 @@ const columnMappings: Record<string, string> = {
   
   'wholesale_price': 'wholesalePrice',
   'trade_price': 'wholesalePrice',
-  'cost_price': 'wholesalePrice',
   
-  'sale_price': 'salePrice',
-  'special_price': 'salePrice',
-  'promo_price': 'salePrice',
+  'cost_price': 'costPrice',
+  'cost': 'costPrice',
+  'unit_cost': 'costPrice',
   
-  'cost': 'cost',
-  'unit_cost': 'cost',
-  'our_cost': 'cost',
+  'procurement_cost': 'procurementCost',
+  'currency': 'currency',
+  'price_unit': 'priceUnit',
   
-  // Inventory
+  // Inventory Management
   'stock_quantity': 'stockQuantity',
   'quantity': 'stockQuantity',
   'inventory': 'stockQuantity',
   'stock': 'stockQuantity',
   'qty': 'stockQuantity',
   
-  'stock_unit': 'stockUnit',
-  'unit': 'stockUnit',
-  'uom': 'stockUnit',
+  'reserved_quantity': 'reservedQuantity',
+  'reserved': 'reservedQuantity',
+  'allocated': 'reservedQuantity',
   
-  'low_stock_threshold': 'lowStockThreshold',
-  'reorder_point': 'lowStockThreshold',
-  'min_stock': 'lowStockThreshold',
+  'available_quantity': 'availableQuantity',
+  'available': 'availableQuantity',
+  'free_stock': 'availableQuantity',
+  
+  'minimum_order': 'minimumOrder',
+  'min_order': 'minimumOrder',
+  'moq': 'minimumOrder',
+  
+  'increment_quantity': 'incrementQuantity',
+  'increment': 'incrementQuantity',
+  'order_increment': 'incrementQuantity',
+  
+  // Reorder Management
+  'reorder_point': 'reorderPoint',
+  'min_stock': 'reorderPoint',
+  'low_stock_threshold': 'reorderPoint',
+  
+  'reorder_quantity': 'reorderQuantity',
+  'reorder_qty': 'reorderQuantity',
+  
+  'lead_time_days': 'leadTimeDays',
+  'lead_time': 'leadTimeDays',
+  'delivery_days': 'leadTimeDays',
+  
+  'is_custom_order': 'isCustomOrder',
+  'custom_order': 'isCustomOrder',
+  'made_to_order': 'isCustomOrder',
+  
+  // Location & Storage
+  'warehouse_location': 'warehouseLocation',
+  'warehouse': 'warehouseLocation',
+  'location': 'warehouseLocation',
+  
+  'bin_location': 'binLocation',
+  'bin': 'binLocation',
+  'shelf': 'binLocation',
+  
+  'roll_count': 'rollCount',
+  'rolls': 'rollCount',
+  'pieces': 'rollCount',
   
   // Status
   'status': 'status',
@@ -377,28 +424,52 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
       const value = String(row[index]).trim();
       
       switch (mappedField) {
-        case 'colors':
-          fabric.colors = parseColors(value);
+        case 'primaryColor':
+          fabric.primaryColor = value;
           break;
-        case 'images':
-          fabric.images = parseImages(value);
+        case 'secondaryColors':
+          fabric.secondaryColors = parseColors(value);
           break;
-        case 'swatchImage':
-          fabric.swatchImage = validateImageUrl(value);
-          break;
+        // Images are excluded from CSV import - handle separately
+        // case 'images':
+        // case 'swatchImage':
+        //   break;
         case 'retailPrice':
         case 'wholesalePrice':
-        case 'salePrice':
-        case 'cost':
+        case 'costPrice':
+        case 'procurementCost':
           fabric[mappedField] = parseNumber(value, mappedField !== 'retailPrice');
+          break;
+        case 'currency':
+        case 'priceUnit':
+          fabric[mappedField] = value || (mappedField === 'currency' ? 'USD' : 'per_yard');
           break;
         case 'width':
         case 'weight':
           fabric[mappedField] = parseNumber(value, true);
           break;
         case 'stockQuantity':
-        case 'lowStockThreshold':
+        case 'reservedQuantity':
+        case 'availableQuantity':
+        case 'minimumOrder':
+        case 'incrementQuantity':
+        case 'reorderPoint':
+        case 'reorderQuantity':
           fabric[mappedField] = parseNumber(value, false) || 0;
+          break;
+        case 'leadTimeDays':
+        case 'rollCount':
+          fabric[mappedField] = parseNumber(value, true);
+          break;
+        case 'warehouseLocation':
+        case 'binLocation':
+        case 'manufacturerName':
+        case 'supplierName':
+        case 'fiberContent':
+          fabric[mappedField] = value;
+          break;
+        case 'isCustomOrder':
+          fabric[mappedField] = parseBoolean(value);
           break;
         case 'isActive':
         case 'isFeatured':
@@ -664,39 +735,40 @@ export async function GET(request: NextRequest) {
       return error!;
     }
 
-    // Create sample CSV template
+    // Create sample CSV template with inventory fields (no image fields)
     const template = [
       [
-        'sku', 'name', 'description', 'type', 'brand', 'collection',
-        'material', 'width', 'weight', 'pattern', 'colors',
-        'retail_price', 'wholesale_price', 'sale_price', 'cost',
-        'stock_quantity', 'stock_unit', 'low_stock_threshold',
-        'status', 'is_active', 'is_featured', 'images', 'swatch_image',
-        'durability_rating', 'martindale', 'wyzenbeek', 'lightfastness', 'pilling_resistance',
+        'sku', 'name', 'description', 'type', 'manufacturer_name', 'collection',
+        'fiber_content', 'width', 'weight', 'pattern', 'primary_color', 'secondary_colors',
+        'retail_price', 'currency', 'price_unit',
+        'stock_quantity', 'reserved_quantity', 'available_quantity', 'minimum_order', 'increment_quantity',
+        'reorder_point', 'reorder_quantity', 'lead_time_days', 'is_custom_order',
+        'warehouse_location', 'bin_location', 'roll_count',
+        'status', 'durability_rating', 'martindale', 'wyzenbeek', 'lightfastness', 'pilling_resistance',
         'stain_resistant', 'fade_resistant', 'water_resistant', 'pet_friendly', 'outdoor_safe',
         'fire_retardant', 'bleach_cleanable', 'antimicrobial', 'cleaning_code'
       ],
       [
         'FAB-001', 'Premium Velvet - Emerald Green', 'Luxurious velvet perfect for upholstery',
         'Upholstery', 'Luxury Textiles', 'Spring 2024', '100% Cotton Velvet',
-        '54', '12.5', 'Solid', 'Emerald Green,Forest Green',
-        '45.99', '35.99', '', '28.50',
-        '100', 'yards', '10', 'Active', 'true', 'true',
-        'https://example.com/fabric1_main.jpg,https://example.com/fabric1_detail.jpg',
-        'https://example.com/fabric1_swatch.jpg',
-        'HEAVY_DUTY', '30000', '50000', '6', '4',
+        '54', '12.5', 'Solid', 'Emerald Green', 'Forest Green,Dark Green',
+        '45.99', 'USD', 'per_yard',
+        '250.5', '25', '225.5', '1', '0.5',
+        '50', '100', '14', 'false',
+        'A-12', 'B-34-5', '3',
+        'Active', 'Heavy Duty', '30000', '50000', '6', '4',
         'true', 'true', 'false', 'true', 'false',
         'false', 'false', 'false', 'S'
       ],
       [
         'FAB-002', 'Linen Blend - Natural', 'Natural linen blend for drapery',
         'Drapery', 'Natural Fibers Co', 'Classics', '55% Linen, 45% Cotton',
-        '60', '8.2', 'Plain Weave', 'Natural,Cream,Off-White',
-        '32.50', '24.99', '29.99', '18.75',
-        '75', 'yards', '15', 'Sale', 'true', 'false',
-        'https://example.com/fabric2_main.jpg',
-        'https://example.com/fabric2_swatch.jpg',
-        'MEDIUM_DUTY', '15000', '30000', '5', '3',
+        '60', '8.2', 'Plain Weave', 'Natural', 'Cream,Off-White',
+        '32.50', 'USD', 'per_yard',
+        '175', '10', '165', '2', '1',
+        '30', '75', '21', 'false',
+        'C-08', 'D-15-2', '2',
+        'Sale', 'Medium Duty', '15000', '30000', '5', '3',
         'false', 'true', 'false', 'false', 'false',
         'false', 'false', 'false', 'W-S'
       ]
