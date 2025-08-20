@@ -694,6 +694,10 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
+    console.log('[Import] Form data received, file:', file ? file.name : 'no file');
+    console.log('[Import] File type:', file?.type);
+    console.log('[Import] File size:', file?.size);
+    
     if (!file) {
       return NextResponse.json(
         { error: { message: 'No file provided' } },
