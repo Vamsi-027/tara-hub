@@ -452,7 +452,9 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
         case 'wholesalePrice':
         case 'costPrice':
         case 'procurementCost':
-          fabric[mappedField] = parseNumber(value, mappedField !== 'retailPrice');
+          // For retailPrice, we must ensure it's never undefined/null
+          const parsedPrice = parseNumber(value, mappedField !== 'retailPrice');
+          fabric[mappedField] = parsedPrice !== null ? parsedPrice : 0;
           break;
         case 'currency':
         case 'priceUnit':
@@ -469,7 +471,9 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
         case 'incrementQuantity':
         case 'reorderPoint':
         case 'reorderQuantity':
-          fabric[mappedField] = parseNumber(value, false) || 0;
+          // Ensure numeric inventory fields are never undefined/null
+          const parsedQty = parseNumber(value, false);
+          fabric[mappedField] = parsedQty !== null ? parsedQty : 0;
           break;
         case 'leadTimeDays':
         case 'rollCount':
