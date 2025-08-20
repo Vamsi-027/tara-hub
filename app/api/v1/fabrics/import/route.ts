@@ -429,6 +429,17 @@ function mapStatus(status: string): string {
 function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricData | null {
   const fabric: any = {};
   
+  // Debug: Log headers and their mappings
+  if (rowIndex === 2) { // Only log for first data row
+    console.log('[parseRow] Headers and mappings:', headers.map((h, i) => ({
+      index: i,
+      header: h,
+      normalized: normalizeColumnName(h),
+      mapped: columnMappings[normalizeColumnName(h)],
+      value: row[i]
+    })));
+  }
+  
   // Map columns to fabric fields
   headers.forEach((header, index) => {
     const normalizedHeader = normalizeColumnName(header);
@@ -684,6 +695,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: rows, headers } = parsedData;
+    
+    // Debug: Log parsed headers
+    console.log('[Import] Parsed headers:', headers);
+    console.log('[Import] First data row:', rows[0]);
 
     // Process each row
     const result: ImportResult = {

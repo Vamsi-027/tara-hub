@@ -19,7 +19,8 @@
     "deny": [],
     "ask": [],
     "additionalDirectories": [
-      "C:\\c\\Users\\varak\\repos"
+      "C:\\c\\Users\\varak\\repos",
+      "C:\\Users\\varak\\repos\\tara-hub"
     ]
   }
 }
