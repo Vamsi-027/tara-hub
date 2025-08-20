@@ -38,6 +38,14 @@ export abstract class BaseRepository<TTable extends PgTable, TSelect, TInsert> {
   protected abstract table: TTable;
   protected abstract db: any;
   
+  /**
+   * Validate if a string is a valid UUID v4
+   */
+  private isValidUUID(uuid: string): boolean {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid);
+  }
+  
   // ============================================
   // BASIC CRUD OPERATIONS
   // ============================================
@@ -197,17 +205,22 @@ export abstract class BaseRepository<TTable extends PgTable, TSelect, TInsert> {
       id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
-      createdBy: userId,
-      updatedBy: userId,
+      createdBy: userId ? (this.isValidUUID(userId) ? userId : null) : null, // Use UUID only if valid
+      updatedBy: userId ? (this.isValidUUID(userId) ? userId : null) : null,
       version: 1,
     };
     
-    const result = await this.db
-      .insert(this.table)
-      .values(enrichedData)
-      .returning();
-    
-    return result[0];
+    try {
+      const result = await this.db
+        .insert(this.table)
+        .values(enrichedData)
+        .returning();
+      
+      return result[0];
+    } catch (error: any) {
+      console.error('Database insert error:', error.message);
+      throw error;
+    }
   }
   
   /**

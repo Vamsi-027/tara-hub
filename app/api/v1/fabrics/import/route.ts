@@ -712,8 +712,9 @@ export async function POST(request: NextRequest) {
     const processedSkus = new Set<string>();
 
     for (let i = 0; i < rows.length; i++) {
+      let fabricData: any = null;
       try {
-        const fabricData = parseRow(rows[i], headers, i + 2); // +2 for 1-based + header row
+        fabricData = parseRow(rows[i], headers, i + 2); // +2 for 1-based + header row
         
         // Enhanced debugging
         console.log(`[Row ${i + 2}] Parsed data:`, {
@@ -793,9 +794,10 @@ export async function POST(request: NextRequest) {
         result.successCount++;
 
       } catch (error: any) {
+        console.error(`[Import] Error on row ${i + 2}:`, error.message);
         result.errors.push({
           row: i + 2,
-          data: rows[i],
+          data: fabricData || rows[i],
           error: error.message
         });
         result.failureCount++;
@@ -831,7 +833,7 @@ export async function GET(request: NextRequest) {
       return error!;
     }
 
-    // Create sample CSV template with inventory fields (no image fields)
+    // Create sample CSV template without pricing fields
     const template = [
       [
         'sku', 'name', 'description', 'type', 'manufacturer_name', 'collection',

@@ -259,16 +259,12 @@ export function FabricCardEnhanced({ fabric, onView, onEdit, onDelete }: FabricC
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className="flex items-center gap-1">
-              <DollarSign className="h-4 w-4 text-green-600" />
-            </div>
-            
-            <div className="text-right">
+          <div className="pt-2 border-t">
+            <div className="flex items-center justify-between">
               <div className={`text-sm font-medium ${stockStatus.color}`}>
                 {stockStatus.label}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 {fabric.stockQuantity} {fabric.stockUnit}
               </div>
             </div>

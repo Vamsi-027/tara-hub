@@ -151,7 +151,17 @@ export class FabricService {
     }
     
     // Create fabric
-    const fabric = await fabricRepository.create(validated, userId);
+    let fabric;
+    try {
+      fabric = await fabricRepository.create(validated, userId);
+    } catch (dbError: any) {
+      console.error('Database error creating fabric:', dbError);
+      // Re-throw with better error message
+      if (dbError.message?.includes('duplicate key')) {
+        throw new Error(`Fabric with SKU ${validated.sku} already exists`);
+      }
+      throw new Error(`Database error: ${dbError.message || 'Failed to create fabric'}`);
+    }
     
     // Clear relevant caches
     await this.clearSearchCaches();
