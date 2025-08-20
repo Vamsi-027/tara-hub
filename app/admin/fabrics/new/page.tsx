@@ -31,12 +31,20 @@ import {
   Package,
   Palette,
   Ruler,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Building2
 } from "lucide-react"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { useCreateFabric } from "@/hooks/use-fabrics"
 import { toast } from "sonner"
 import Link from "next/link"
+import { 
+  PerformanceTab, 
+  CareAndTreatmentTab, 
+  TechnicalSpecsTab,
+  CertificationsTab,
+  UsageSuitabilityTab 
+} from "../components/fabric-form-tabs"
 
 const fabricTypes = [
   'Upholstery', 'Drapery', 'Multi-Purpose', 'Outdoor', 'Sheer', 'Blackout'
@@ -44,6 +52,49 @@ const fabricTypes = [
 
 const fabricStatuses = [
   'Active', 'Discontinued', 'Out of Stock', 'Coming Soon', 'Sale', 'Clearance'
+]
+
+const durabilityRatings = [
+  'Light Duty', 'Medium Duty', 'Heavy Duty', 'Extra Heavy Duty'
+]
+
+const currencies = [
+  { value: 'USD', label: 'USD - US Dollar' },
+  { value: 'EUR', label: 'EUR - Euro' },
+  { value: 'GBP', label: 'GBP - British Pound' },
+  { value: 'INR', label: 'INR - Indian Rupee' },
+  { value: 'CAD', label: 'CAD - Canadian Dollar' },
+  { value: 'AUD', label: 'AUD - Australian Dollar' }
+]
+
+const priceUnits = [
+  { value: 'per_yard', label: 'Per Yard' },
+  { value: 'per_meter', label: 'Per Meter' },
+  { value: 'per_foot', label: 'Per Foot' },
+  { value: 'per_piece', label: 'Per Piece' },
+  { value: 'per_roll', label: 'Per Roll' }
+]
+
+const widthUnits = [
+  { value: 'inches', label: 'Inches' },
+  { value: 'cm', label: 'Centimeters' },
+  { value: 'meters', label: 'Meters' },
+  { value: 'feet', label: 'Feet' }
+]
+
+const weightUnits = [
+  { value: 'oz/yd', label: 'Ounces per Yard' },
+  { value: 'g/m²', label: 'Grams per Square Meter' },
+  { value: 'kg/m²', label: 'Kilograms per Square Meter' },
+  { value: 'oz/ft²', label: 'Ounces per Square Foot' }
+]
+
+const cleaningCodes = [
+  { value: 'W', label: 'W - Water Based Cleaning' },
+  { value: 'S', label: 'S - Solvent Based Cleaning' },
+  { value: 'WS', label: 'WS - Water or Solvent Based' },
+  { value: 'X', label: 'X - Vacuum or Brush Only' },
+  { value: 'DC', label: 'DC - Dry Clean Only' }
 ]
 
 const stockUnits = ['yards', 'meters', 'feet', 'rolls', 'pieces', 'hides']
@@ -67,19 +118,63 @@ export default function NewFabricPage() {
     pattern: '',
     colorFamily: '',
     width: '',
+    widthUnit: 'inches',
     weight: '',
-    retailPrice: '',
-    wholesalePrice: '',
-    salePrice: '',
-    cost: '',
+    weightUnit: 'oz/yd',
+    thickness: '',
+    durabilityRating: '',
+    cleaningCode: '',
+    currency: 'USD',
+    priceUnit: 'per_yard',
+    procurementCost: '',
+    supplierId: '',
+    supplierName: '',
     stockQuantity: '0',
     stockUnit: 'yards',
     lowStockThreshold: '10',
     isActive: true,
     isFeatured: false,
+    isNewArrival: false,
+    isBestSeller: false,
     metaTitle: '',
     metaDescription: '',
     images: [] as string[],
+    // Performance fields
+    martindale: '',
+    wyzenbeek: '',
+    lightfastness: '',
+    pillingResistance: '',
+    // Treatment features
+    isStainResistant: false,
+    isFadeResistant: false,
+    isWaterResistant: false,
+    isPetFriendly: false,
+    isOutdoorSafe: false,
+    isFireRetardant: false,
+    isBleachCleanable: false,
+    isAntimicrobial: false,
+    // Additional fields
+    fiberContent: [] as Array<{ fiber: string; percentage: number }>,
+    backingType: '',
+    finishTreatment: '',
+    countryOfOrigin: '',
+    minimumOrder: '1',
+    incrementQuantity: '1',
+    leadTimeDays: '',
+    isCustomOrder: false,
+    careInstructions: [] as string[],
+    certifications: [] as Array<{ name: string; issuer: string; date: string }>,
+    flammabilityStandard: '',
+    environmentalRating: '',
+    publicNotes: '',
+    warrantyInfo: '',
+    returnPolicy: '',
+    tags: [] as string[],
+    // JSON fields
+    performanceMetrics: {},
+    usageSuitability: {},
+    additionalFeatures: {},
+    technicalDocuments: {},
   })
   
   // UI state
@@ -274,7 +369,7 @@ export default function NewFabricPage() {
       {/* Form Tabs */}
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 mb-2">
             <TabsTrigger value="basic">
               Basic Info
               {(validationErrors.sku || validationErrors.name) && (
@@ -286,13 +381,17 @@ export default function NewFabricPage() {
               <ImageIcon className="mr-1 h-3 w-3" />
               Images
             </TabsTrigger>
-            <TabsTrigger value="pricing">
-              Pricing
-              {(validationErrors.retailPrice || validationErrors.salePrice) && (
-                <AlertCircle className="ml-1 h-3 w-3 text-red-500" />
-              )}
-            </TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+          </TabsList>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="care">Care & Treatment</TabsTrigger>
+            <TabsTrigger value="technical">Technical</TabsTrigger>
+            <TabsTrigger value="procurement">Procurement</TabsTrigger>
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          </TabsList>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="suitability">Usage</TabsTrigger>
+            <TabsTrigger value="certifications">Certifications</TabsTrigger>
             <TabsTrigger value="seo">SEO</TabsTrigger>
           </TabsList>
           
@@ -466,38 +565,110 @@ export default function NewFabricPage() {
                   
                   <div className="grid gap-2">
                     <Label htmlFor="width">
-                      Width (inches)
+                      Width
                       {validationErrors.width && (
                         <span className="text-red-500 text-xs ml-2">{validationErrors.width}</span>
                       )}
                     </Label>
-                    <Input
-                      id="width"
-                      type="number"
-                      step="0.01"
-                      value={formData.width}
-                      onChange={(e) => handleChange('width', e.target.value)}
-                      placeholder="e.g., 54"
-                      className={validationErrors.width ? 'border-red-500' : ''}
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        id="width"
+                        type="number"
+                        step="0.01"
+                        value={formData.width}
+                        onChange={(e) => handleChange('width', e.target.value)}
+                        placeholder="e.g., 54"
+                        className={`flex-1 ${validationErrors.width ? 'border-red-500' : ''}`}
+                      />
+                      <Select
+                        value={formData.widthUnit}
+                        onValueChange={(value) => handleChange('widthUnit', value)}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {widthUnits.map(unit => (
+                            <SelectItem key={unit.value} value={unit.value}>
+                              {unit.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   
                   <div className="grid gap-2">
                     <Label htmlFor="weight">
-                      Weight (oz/yd²)
+                      Weight
                       {validationErrors.weight && (
                         <span className="text-red-500 text-xs ml-2">{validationErrors.weight}</span>
                       )}
                     </Label>
-                    <Input
-                      id="weight"
-                      type="number"
-                      step="0.01"
-                      value={formData.weight}
-                      onChange={(e) => handleChange('weight', e.target.value)}
-                      placeholder="e.g., 12.5"
-                      className={validationErrors.weight ? 'border-red-500' : ''}
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        id="weight"
+                        type="number"
+                        step="0.01"
+                        value={formData.weight}
+                        onChange={(e) => handleChange('weight', e.target.value)}
+                        placeholder="e.g., 12.5"
+                        className={`flex-1 ${validationErrors.weight ? 'border-red-500' : ''}`}
+                      />
+                      <Select
+                        value={formData.weightUnit}
+                        onValueChange={(value) => handleChange('weightUnit', value)}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {weightUnits.map(unit => (
+                            <SelectItem key={unit.value} value={unit.value}>
+                              {unit.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="durabilityRating">Durability Rating</Label>
+                    <Select
+                      value={formData.durabilityRating}
+                      onValueChange={(value) => handleChange('durabilityRating', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select durability rating" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {durabilityRatings.map(rating => (
+                          <SelectItem key={rating} value={rating}>
+                            {rating}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="cleaningCode">Cleaning Code</Label>
+                    <Select
+                      value={formData.cleaningCode}
+                      onValueChange={(value) => handleChange('cleaningCode', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select cleaning code" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cleaningCodes.map(code => (
+                          <SelectItem key={code.value} value={code.value}>
+                            {code.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 
@@ -563,145 +734,160 @@ export default function NewFabricPage() {
             </Card>
           </TabsContent>
           
-          {/* Pricing Tab */}
-          <TabsContent value="pricing">
+          {/* Procurement Tab */}
+          <TabsContent value="procurement">
             <Card>
               <CardHeader>
-                <CardTitle>Pricing Information</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Procurement Information
+                </CardTitle>
                 <CardDescription>
-                  Set pricing for different customer types
+                  Manage supplier and procurement details for this fabric
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription>
-                    All prices are in USD. Retail price is required, others are optional.
+                    Track procurement cost and supplier information.
                   </AlertDescription>
                 </Alert>
                 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4">
+                  {/* Currency and Price Unit */}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="currency">Currency</Label>
+                      <Select
+                        value={formData.currency}
+                        onValueChange={(value) => handleChange('currency', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currencies.map(currency => (
+                            <SelectItem key={currency.value} value={currency.value}>
+                              {currency.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="priceUnit">Price Unit</Label>
+                      <Select
+                        value={formData.priceUnit}
+                        onValueChange={(value) => handleChange('priceUnit', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {priceUnits.map(unit => (
+                            <SelectItem key={unit.value} value={unit.value}>
+                              {unit.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Procurement Cost */}
                   <div className="grid gap-2">
-                    <Label htmlFor="retailPrice">
-                      Retail Price *
-                      {validationErrors.retailPrice && (
-                        <span className="text-red-500 text-xs ml-2">{validationErrors.retailPrice}</span>
+                    <Label htmlFor="procurementCost">
+                      Procurement Cost
+                      {validationErrors.procurementCost && (
+                        <span className="text-red-500 text-xs ml-2">{validationErrors.procurementCost}</span>
                       )}
                     </Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">
+                        {formData.currency}
+                      </span>
                       <Input
-                        id="retailPrice"
+                        id="procurementCost"
                         type="number"
                         step="0.01"
-                        value={formData.retailPrice}
-                        onChange={(e) => handleChange('retailPrice', e.target.value)}
+                        value={formData.procurementCost}
+                        onChange={(e) => handleChange('procurementCost', e.target.value)}
                         placeholder="0.00"
-                        className={`pl-9 ${validationErrors.retailPrice ? 'border-red-500' : ''}`}
+                        className={`pl-12 ${validationErrors.procurementCost ? 'border-red-500' : ''}`}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Standard customer price
+                      Cost {formData.priceUnit.replace('_', ' ')} from supplier
                     </p>
                   </div>
                   
-                  <div className="grid gap-2">
-                    <Label htmlFor="salePrice">
-                      Sale Price
-                      {validationErrors.salePrice && (
-                        <span className="text-red-500 text-xs ml-2">{validationErrors.salePrice}</span>
-                      )}
-                    </Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  {/* Supplier Information */}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="supplierId">
+                        Supplier ID
+                        {validationErrors.supplierId && (
+                          <span className="text-red-500 text-xs ml-2">{validationErrors.supplierId}</span>
+                        )}
+                      </Label>
                       <Input
-                        id="salePrice"
-                        type="number"
-                        step="0.01"
-                        value={formData.salePrice}
-                        onChange={(e) => handleChange('salePrice', e.target.value)}
-                        placeholder="0.00"
-                        className={`pl-9 ${validationErrors.salePrice ? 'border-red-500' : ''}`}
+                        id="supplierId"
+                        value={formData.supplierId}
+                        onChange={(e) => handleChange('supplierId', e.target.value)}
+                        placeholder="SUP-001"
+                        className={validationErrors.supplierId ? 'border-red-500' : ''}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Unique supplier identifier
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Discounted price (leave empty if not on sale)
-                    </p>
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="wholesalePrice">
-                      Wholesale Price
-                      {validationErrors.wholesalePrice && (
-                        <span className="text-red-500 text-xs ml-2">{validationErrors.wholesalePrice}</span>
-                      )}
-                    </Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="supplierName">
+                        Supplier Name
+                        {validationErrors.supplierName && (
+                          <span className="text-red-500 text-xs ml-2">{validationErrors.supplierName}</span>
+                        )}
+                      </Label>
                       <Input
-                        id="wholesalePrice"
-                        type="number"
-                        step="0.01"
-                        value={formData.wholesalePrice}
-                        onChange={(e) => handleChange('wholesalePrice', e.target.value)}
-                        placeholder="0.00"
-                        className={`pl-9 ${validationErrors.wholesalePrice ? 'border-red-500' : ''}`}
+                        id="supplierName"
+                        value={formData.supplierName}
+                        onChange={(e) => handleChange('supplierName', e.target.value)}
+                        placeholder="ABC Textiles Co."
+                        className={validationErrors.supplierName ? 'border-red-500' : ''}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Supplier company name
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Bulk buyer price
-                    </p>
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="cost">
-                      Cost
-                      {validationErrors.cost && (
-                        <span className="text-red-500 text-xs ml-2">{validationErrors.cost}</span>
-                      )}
-                    </Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="cost"
-                        type="number"
-                        step="0.01"
-                        value={formData.cost}
-                        onChange={(e) => handleChange('cost', e.target.value)}
-                        placeholder="0.00"
-                        className={`pl-9 ${validationErrors.cost ? 'border-red-500' : ''}`}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Your cost (for profit calculations)
-                    </p>
                   </div>
                 </div>
                 
-                {/* Price Preview */}
-                {formData.retailPrice && (
+                {/* Procurement Summary */}
+                {(formData.procurementCost || formData.supplierId || formData.supplierName) && (
                   <div className="bg-muted rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Price Summary</h4>
+                    <h4 className="font-semibold mb-2">Procurement Summary</h4>
                     <div className="grid gap-1 text-sm">
-                      <div className="flex justify-between">
-                        <span>Retail Price:</span>
-                        <span className="font-semibold">${formData.retailPrice}</span>
-                      </div>
-                      {formData.salePrice && (
-                        <div className="flex justify-between text-green-600">
-                          <span>Sale Price:</span>
+                      {formData.procurementCost && (
+                        <div className="flex justify-between">
+                          <span>Cost:</span>
                           <span className="font-semibold">
-                            ${formData.salePrice} 
-                            ({Math.round((1 - parseFloat(formData.salePrice) / parseFloat(formData.retailPrice)) * 100)}% off)
+                            {formData.currency} {formData.procurementCost} {formData.priceUnit.replace('_', ' ')}
                           </span>
                         </div>
                       )}
-                      {formData.cost && (
+                      {formData.supplierName && (
+                        <div className="flex justify-between">
+                          <span>Supplier:</span>
+                          <span className="font-semibold">{formData.supplierName}</span>
+                        </div>
+                      )}
+                      {formData.supplierId && (
                         <div className="flex justify-between text-muted-foreground">
-                          <span>Profit Margin:</span>
-                          <span>
-                            {Math.round(((parseFloat(formData.retailPrice) - parseFloat(formData.cost)) / parseFloat(formData.retailPrice)) * 100)}%
-                          </span>
+                          <span>Supplier ID:</span>
+                          <span>{formData.supplierId}</span>
                         </div>
                       )}
                     </div>
@@ -843,6 +1029,41 @@ export default function NewFabricPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          
+          {/* Performance Tab */}
+          <PerformanceTab 
+            formData={formData}
+            handleChange={handleChange}
+            validationErrors={validationErrors}
+          />
+          
+          {/* Care & Treatment Tab */}
+          <CareAndTreatmentTab
+            formData={formData}
+            handleChange={handleChange}
+            validationErrors={validationErrors}
+          />
+          
+          {/* Technical Specs Tab */}
+          <TechnicalSpecsTab
+            formData={formData}
+            handleChange={handleChange}
+            validationErrors={validationErrors}
+          />
+          
+          {/* Certifications Tab */}
+          <CertificationsTab
+            formData={formData}
+            handleChange={handleChange}
+            validationErrors={validationErrors}
+          />
+          
+          {/* Usage & Suitability Tab */}
+          <UsageSuitabilityTab
+            formData={formData}
+            handleChange={handleChange}
+            validationErrors={validationErrors}
+          />
         </Tabs>
         
         {/* Bottom Action Buttons */}

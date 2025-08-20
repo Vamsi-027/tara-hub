@@ -1,0 +1,21 @@
+# Nixpacks configuration for Railway deployment
+# This optimizes the build process for Next.js applications
+
+[phases.setup]
+nixPkgs = ["nodejs-18_x", "npm-9_x"]
+
+[phases.install]
+cmds = ["npm ci --prefer-offline --no-audit"]
+
+[phases.build]
+cmds = [
+  "npm run db:generate",
+  "npm run build:admin"
+]
+
+[start]
+cmd = "npm run start"
+
+[variables]
+NODE_VERSION = "18"
+NPM_VERSION = "9"

@@ -124,9 +124,6 @@ export default function AdminFabricsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Fabrics Management</h1>
-          <p className="text-muted-foreground">
-            Manage your fabric inventory with PostgreSQL backend
-          </p>
         </div>
         <div className="flex items-center gap-2">
           {/* View Toggle */}
@@ -385,6 +382,35 @@ export default function AdminFabricsPage() {
                         )}
                         {fabric.stockQuantity === 0 && (
                           <Badge variant="destructive">Out of Stock</Badge>
+                        )}
+                        
+                        {/* Treatment Features Badges */}
+                        {fabric.additionalFeatures?.treatmentFeatures?.waterRepellent && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            Water Repellent
+                          </Badge>
+                        )}
+                        {fabric.additionalFeatures?.treatmentFeatures?.stainResistant && (
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                            Stain Resistant
+                          </Badge>
+                        )}
+                        {fabric.additionalFeatures?.treatmentFeatures?.fireRetardant && (
+                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                            Fire Retardant
+                          </Badge>
+                        )}
+                        
+                        {/* Certification Badges */}
+                        {fabric.technicalDocuments?.certifications?.includes('GREENGUARD') && (
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            GREENGUARD
+                          </Badge>
+                        )}
+                        {fabric.technicalDocuments?.certifications?.includes('OEKO-TEX') && (
+                          <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
+                            OEKO-TEX
+                          </Badge>
                         )}
                       </div>
                       

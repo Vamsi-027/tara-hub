@@ -1,15 +1,16 @@
-import { fabricSeedData } from "@/lib/fabric-seed-data"
+import { fabricSeedData, getFabricById } from "@/lib/fabric-seed-data"
 import { FabricDetailPage } from "@/components/fabric-detail-page"
 import { notFound } from "next/navigation"
 
 interface FabricPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default function FabricPage({ params }: FabricPageProps) {
-  const fabric = fabricSeedData.find(f => f.id === params.id)
+export default async function FabricPage({ params }: FabricPageProps) {
+  const resolvedParams = await params
+  const fabric = getFabricById(resolvedParams.id)
   
   if (!fabric) {
     notFound()

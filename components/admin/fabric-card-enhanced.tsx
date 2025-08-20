@@ -32,6 +32,19 @@ interface FabricCardProps {
     material?: string
     brand?: string
     isFeatured?: boolean
+    additionalFeatures?: {
+      treatmentFeatures?: {
+        waterRepellent?: boolean
+        stainResistant?: boolean
+        fireRetardant?: boolean
+        antimicrobial?: boolean
+        uvResistant?: boolean
+        antistatic?: boolean
+      }
+    }
+    technicalDocuments?: {
+      certifications?: string[]
+    }
   }
   onView: (id: string) => void
   onEdit: (id: string) => void
@@ -210,6 +223,37 @@ export function FabricCardEnhanced({ fabric, onView, onEdit, onDelete }: FabricC
               {fabric.colors.length > 3 && (
                 <Badge variant="secondary" className="text-xs">
                   +{fabric.colors.length - 3}
+                </Badge>
+              )}
+            </div>
+          )}
+
+          {/* Treatment Features & Certifications */}
+          {(fabric.additionalFeatures?.treatmentFeatures || fabric.technicalDocuments?.certifications) && (
+            <div className="flex flex-wrap gap-1">
+              {fabric.additionalFeatures?.treatmentFeatures?.waterRepellent && (
+                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                  💧 Water
+                </Badge>
+              )}
+              {fabric.additionalFeatures?.treatmentFeatures?.stainResistant && (
+                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                  🛡️ Stain
+                </Badge>
+              )}
+              {fabric.additionalFeatures?.treatmentFeatures?.fireRetardant && (
+                <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                  🔥 Fire
+                </Badge>
+              )}
+              {fabric.technicalDocuments?.certifications?.includes('GREENGUARD') && (
+                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                  ✓ GG
+                </Badge>
+              )}
+              {fabric.technicalDocuments?.certifications?.includes('OEKO-TEX') && (
+                <Badge variant="outline" className="text-xs bg-teal-50 text-teal-700 border-teal-200">
+                  ✓ OT
                 </Badge>
               )}
             </div>

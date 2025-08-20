@@ -9,6 +9,8 @@ import { nanoid } from 'nanoid';
 import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import { fabricImageRepository } from '@/lib/repositories/fabric-image.repository';
+import { db } from '@/lib/db';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -52,6 +54,10 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Get fabric ID from query params if provided
+    const searchParams = request.nextUrl.searchParams;
+    const fabricId = searchParams.get('fabricId');
 
     // Check if R2 is configured
     if (!R2StorageV3.isConfigured()) {
@@ -105,7 +111,10 @@ export async function POST(request: NextRequest) {
     // Upload files
     const uploadResults: UploadResult[] = [];
     const uploadErrors: string[] = [];
+    const dbImageRecords: any[] = [];
+    const uploadedKeys: string[] = []; // Track uploaded files for cleanup if needed
 
+    // Process uploads
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       
@@ -114,7 +123,7 @@ export async function POST(request: NextRequest) {
         const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
         const uniqueId = nanoid(12);
         const timestamp = Date.now();
-        const key = `fabrics/${timestamp}-${uniqueId}.${fileExtension}`;
+        const key = `fabrics/${fabricId ? `${fabricId}/` : ''}${timestamp}-${uniqueId}.${fileExtension}`;
 
         // Convert file to buffer
         const buffer = await file.arrayBuffer();
@@ -124,20 +133,43 @@ export async function POST(request: NextRequest) {
         const uploadResult = await R2StorageV3.upload(key, uint8Array, file.type);
 
         if (uploadResult.success) {
+          uploadedKeys.push(key); // Track for potential cleanup
+          
           // Construct the public R2 URL
-          // R2 public URL format: https://pub-<hash>.r2.dev/<key>
-          // Or custom domain if configured
-          // For now, we'll store the key and retrieve via API
           const baseUrl = process.env.R2_PUBLIC_URL || process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
           
           let publicUrl: string;
           if (baseUrl) {
-            // If we have a public R2 URL configured
             publicUrl = `${baseUrl}/${key}`;
           } else {
-            // Store the key and create an API endpoint to serve images
-            // This is a fallback when R2 public access is not configured
             publicUrl = `/api/fabric-image/${encodeURIComponent(key)}`;
+          }
+
+          // Store metadata in database if fabric ID is provided
+          if (fabricId) {
+            try {
+              const imageRecord = await fabricImageRepository.create({
+                fabricId: fabricId,
+                url: publicUrl,
+                r2Key: key,
+                filename: `${timestamp}-${uniqueId}.${fileExtension}`,
+                originalFilename: file.name,
+                mimeType: file.type,
+                size: file.size,
+                type: i === 0 ? 'main' : 'detail', // First image is main
+                order: i,
+                isPrimary: i === 0,
+                uploadedBy: user.userId || user.id,
+                isProcessed: false,
+              });
+              
+              dbImageRecords.push(imageRecord);
+            } catch (dbError: any) {
+              console.error('Failed to store image metadata in database:', dbError);
+              // Don't fail the whole upload if DB insert fails
+              // The image is still uploaded to R2
+              uploadErrors.push(`File ${i + 1} (${file.name}): Uploaded but failed to store metadata - ${dbError.message}`);
+            }
           }
 
           uploadResults.push({
@@ -151,7 +183,14 @@ export async function POST(request: NextRequest) {
           uploadErrors.push(`File ${i + 1} (${file.name}): ${uploadResult.error}`);
         }
       } catch (error: any) {
+        console.error('Upload error for file:', file.name, error);
         uploadErrors.push(`File ${i + 1} (${file.name}): ${error.message}`);
+        
+        // If this is a critical error and we have a fabric ID, consider cleaning up
+        if (fabricId && uploadResults.length === 0 && i === 0) {
+          // First file failed, might want to stop
+          break;
+        }
       }
     }
 

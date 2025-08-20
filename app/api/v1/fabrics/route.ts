@@ -301,6 +301,11 @@ export async function POST(request: NextRequest) {
     // Create fabric
     const fabric = await fabricService.create(body, userId!);
     
+    // Trigger legacy API sync in background (don't wait for it)
+    fetch('/api/fabrics/sync', { method: 'POST' }).catch(err => 
+      console.warn('Legacy API sync failed:', err)
+    );
+    
     // Return created fabric
     return apiResponse(fabric, 201);
     

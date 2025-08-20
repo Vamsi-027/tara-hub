@@ -1,8 +1,22 @@
-export default function StoreLayout({
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'Store Guide | The Hearth & Home Store',
+  description: 'Browse our fabric collections and explore product information',
+}
+
+export default function RootLayout({
   children,
 }: {
- children: React.ReactNode
+  children: React.ReactNode
 }) {
-  // Structured data moved to root layout head
-  return <>{children}</>
+  return (
+    <html lang="en">
+      <body className={inter.className}>{children}</body>
+    </html>
+  )
 }

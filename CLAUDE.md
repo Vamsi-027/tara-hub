@@ -36,11 +36,26 @@ npm run db:studio         # Open Drizzle Studio GUI
 npm run lint              # ESLint via Turbo across all packages
 npm run type-check        # TypeScript checking (if configured)
 
-# Testing
+# Testing (Vitest)
 npm run test              # Run Vitest tests
 npm run test:unit         # Unit tests with coverage
 npm run test:watch        # Watch mode for development
 npm run test:ui           # Vitest UI interface
+
+# Deployment (Vercel)
+npm run deploy            # Deploy all apps
+npm run deploy:prod       # Production deployment with parallel builds
+npm run deploy:admin      # Deploy admin app only
+npm run deploy:experiences # Deploy experience apps only
+npm run deploy:quick      # Quick deployment script
+
+# Environment Variables Management
+npm run env:manage        # Interactive environment variable management
+npm run env:generate      # Generate env configuration
+npm run env:push          # Push env vars to Vercel
+npm run env:pull          # Pull env vars from Vercel
+npm run env:validate      # Validate environment configuration
+npm run vercel:env        # Pull .env.local from Vercel
 ```
 
 ## High-Level Architecture
@@ -64,20 +79,23 @@ npm run test:ui           # Vitest UI interface
 
 ### Authentication Architecture
 
-**Custom Magic Link System** (replaces NextAuth):
+**Custom Magic Link System** (replaces NextAuth due to Jest worker conflicts):
 - Email-based passwordless authentication using Resend API
 - JWT tokens with HTTP-only cookies (30-day expiry)
 - Admin whitelist enforcement in `lib/auth.ts`
 - Custom middleware for route protection
 - Backward compatibility with legacy database schema
+- Migration from NextAuth due to Jest worker thread incompatibility
 
 **Key Authentication Files**:
 - `lib/auth-utils.ts` - Token generation, verification, user management
+- `lib/custom-auth.ts` - Core authentication utilities and JWT handling
 - `lib/email-service.ts` - Professional HTML email templates via Resend
 - `app/api/auth/signin/route.ts` - Magic link generation endpoint
 - `app/api/auth/verify/route.ts` - Token verification and session creation
 - `middleware.ts` - Custom JWT-based route protection
 - `components/auth/magic-link-form.tsx` - Client-side authentication UI
+- `lib/legacy-auth-schema.ts` - Backward compatibility with NextAuth schema
 
 ### Data Persistence Strategy
 
@@ -165,14 +183,31 @@ R2_BUCKET_NAME=...
 
 ## Key API Endpoints
 
+### API Versions - IMPORTANT
+
+**Two Different API Versions:**
+
+1. **Legacy API (`/api/fabrics/`)**:
+   - Simple KV-store based
+   - Basic fabric schema
+   - Used by experience apps (store-guide, fabric-store)
+   - Public read-only access
+
+2. **Admin API (`/api/v1/fabrics/`)**:
+   - Full PostgreSQL + Drizzle ORM
+   - Comprehensive 60+ field schema
+   - Used by admin dashboard
+   - Full authentication and CRUD
+
 ### Public Routes
-- `GET /api/fabrics` - Fabric catalog with filtering and pagination
+- `GET /api/fabrics` - Legacy fabric catalog (KV-based)
 - `GET /api/blog` - Published blog posts
 - `GET /api/auth/session` - Current user session info
 
 ### Admin-Protected Routes  
-- `POST/PUT/DELETE /api/fabrics` - Fabric management
+- `POST/PUT/DELETE /api/v1/fabrics` - Full fabric management
 - `POST /api/v1/fabrics/bulk` - Bulk fabric operations
+- `POST /api/v1/fabrics/import` - CSV/Excel import
 - `POST/PUT/DELETE /api/blog/[id]` - Blog content management
 - `POST/PUT/DELETE /api/posts` - Social media posts
 - `POST/PUT/DELETE /api/products` - Product management
@@ -230,10 +265,17 @@ R2_BUCKET_NAME=...
 - Environment variables configured in Vercel dashboard
 - Turbo build optimization for faster deployments
 - Custom domains and SSL handled by Vercel
+- Sophisticated deployment scripts in `deployment/vercel/scripts/`
 
 **Production URLs**:
 - Main site: https://tara-hub.vercel.app
 - Admin panel: https://tara-hub.vercel.app/admin
+
+**Deployment Scripts**:
+- Parallel deployment support for performance
+- Environment variable synchronization between local and Vercel
+- Selective deployment of admin or experience apps
+- Quick deploy option for rapid iterations
 
 ## Testing Strategy
 

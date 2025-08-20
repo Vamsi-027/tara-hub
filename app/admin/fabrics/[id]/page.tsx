@@ -6,18 +6,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   ArrowLeft, 
   Edit, 
   MoreHorizontal,
   Package,
-  DollarSign,
   Tag,
   Calendar,
-  User,
   Eye,
   Trash2,
-  Upload
+  Building2,
+  Info,
+  Ruler,
+  Shield,
+  Image as ImageIcon,
+  ChevronRight,
+  Clock,
+  TrendingUp,
+  AlertCircle,
+  Heart
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -36,6 +44,7 @@ interface FabricViewPageProps {
 export default function FabricViewPage({ params }: FabricViewPageProps) {
   const router = useRouter()
   const [fabricId, setFabricId] = useState<string>("")
+  const [selectedImage, setSelectedImage] = useState<number>(0)
   
   // Resolve params
   useEffect(() => {
@@ -61,9 +70,34 @@ export default function FabricViewPage({ params }: FabricViewPageProps) {
     }
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active': return 'bg-green-100 text-green-800 border-green-200'
+      case 'discontinued': return 'bg-red-100 text-red-800 border-red-200'
+      case 'out of stock': return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'coming soon': return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'sale': return 'bg-purple-100 text-purple-800 border-purple-200'
+      case 'clearance': return 'bg-orange-100 text-orange-800 border-orange-200'
+      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const getStockStatus = () => {
+    const stock = parseInt(fabric?.stockQuantity || '0')
+    const threshold = parseInt(fabric?.lowStockThreshold || '10')
+    
+    if (stock === 0) {
+      return <Badge variant="destructive">Out of Stock</Badge>
+    } else if (stock <= threshold) {
+      return <Badge variant="outline" className="border-yellow-500 text-yellow-700">Low Stock ({stock} {fabric?.stockUnit || 'units'})</Badge>
+    } else {
+      return <Badge variant="outline" className="border-green-500 text-green-700">In Stock ({stock} {fabric?.stockUnit || 'units'})</Badge>
+    }
+  }
+
   if (loading) {
     return (
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="space-y-4">
@@ -78,7 +112,7 @@ export default function FabricViewPage({ params }: FabricViewPageProps) {
 
   if (error || !fabric) {
     return (
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
         <div className="flex items-center gap-4">
           <Link href="/admin/fabrics">
             <Button variant="ghost" size="icon">
@@ -86,68 +120,34 @@ export default function FabricViewPage({ params }: FabricViewPageProps) {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-red-600">Fabric Not Found</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-red-600">Fabric Not Found</h1>
             <p className="text-muted-foreground">
               The fabric you're looking for doesn't exist or has been deleted.
             </p>
           </div>
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-muted-foreground mb-4">
-                {error || "This fabric could not be found."}
-              </p>
-              <Button asChild>
-                <Link href="/admin/fabrics">Back to Fabrics</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     )
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800'
-      case 'sale': return 'bg-yellow-100 text-yellow-800'
-      case 'out of stock': return 'bg-red-100 text-red-800'
-      case 'discontinued': return 'bg-gray-100 text-gray-800'
-      case 'coming soon': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getStockStatus = () => {
-    if (fabric.stockQuantity === 0) {
-      return <Badge variant="destructive">Out of Stock</Badge>
-    } else if (fabric.stockQuantity <= fabric.lowStockThreshold) {
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-700">Low Stock</Badge>
-    } else {
-      return <Badge variant="outline" className="border-green-500 text-green-700">In Stock</Badge>
-    }
-  }
-
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 max-w-7xl mx-auto">
+      {/* Compact Header with Navigation */}
+      <div className="flex items-center justify-between pb-4">
+        <div className="flex items-center gap-3">
           <Link href="/admin/fabrics">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-8 w-8">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{fabric.name}</h1>
-            <p className="text-muted-foreground">
-              SKU: {fabric.sku} • {fabric.type}
-            </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Link href="/admin/fabrics" className="hover:text-foreground">Fabrics</Link>
+            <ChevronRight className="h-4 w-4" />
+            <span className="text-foreground font-medium">{fabric.sku}</span>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button asChild>
+          <Button asChild size="sm">
             <Link href={`/admin/fabrics/${fabric.id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
@@ -155,7 +155,7 @@ export default function FabricViewPage({ params }: FabricViewPageProps) {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="h-8 w-8">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -173,282 +173,648 @@ export default function FabricViewPage({ params }: FabricViewPageProps) {
         </div>
       </div>
 
-      {/* Image Gallery Section - Prominent Display */}
-      {fabric.images && fabric.images.length > 0 ? (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              Fabric Images ({fabric.images.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              {/* Main Image */}
-              <div className="aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
-                <img
-                  src={fabric.images[0]}
-                  alt={fabric.name}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
+      {/* Hero Section with Key Info and Compact Image */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Info - Takes 2 columns */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Title and Primary Details */}
+          <div>
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">{fabric.name}</h1>
+                <p className="text-muted-foreground mt-1">{fabric.type} • {fabric.brand || 'No Brand'}</p>
               </div>
-              
-              {/* Additional Images Thumbnail Gallery */}
-              {fabric.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {fabric.images.slice(1, 5).map((image, index) => (
-                    <div key={index} className="aspect-square rounded-md overflow-hidden bg-gray-100">
-                      <img
-                        src={image}
-                        alt={`${fabric.name} - ${index + 2}`}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
-                      />
-                    </div>
-                  ))}
-                  {fabric.images.length > 5 && (
-                    <div className="aspect-square rounded-md bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-medium">
-                      +{fabric.images.length - 5} more
+              <div className="flex gap-2">
+                <Badge className={getStatusColor(fabric.status)}>
+                  {fabric.status}
+                </Badge>
+                {fabric.isFeatured && (
+                  <Badge variant="secondary">Featured</Badge>
+                )}
+              </div>
+            </div>
+            {fabric.description && (
+              <p className="text-sm text-muted-foreground">{fabric.description}</p>
+            )}
+          </div>
+
+          {/* Quick Stats Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Stock</p>
+                    <p className="text-lg font-bold">{fabric.stockQuantity || 0}</p>
+                    <p className="text-xs text-muted-foreground">{fabric.stockUnit || 'units'}</p>
+                  </div>
+                  <Package className="h-8 w-8 text-muted-foreground/20" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Cost</p>
+                    <p className="text-lg font-bold">
+                      {fabric.currency || 'USD'} {fabric.procurementCost || fabric.cost || '0'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{fabric.priceUnit?.replace('_', ' ') || 'per yard'}</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-muted-foreground/20" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Width</p>
+                    <p className="text-lg font-bold">{fabric.width || 'N/A'}</p>
+                    <p className="text-xs text-muted-foreground">{fabric.widthUnit || 'inches'}</p>
+                  </div>
+                  <Ruler className="h-8 w-8 text-muted-foreground/20" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Durability</p>
+                    <p className="text-lg font-bold">{fabric.durabilityRating?.split(' ')[0] || 'N/A'}</p>
+                    <p className="text-xs text-muted-foreground">{fabric.durabilityRating?.split(' ')[1] || 'Not Set'}</p>
+                  </div>
+                  <Shield className="h-8 w-8 text-muted-foreground/20" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Color Badges */}
+          {fabric.colors && fabric.colors.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-medium">Colors:</span>
+              {fabric.colors.map((color, index) => (
+                <Badge key={index} variant="outline" className="text-xs">
+                  {color}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Compact Image Gallery - Takes 1 column */}
+        <div className="lg:col-span-1">
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              {fabric.images && fabric.images.length > 0 ? (
+                <div className="space-y-2">
+                  {/* Main Selected Image */}
+                  <div className="aspect-square bg-gray-100 relative">
+                    <img
+                      src={fabric.images[selectedImage]}
+                      alt={fabric.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {fabric.images.length > 1 && (
+                      <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                        {selectedImage + 1} / {fabric.images.length}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Thumbnail Strip */}
+                  {fabric.images.length > 1 && (
+                    <div className="flex gap-1 p-2 overflow-x-auto">
+                      {fabric.images.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedImage(index)}
+                          className={`flex-shrink-0 w-16 h-16 rounded overflow-hidden border-2 transition-all ${
+                            selectedImage === index ? 'border-primary' : 'border-transparent hover:border-gray-300'
+                          }`}
+                        >
+                          <img
+                            src={image}
+                            alt={`${fabric.name} - ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        /* Placeholder for No Images */
-        <Card className="mb-6">
-          <CardContent className="py-12">
-            <div className="text-center text-gray-500">
-              <Package className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg font-medium mb-2">No Images Available</p>
-              <p className="text-sm text-muted-foreground mb-4">Upload images to showcase this fabric</p>
-              <Button variant="outline" size="sm">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Images
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Tag className="h-5 w-5" />
-              Basic Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Status</label>
-                <div className="mt-1">
-                  <Badge className={getStatusColor(fabric.status)}>
-                    {fabric.status}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Stock Status</label>
-                <div className="mt-1">
-                  {getStockStatus()}
-                </div>
-              </div>
-            </div>
-            
-            {fabric.description && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Description</label>
-                <p className="mt-1 text-sm">{fabric.description}</p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              {fabric.brand && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Brand</label>
-                  <p className="mt-1 text-sm font-medium">{fabric.brand}</p>
+              ) : (
+                <div className="aspect-square bg-gray-50 flex items-center justify-center">
+                  <div className="text-center text-gray-400">
+                    <ImageIcon className="h-12 w-12 mx-auto mb-2" />
+                    <p className="text-sm">No images</p>
+                  </div>
                 </div>
               )}
-              {fabric.collection && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Collection</label>
-                  <p className="mt-1 text-sm font-medium">{fabric.collection}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Detailed Information in Tabs */}
+      <Tabs defaultValue="details" className="mt-6">
+        <TabsList className="grid w-full grid-cols-4 mb-2">
+          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="specifications">Specifications</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="care">Care & Treatment</TabsTrigger>
+        </TabsList>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="technical">Technical</TabsTrigger>
+          <TabsTrigger value="procurement">Procurement</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="certifications">Certifications</TabsTrigger>
+        </TabsList>
+
+        {/* Details Tab */}
+        <TabsContent value="details" className="mt-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Basic Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">SKU:</span>
+                    <p className="font-medium">{fabric.sku}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Type:</span>
+                    <p className="font-medium">{fabric.type}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Brand:</span>
+                    <p className="font-medium">{fabric.brand || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Collection:</span>
+                    <p className="font-medium">{fabric.collection || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Category:</span>
+                    <p className="font-medium">{fabric.category || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Style:</span>
+                    <p className="font-medium">{fabric.style || 'Not specified'}</p>
+                  </div>
                 </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
 
-            {fabric.colors && fabric.colors.length > 0 && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Available Colors</label>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {fabric.colors.map((color, index) => (
-                    <Badge key={index} variant="secondary">{color}</Badge>
-                  ))}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Material & Pattern</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Material:</span>
+                    <p className="font-medium">{fabric.material || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Pattern:</span>
+                    <p className="font-medium">{fabric.pattern || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Color Family:</span>
+                    <p className="font-medium">{fabric.colorFamily || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Cleaning Code:</span>
+                    {fabric.cleaningCode ? (
+                      <Badge variant="outline" className="mt-1">
+                        {fabric.cleaningCode}
+                        {fabric.cleaningCode === 'W' && ' - Water'}
+                        {fabric.cleaningCode === 'S' && ' - Solvent'}
+                        {fabric.cleaningCode === 'WS' && ' - Both'}
+                        {fabric.cleaningCode === 'X' && ' - Vacuum'}
+                        {fabric.cleaningCode === 'DC' && ' - Dry Clean'}
+                      </Badge>
+                    ) : (
+                      <p className="font-medium">Not specified</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-            <div className="flex gap-4">
-              {fabric.isFeatured && (
-                <Badge variant="outline" className="border-purple-500 text-purple-700">
-                  Featured
-                </Badge>
-              )}
-              {fabric.isActive && (
-                <Badge variant="outline" className="border-green-500 text-green-700">
-                  Active
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pricing Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Pricing
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Retail Price</label>
-                <p className="mt-1 text-lg font-bold">${fabric.retailPrice}</p>
-              </div>
-              {fabric.salePrice && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Sale Price</label>
-                  <p className="mt-1 text-lg font-bold text-green-600">${fabric.salePrice}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {Math.round((1 - parseFloat(fabric.salePrice) / parseFloat(fabric.retailPrice)) * 100)}% off
+        {/* Specifications Tab */}
+        <TabsContent value="specifications" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Technical Specifications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div className="space-y-1">
+                  <span className="text-muted-foreground">Width:</span>
+                  <p className="font-medium">
+                    {fabric.width || 'N/A'} {fabric.widthUnit || 'inches'}
                   </p>
                 </div>
-              )}
-            </div>
-
-            <Separator />
-
-            <div className="grid grid-cols-2 gap-4">
-              {fabric.wholesalePrice && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Wholesale Price</label>
-                  <p className="mt-1 text-sm font-medium">${fabric.wholesalePrice}</p>
+                <div className="space-y-1">
+                  <span className="text-muted-foreground">Weight:</span>
+                  <p className="font-medium">
+                    {fabric.weight || 'N/A'} {fabric.weightUnit || 'oz/yd'}
+                  </p>
                 </div>
-              )}
-              {fabric.cost && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Cost</label>
-                  <p className="mt-1 text-sm font-medium">${fabric.cost}</p>
+                <div className="space-y-1">
+                  <span className="text-muted-foreground">Durability:</span>
+                  <p className="font-medium">
+                    {fabric.durabilityRating ? (
+                      <Badge variant="outline">{fabric.durabilityRating}</Badge>
+                    ) : 'Not rated'}
+                  </p>
                 </div>
-              )}
-            </div>
-
-            {fabric.cost && (
-              <div className="bg-muted rounded-lg p-3">
-                <label className="text-sm font-medium text-muted-foreground">Profit Margin</label>
-                <p className="mt-1 text-lg font-bold">
-                  {Math.round(((parseFloat(fabric.retailPrice) - parseFloat(fabric.cost)) / parseFloat(fabric.retailPrice)) * 100)}%
-                </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Inventory Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Inventory
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+        {/* Procurement Tab */}
+        <TabsContent value="procurement" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Procurement Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm text-muted-foreground">Procurement Cost:</span>
+                    <p className="text-xl font-bold">
+                      {fabric.currency || 'USD'} {fabric.procurementCost || fabric.cost || '0.00'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {fabric.priceUnit ? fabric.priceUnit.replace('_', ' ') : 'per yard'}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Currency:</span>
+                      <p className="font-medium">{fabric.currency || 'USD'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Unit:</span>
+                      <p className="font-medium">{fabric.priceUnit?.replace('_', ' ') || 'per yard'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {(fabric.supplierId || fabric.supplierName) && (
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Supplier:</span>
+                      <p className="text-lg font-semibold">{fabric.supplierName || 'Unknown'}</p>
+                      {fabric.supplierId && (
+                        <p className="text-sm text-muted-foreground">ID: {fabric.supplierId}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Inventory Tab */}
+        <TabsContent value="inventory" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Inventory Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold">
+                      {fabric.stockQuantity || 0} {fabric.stockUnit || 'units'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Current Stock</p>
+                  </div>
+                  <div>{getStockStatus()}</div>
+                </div>
+                
+                <Separator />
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Low Stock Threshold:</span>
+                    <p className="font-medium">{fabric.lowStockThreshold || 10} {fabric.stockUnit || 'units'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Stock Unit:</span>
+                    <p className="font-medium">{fabric.stockUnit || 'yards'}</p>
+                  </div>
+                </div>
+
+                {parseInt(fabric.stockQuantity || '0') <= parseInt(fabric.lowStockThreshold || '10') && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-yellow-800">Low Stock Warning</p>
+                      <p className="text-yellow-700">Consider reordering this fabric soon.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Performance Tab */}
+        <TabsContent value="performance" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Performance Ratings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                {fabric.martindale && (
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">Martindale:</span>
+                    <p className="font-medium">{fabric.martindale.toLocaleString()} rubs</p>
+                  </div>
+                )}
+                {fabric.wyzenbeek && (
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">Wyzenbeek:</span>
+                    <p className="font-medium">{fabric.wyzenbeek.toLocaleString()} double rubs</p>
+                  </div>
+                )}
+                {fabric.lightfastness && (
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">Lightfastness:</span>
+                    <p className="font-medium">{fabric.lightfastness}/8</p>
+                  </div>
+                )}
+                {fabric.pillingResistance && (
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">Pilling Resistance:</span>
+                    <p className="font-medium">{fabric.pillingResistance}/5</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Care & Treatment Tab */}
+        <TabsContent value="care" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                Care & Treatment Features
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Care Instructions */}
+              {fabric.careInstructions && fabric.careInstructions.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Care Instructions:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {fabric.careInstructions.map((instruction: string, index: number) => (
+                      <Badge key={index} variant="outline">
+                        {instruction}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Treatment Features */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Stock Quantity</label>
-                <p className="mt-1 text-lg font-bold">{fabric.stockQuantity} {fabric.stockUnit}</p>
+                <p className="text-sm font-medium mb-2">Treatment Features:</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {fabric.isStainResistant && (
+                    <Badge variant="secondary">Stain Resistant</Badge>
+                  )}
+                  {fabric.isFadeResistant && (
+                    <Badge variant="secondary">Fade Resistant</Badge>
+                  )}
+                  {fabric.isWaterResistant && (
+                    <Badge variant="secondary">Water Resistant</Badge>
+                  )}
+                  {fabric.isPetFriendly && (
+                    <Badge variant="secondary">Pet Friendly</Badge>
+                  )}
+                  {fabric.isOutdoorSafe && (
+                    <Badge variant="secondary">Outdoor Safe</Badge>
+                  )}
+                  {fabric.isFireRetardant && (
+                    <Badge variant="secondary">Fire Retardant</Badge>
+                  )}
+                  {fabric.isBleachCleanable && (
+                    <Badge variant="secondary">Bleach Cleanable</Badge>
+                  )}
+                  {fabric.isAntimicrobial && (
+                    <Badge variant="secondary">Antimicrobial</Badge>
+                  )}
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Low Stock Alert</label>
-                <p className="mt-1 text-sm font-medium">{fabric.lowStockThreshold} {fabric.stockUnit}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Specifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Specifications</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {fabric.material && (
+        {/* Technical Tab */}
+        <TabsContent value="technical" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Technical Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Fiber Content */}
+              {fabric.fiberContent && fabric.fiberContent.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Material</label>
-                  <p className="mt-1 text-sm font-medium">{fabric.material}</p>
+                  <p className="text-sm font-medium mb-2">Fiber Content:</p>
+                  <div className="space-y-1">
+                    {fabric.fiberContent.map((fiber: any, index: number) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span>{fiber.fiber}</span>
+                        <span className="font-medium">{fiber.percentage}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-              {fabric.pattern && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Pattern</label>
-                  <p className="mt-1 text-sm font-medium">{fabric.pattern}</p>
-                </div>
-              )}
-              {fabric.width && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Width</label>
-                  <p className="mt-1 text-sm font-medium">{fabric.width}"</p>
-                </div>
-              )}
-              {fabric.weight && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Weight</label>
-                  <p className="mt-1 text-sm font-medium">{fabric.weight} oz/yd²</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Metadata */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Metadata
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Created</label>
-                <p className="mt-1 text-sm">{new Date(fabric.createdAt).toLocaleDateString()}</p>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {fabric.backingType && (
+                  <div>
+                    <span className="text-muted-foreground">Backing Type:</span>
+                    <p className="font-medium">{fabric.backingType}</p>
+                  </div>
+                )}
+                {fabric.finishTreatment && (
+                  <div>
+                    <span className="text-muted-foreground">Finish Treatment:</span>
+                    <p className="font-medium">{fabric.finishTreatment}</p>
+                  </div>
+                )}
+                {fabric.countryOfOrigin && (
+                  <div>
+                    <span className="text-muted-foreground">Country of Origin:</span>
+                    <p className="font-medium">{fabric.countryOfOrigin}</p>
+                  </div>
+                )}
+                {fabric.flammabilityStandard && (
+                  <div>
+                    <span className="text-muted-foreground">Flammability Standard:</span>
+                    <p className="font-medium">{fabric.flammabilityStandard}</p>
+                  </div>
+                )}
+                {fabric.minimumOrder && (
+                  <div>
+                    <span className="text-muted-foreground">Minimum Order:</span>
+                    <p className="font-medium">{fabric.minimumOrder} {fabric.stockUnit || 'units'}</p>
+                  </div>
+                )}
+                {fabric.leadTimeDays && (
+                  <div>
+                    <span className="text-muted-foreground">Lead Time:</span>
+                    <p className="font-medium">{fabric.leadTimeDays} days</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
-                <p className="mt-1 text-sm">{new Date(fabric.updatedAt).toLocaleDateString()}</p>
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Slug</label>
-              <p className="mt-1 text-sm font-mono text-muted-foreground">{fabric.slug}</p>
-            </div>
+              
+              {fabric.isCustomOrder && (
+                <Badge variant="outline" className="w-fit">Custom Order Only</Badge>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Version</label>
-              <p className="mt-1 text-sm">{fabric.version}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Certifications Tab */}
+        <TabsContent value="certifications" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Certifications & Compliance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {fabric.environmentalRating && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Environmental Rating:</span>
+                  <Badge variant="outline" className="ml-2">{fabric.environmentalRating}</Badge>
+                </div>
+              )}
+              
+              {fabric.certifications && fabric.certifications.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Certifications:</p>
+                  <div className="space-y-2">
+                    {fabric.certifications.map((cert: any, index: number) => (
+                      <div key={index} className="border rounded p-2">
+                        <p className="font-medium text-sm">{cert.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {cert.issuer} {cert.date && `• ${new Date(cert.date).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {fabric.publicNotes && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Public Notes:</span>
+                  <p className="text-sm mt-1">{fabric.publicNotes}</p>
+                </div>
+              )}
+              
+              {fabric.warrantyInfo && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Warranty:</span>
+                  <p className="text-sm mt-1">{fabric.warrantyInfo}</p>
+                </div>
+              )}
+              
+              {fabric.returnPolicy && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Return Policy:</span>
+                  <p className="text-sm mt-1">{fabric.returnPolicy}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Metadata Tab */}
+        <TabsContent value="metadata" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Metadata & Timestamps
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Created:</span>
+                  <p className="font-medium">
+                    {fabric.createdAt ? new Date(fabric.createdAt).toLocaleDateString() : 'Unknown'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Last Updated:</span>
+                  <p className="font-medium">
+                    {fabric.updatedAt ? new Date(fabric.updatedAt).toLocaleDateString() : 'Unknown'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">ID:</span>
+                  <p className="font-mono text-xs">{fabric.id}</p>
+                </div>
+              </div>
+              
+              {(fabric.metaTitle || fabric.metaDescription) && (
+                <>
+                  <Separator className="my-4" />
+                  <div className="space-y-3">
+                    {fabric.metaTitle && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Meta Title:</span>
+                        <p className="text-sm font-medium">{fabric.metaTitle}</p>
+                      </div>
+                    )}
+                    {fabric.metaDescription && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Meta Description:</span>
+                        <p className="text-sm">{fabric.metaDescription}</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

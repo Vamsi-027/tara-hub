@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fabricService } from '@/lib/services/fabric.service';
 import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt';
-import { insertFabricSchema } from '@/lib/db/schema/fabrics-simple.schema';
+import { insertFabricSchema } from '@/lib/db/schema/fabrics.schema';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
@@ -46,6 +46,25 @@ interface ParsedFabricData {
   status?: string;
   isActive?: boolean;
   isFeatured?: boolean;
+  // New fields for store-guide experience
+  durabilityRating?: string;
+  martindale?: number;
+  wyzenbeek?: number;
+  lightfastness?: number;
+  pillingResistance?: number;
+  isStainResistant?: boolean;
+  isFadeResistant?: boolean;
+  isWaterResistant?: boolean;
+  isPetFriendly?: boolean;
+  isOutdoorSafe?: boolean;
+  isFireRetardant?: boolean;
+  isBleachCleanable?: boolean;
+  isAntimicrobial?: boolean;
+  cleaningCode?: string;
+  performanceMetrics?: any;
+  usageSuitability?: any;
+  additionalFeatures?: any;
+  technicalDocuments?: any;
 }
 
 // CSV Column mappings
@@ -161,7 +180,49 @@ const columnMappings: Record<string, string> = {
   
   'featured': 'isFeatured',
   'is_featured': 'isFeatured',
-  'highlight': 'isFeatured'
+  'highlight': 'isFeatured',
+  
+  // Performance Ratings
+  'durability_rating': 'durabilityRating',
+  'durability': 'durabilityRating',
+  'martindale': 'martindale',
+  'martindale_rating': 'martindale',
+  'wyzenbeek': 'wyzenbeek',
+  'wyzenbeek_rating': 'wyzenbeek',
+  'lightfastness': 'lightfastness',
+  'light_fastness': 'lightfastness',
+  'pilling_resistance': 'pillingResistance',
+  'pilling': 'pillingResistance',
+  
+  // Treatment Features
+  'stain_resistant': 'isStainResistant',
+  'is_stain_resistant': 'isStainResistant',
+  'fade_resistant': 'isFadeResistant',
+  'is_fade_resistant': 'isFadeResistant',
+  'water_resistant': 'isWaterResistant',
+  'is_water_resistant': 'isWaterResistant',
+  'pet_friendly': 'isPetFriendly',
+  'is_pet_friendly': 'isPetFriendly',
+  'outdoor_safe': 'isOutdoorSafe',
+  'is_outdoor_safe': 'isOutdoorSafe',
+  'fire_retardant': 'isFireRetardant',
+  'is_fire_retardant': 'isFireRetardant',
+  'bleach_cleanable': 'isBleachCleanable',
+  'is_bleach_cleanable': 'isBleachCleanable',
+  'antimicrobial': 'isAntimicrobial',
+  'is_antimicrobial': 'isAntimicrobial',
+  
+  // Care
+  'cleaning_code': 'cleaningCode',
+  'care_code': 'cleaningCode',
+  'cleaning': 'cleaningCode',
+  
+  // JSON fields (handled specially)
+  'performance_metrics': 'performanceMetrics',
+  'usage_suitability': 'usageSuitability',
+  'additional_features': 'additionalFeatures',
+  'technical_documents': 'technicalDocuments',
+  'certifications': 'certifications'
 };
 
 // Normalize column name for mapping
@@ -341,7 +402,37 @@ function parseRow(row: any, headers: string[], rowIndex: number): ParsedFabricDa
           break;
         case 'isActive':
         case 'isFeatured':
+        case 'isStainResistant':
+        case 'isFadeResistant':
+        case 'isWaterResistant':
+        case 'isPetFriendly':
+        case 'isOutdoorSafe':
+        case 'isFireRetardant':
+        case 'isBleachCleanable':
+        case 'isAntimicrobial':
           fabric[mappedField] = parseBoolean(value);
+          break;
+        case 'martindale':
+        case 'wyzenbeek':
+        case 'lightfastness':
+        case 'pillingResistance':
+          fabric[mappedField] = parseNumber(value, true);
+          break;
+        case 'durabilityRating':
+          fabric[mappedField] = value.toUpperCase();
+          break;
+        case 'performanceMetrics':
+        case 'usageSuitability':
+        case 'additionalFeatures':
+        case 'technicalDocuments':
+        case 'certifications':
+          // Try to parse as JSON if it's a string
+          try {
+            fabric[mappedField] = typeof value === 'string' ? JSON.parse(value) : value;
+          } catch {
+            // If JSON parsing fails, store as is
+            fabric[mappedField] = value;
+          }
           break;
         case 'type':
           fabric.type = mapFabricType(value);
@@ -531,7 +622,7 @@ export async function POST(request: NextRequest) {
         const validated = insertFabricSchema.parse(fabricData);
 
         // Create fabric
-        await fabricService.create(validated, session.user.id || 'admin');
+        await fabricService.create(validated, userId || 'admin');
         result.successCount++;
 
       } catch (error: any) {
@@ -580,7 +671,10 @@ export async function GET(request: NextRequest) {
         'material', 'width', 'weight', 'pattern', 'colors',
         'retail_price', 'wholesale_price', 'sale_price', 'cost',
         'stock_quantity', 'stock_unit', 'low_stock_threshold',
-        'status', 'is_active', 'is_featured', 'images', 'swatch_image'
+        'status', 'is_active', 'is_featured', 'images', 'swatch_image',
+        'durability_rating', 'martindale', 'wyzenbeek', 'lightfastness', 'pilling_resistance',
+        'stain_resistant', 'fade_resistant', 'water_resistant', 'pet_friendly', 'outdoor_safe',
+        'fire_retardant', 'bleach_cleanable', 'antimicrobial', 'cleaning_code'
       ],
       [
         'FAB-001', 'Premium Velvet - Emerald Green', 'Luxurious velvet perfect for upholstery',
@@ -589,7 +683,10 @@ export async function GET(request: NextRequest) {
         '45.99', '35.99', '', '28.50',
         '100', 'yards', '10', 'Active', 'true', 'true',
         'https://example.com/fabric1_main.jpg,https://example.com/fabric1_detail.jpg',
-        'https://example.com/fabric1_swatch.jpg'
+        'https://example.com/fabric1_swatch.jpg',
+        'HEAVY_DUTY', '30000', '50000', '6', '4',
+        'true', 'true', 'false', 'true', 'false',
+        'false', 'false', 'false', 'S'
       ],
       [
         'FAB-002', 'Linen Blend - Natural', 'Natural linen blend for drapery',
@@ -598,7 +695,10 @@ export async function GET(request: NextRequest) {
         '32.50', '24.99', '29.99', '18.75',
         '75', 'yards', '15', 'Sale', 'true', 'false',
         'https://example.com/fabric2_main.jpg',
-        'https://example.com/fabric2_swatch.jpg'
+        'https://example.com/fabric2_swatch.jpg',
+        'MEDIUM_DUTY', '15000', '30000', '5', '3',
+        'false', 'true', 'false', 'false', 'false',
+        'false', 'false', 'false', 'W-S'
       ]
     ];
 

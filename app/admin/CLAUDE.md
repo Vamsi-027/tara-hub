@@ -57,10 +57,23 @@ npm run lint             # Run ESLint via Turbo
   - admin@deepcrm.ai
 
 ### API Routes Structure
-All routes in `app/api/`:
-- **Public**: `/api/fabrics` (GET), `/api/blog` (GET)
-- **Admin Protected**: All POST/PUT/DELETE operations
+
+**IMPORTANT: Two API Versions**
+1. **Legacy API (`/api/fabrics/`)**:
+   - KV store-based (simple schema)
+   - Used by experience apps
+   - Basic fabric fields only
+   
+2. **Current API (`/api/v1/fabrics/`)**:
+   - PostgreSQL + Drizzle ORM
+   - Full schema with 60+ fields
+   - Used by admin dashboard
+
+**Routes:**
+- **Public**: `/api/fabrics` (GET) - Legacy KV-based
+- **Admin API**: `/api/v1/fabrics/*` - Full CRUD with authentication
 - **Bulk Operations**: `/api/v1/fabrics/bulk`
+- **Import**: `/api/v1/fabrics/import`
 - Uses ISR with 60s revalidation for performance
 
 ## Environment Variables

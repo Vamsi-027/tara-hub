@@ -82,10 +82,15 @@ export const fabrics = pgTable('fabrics', {
   designerName: varchar('designer_name', { length: 255 }),
   countryOfOrigin: varchar('country_of_origin', { length: 100 }),
   
+  // ======= Supplier Information =======
+  supplierId: varchar('supplier_id', { length: 255 }),
+  supplierName: varchar('supplier_name', { length: 255 }),
+  
   // ======= Pricing & Cost =======
   retailPrice: decimal('retail_price', { precision: 10, scale: 2 }).notNull(),
   wholesalePrice: decimal('wholesale_price', { precision: 10, scale: 2 }),
   costPrice: decimal('cost_price', { precision: 10, scale: 2 }),
+  procurementCost: decimal('procurement_cost', { precision: 10, scale: 2 }),
   currency: varchar('currency', { length: 3 }).notNull().default('USD'),
   priceUnit: varchar('price_unit', { length: 20 }).notNull().default('per_yard'),
   
@@ -189,6 +194,64 @@ export const fabrics = pgTable('fabrics', {
   publicNotes: text('public_notes'),
   warrantyInfo: text('warranty_info'),
   returnPolicy: text('return_policy'),
+  
+  // ======= Store Guide Experience Fields (JSON for flexibility) =======
+  performanceMetrics: jsonb('performance_metrics').$type<{
+    abrasionResistance?: { martindale?: number; wyzenbeek?: number };
+    lightfastness?: { rating?: number; scale?: string };
+    pillingResistance?: { rating?: number; scale?: string };
+    seamSlippage?: { rating?: string };
+    tensileStrength?: { warp?: number; weft?: number };
+    tearStrength?: { warp?: number; weft?: number };
+    colorCrocking?: { dry?: number; wet?: number };
+    shrinkage?: { warp?: number; weft?: number };
+  }>(),
+  
+  usageSuitability: jsonb('usage_suitability').$type<{
+    residential?: boolean;
+    commercial?: boolean;
+    hospitality?: boolean;
+    healthcare?: boolean;
+    marine?: boolean;
+    automotive?: boolean;
+    aviation?: boolean;
+    outdoor?: boolean;
+    heavyTraffic?: boolean;
+    lightTraffic?: boolean;
+    upholstery?: boolean;
+    drapery?: boolean;
+    bedding?: boolean;
+    wallcovering?: boolean;
+  }>(),
+  
+  additionalFeatures: jsonb('additional_features').$type<{
+    acousticProperties?: { nrc?: number; description?: string };
+    thermalProperties?: { rValue?: number; description?: string };
+    uvResistance?: { rating?: string; percentage?: number };
+    moistureBarrier?: boolean;
+    inherentlyFlameRetardant?: boolean;
+    greenGuardCertified?: boolean;
+    oekotexCertified?: boolean;
+    recycledContent?: number;
+    recyclable?: boolean;
+    biodegradable?: boolean;
+    sustainabilityNotes?: string;
+    customizationOptions?: string[];
+    availableWidths?: number[];
+    availableColors?: string[];
+    patternRepeat?: { horizontal?: number; vertical?: number };
+    railroaded?: boolean;
+    matchType?: string;
+  }>(),
+  
+  technicalDocuments: jsonb('technical_documents').$type<{
+    specSheet?: string;
+    careGuide?: string;
+    installationGuide?: string;
+    warranty?: string;
+    testReports?: Array<{ name: string; url: string; date?: string }>;
+    certificates?: Array<{ name: string; url: string; issuer?: string; validUntil?: string }>;
+  }>(),
   
   // ======= Audit Fields =======
   createdAt: timestamp('created_at').notNull().defaultNow(),

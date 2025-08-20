@@ -27,6 +27,7 @@ interface ImageUploadProps {
   maxFileSize?: number // in MB
   disabled?: boolean
   className?: string
+  fabricId?: string // Optional fabric ID for linking images
 }
 
 export function ImageUpload({ 
@@ -35,7 +36,8 @@ export function ImageUpload({
   maxImages = 20, 
   maxFileSize = 10,
   disabled = false,
-  className = ""
+  className = "",
+  fabricId
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -60,7 +62,12 @@ export function ImageUpload({
         formData.append('files', file)
       })
 
-      const response = await fetch('/api/upload/fabric-images', {
+      // Add fabric ID to the URL if provided
+      const uploadUrl = fabricId 
+        ? `/api/upload/fabric-images?fabricId=${fabricId}`
+        : '/api/upload/fabric-images'
+
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       })

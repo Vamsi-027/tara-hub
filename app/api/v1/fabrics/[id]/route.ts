@@ -241,6 +241,11 @@ export async function PUT(
       return errorResponse('Fabric not found', 404);
     }
     
+    // Trigger legacy API sync in background (don't wait for it)
+    fetch('/api/fabrics/sync', { method: 'POST' }).catch(err => 
+      console.warn('Legacy API sync failed:', err)
+    );
+    
     return apiResponse(fabric);
     
   } catch (error: any) {
