@@ -7,7 +7,7 @@ export const emailConfig = {
   // Sender Configuration
   sender: {
     name: 'Tara Hub',
-    email: process.env.RESEND_FROM_EMAIL || 'noreply@mail.deepcrm.ai',
+    email: process.env.RESEND_FROM_EMAIL || 'admin@deepcrm.ai',
     replyTo: 'support@deepcrm.ai', // Use monitored email for replies
   },
 

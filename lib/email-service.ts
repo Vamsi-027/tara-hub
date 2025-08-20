@@ -102,7 +102,7 @@ If you didn't request this, please ignore this email.
 
     const magicLink = `${origin}/auth/verify?token=${token}&email=${encodeURIComponent(email)}`;
     const messageId = this.generateMessageId();
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Tara Hub <noreply@mail.deepcrm.ai>';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Tara Hub <admin@deepcrm.ai>';
     
     try {
       const result = await resend.emails.send({
@@ -173,7 +173,7 @@ If you didn't request this, please ignore this email.
     }
 
     const messageId = this.generateMessageId();
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Tara Hub <noreply@mail.deepcrm.ai>';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Tara Hub <admin@deepcrm.ai>';
 
     try {
       const result = await resend.emails.send({

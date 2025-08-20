@@ -195,7 +195,7 @@ You're receiving this because someone requested access using ${email}`;
     const recipientDomain = this.getDomainFromEmail(email);
     
     // Determine FROM address based on environment
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Tara Hub <noreply@mail.deepcrm.ai>';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Tara Hub <admin@deepcrm.ai>';
     const replyTo = 'support@deepcrm.ai'; // Use a real monitored email
     
     try {
@@ -274,7 +274,7 @@ You're receiving this because someone requested access using ${email}`;
   async sendWelcomeEmail(email: string, name?: string) {
     if (!resend) return;
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Tara Hub <noreply@mail.deepcrm.ai>';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Tara Hub <admin@deepcrm.ai>';
     
     try {
       await resend.emails.send({
