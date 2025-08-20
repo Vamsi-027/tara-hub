@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getFabricById } from '@/lib/fabric-seed-data'
+import { getFabricById } from '@/modules/fabrics/data/seed-data'
 
 interface Context {
   params: Promise<{

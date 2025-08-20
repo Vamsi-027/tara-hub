@@ -5,7 +5,7 @@ import {
   getFabric,
   updateFabric,
   deleteFabric
-} from '@/lib/fabric-kv'
+} from '@/modules/fabrics'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
 export async function GET(

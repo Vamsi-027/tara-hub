@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { usePosts } from "@/hooks/use-posts"
-import type { DBPost } from "@/lib/db-schema"
+import type { DBPost } from "@/core/database/schemas"
 import { PostModal } from "@/components/post-modal"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"

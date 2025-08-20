@@ -8,7 +8,7 @@ import { Footer } from '@/components/footer'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { getBlogPost, getRelatedPosts, blogPosts } from '@/lib/blog-data'
+import { getBlogPost, getRelatedPosts, blogPosts } from '@/modules/blog'
 import { BlogEtsyProducts } from '@/components/blog-etsy-products'
 
 interface BlogPostPageProps {

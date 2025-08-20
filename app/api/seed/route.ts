@@ -8,7 +8,7 @@ import {
   createSEOKeyword,
   createBlogPost,
   createCreativeGuideline,
-} from "@/lib/kv"
+} from "@/core/cache/providers/vercel-kv"
 import {
   seedPosts,
   seedHeroCategories,

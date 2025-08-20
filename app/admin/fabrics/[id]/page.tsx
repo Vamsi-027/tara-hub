@@ -33,7 +33,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useFabric, useDeleteFabric } from "@/hooks/use-fabrics"
+import { useFabric, useDeleteFabric } from "@/modules/fabrics"
 import { toast } from "sonner"
 import Link from "next/link"
 

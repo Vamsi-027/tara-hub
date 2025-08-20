@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import type { DBPost } from "@/lib/db-schema"
+import type { DBPost } from "@/core/database/schemas"
 
 interface PostModalProps {
   post: DBPost | null

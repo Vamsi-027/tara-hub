@@ -5,8 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { fabricService } from '@/lib/services/fabric.service';
-import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt';
+import { fabricService } from '@/modules/fabrics';
+import { checkJWTAuth, PERMISSIONS } from '@/modules/auth';
 
 export async function POST(request: NextRequest) {
   try {

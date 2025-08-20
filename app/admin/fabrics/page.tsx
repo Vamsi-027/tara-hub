@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { FabricCardEnhanced, FabricCardSkeleton } from "@/components/admin/fabric-card-enhanced"
 import { EmptyState } from "@/components/empty-state"
-import { useFabrics, useCreateFabric, useBulkFabricOperations } from "@/hooks/use-fabrics"
+import { useFabrics, useCreateFabric, useBulkFabricOperations } from "@/modules/fabrics"
 import {
   DropdownMenu,
   DropdownMenuContent,

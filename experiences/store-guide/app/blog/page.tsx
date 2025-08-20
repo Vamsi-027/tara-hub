@@ -6,7 +6,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { blogPosts } from '@/lib/blog-data'
+import { blogPosts } from '@/modules/blog'
 
 export const metadata: Metadata = {
   title: 'Blog | Custom Cushion Tips & Home Decor Ideas | The Hearth & Home Store',

@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
-import { blogPosts } from '@/lib/blog-data'
-import { fabricSeedData } from '@/lib/fabric-seed-data'
+import { blogPosts } from '@/modules/blog'
+import { fabricSeedData } from '@/modules/fabrics/data/seed-data'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://tara-hub.vercel.app'

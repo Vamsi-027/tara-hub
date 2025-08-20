@@ -35,7 +35,7 @@ import {
   Building2
 } from "lucide-react"
 import { ImageUpload } from "@/components/ui/image-upload"
-import { useCreateFabric } from "@/hooks/use-fabrics"
+import { useCreateFabric } from "@/modules/fabrics"
 import { toast } from "sonner"
 import Link from "next/link"
 import { 

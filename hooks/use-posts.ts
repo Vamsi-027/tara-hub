@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { DBPost } from "@/lib/db-schema"
+import type { DBPost } from "@/core/database/schemas"
 
 interface UsePostsOptions {
   channel?: string

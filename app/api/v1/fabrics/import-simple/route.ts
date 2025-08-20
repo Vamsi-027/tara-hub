@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt';
+import { checkJWTAuth, PERMISSIONS } from '@/modules/auth';
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,4 +1,4 @@
-import { fabricSeedData, getFabricById } from "@/lib/fabric-seed-data"
+import { fabricSeedData, getFabricById } from "@/modules/fabrics/data/seed-data"
 import { FabricDetailPage } from "@/components/fabric-detail-page"
 import { notFound } from "next/navigation"
 

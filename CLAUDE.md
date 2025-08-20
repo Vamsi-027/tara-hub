@@ -60,6 +60,27 @@ npm run vercel:env        # Pull .env.local from Vercel
 
 ## High-Level Architecture
 
+### Module-Based Structure (NEW)
+```
+src/
+├── modules/                    # Feature modules
+│   ├── fabrics/                # Fabric management
+│   ├── auth/                   # Authentication & authorization
+│   ├── blog/                   # Blog & content
+│   ├── products/               # Product management
+│   └── admin/                  # Admin features
+├── core/                       # Core infrastructure
+│   ├── database/               # Drizzle ORM & PostgreSQL
+│   ├── cache/                  # Caching strategies (KV/Redis)
+│   ├── storage/                # Cloudflare R2
+│   └── email/                  # Resend email service
+└── shared/                     # Shared resources
+    ├── components/ui/          # shadcn/ui components
+    ├── hooks/                  # Shared React hooks
+    ├── utils/                  # Utilities
+    └── types/                  # Shared TypeScript types
+```
+
 ### Monorepo Structure (Turbo)
 - **Root App**: Admin dashboard at `/app/admin/` (main auth and management)
 - **experiences/fabric-store**: Customer-facing fabric browsing (port 3006)
@@ -87,15 +108,16 @@ npm run vercel:env        # Pull .env.local from Vercel
 - Backward compatibility with legacy database schema
 - Migration from NextAuth due to Jest worker thread incompatibility
 
-**Key Authentication Files**:
-- `lib/auth-utils.ts` - Token generation, verification, user management
-- `lib/custom-auth.ts` - Core authentication utilities and JWT handling
-- `lib/email-service.ts` - Professional HTML email templates via Resend
+**Key Authentication Files** (Updated Paths):
+- `src/modules/auth/services/auth.service.ts` - Main authentication service
+- `src/modules/auth/utils/token.utils.ts` - Token generation and verification
+- `src/modules/auth/middleware/auth.middleware.ts` - Route protection
+- `src/core/email/resend.service.ts` - Professional HTML email templates
 - `app/api/auth/signin/route.ts` - Magic link generation endpoint
 - `app/api/auth/verify/route.ts` - Token verification and session creation
 - `middleware.ts` - Custom JWT-based route protection
-- `components/auth/magic-link-form.tsx` - Client-side authentication UI
-- `lib/legacy-auth-schema.ts` - Backward compatibility with NextAuth schema
+- `src/modules/auth/components/magic-link-form.tsx` - Client-side auth UI
+- `src/modules/auth/schemas/legacy-auth.schema.ts` - NextAuth compatibility
 
 ### Data Persistence Strategy
 
@@ -103,9 +125,9 @@ npm run vercel:env        # Pull .env.local from Vercel
 - **PostgreSQL** (Drizzle ORM): User accounts, sessions, relational data
 - **Vercel KV** (Redis): Content caching, fabric catalog, performance optimization
 - **In-memory fallback**: Development mode when KV unavailable
-- **Static seed data**: `lib/fabric-seed-data.ts` for initial fabric catalog
+- **Static seed data**: `src/modules/fabrics/data/seed-data.ts` for initial fabric catalog
 
-**Database Schema** (`lib/db/schema/fabrics.schema.ts`):
+**Database Schema** (`src/modules/fabrics/schemas/fabric.schema.ts`):
 - Comprehensive fabric schema with 60+ fields including inventory, performance ratings, certifications
 - Full-text search with PostgreSQL GIN indexes
 - Audit trails, price history, stock movement tracking
@@ -166,7 +188,7 @@ R2_BUCKET_NAME=...
 ```
 
 ### Admin Access Configuration
-**Whitelisted admin emails** in `lib/auth.ts`:
+**Whitelisted admin emails** in `src/modules/auth/services/auth.service.ts`:
 - varaku@gmail.com
 - batchu.kedareswaraabhinav@gmail.com  
 - vamsicheruku027@gmail.com
@@ -177,9 +199,30 @@ R2_BUCKET_NAME=...
 - ESLint and TypeScript errors temporarily ignored for builds
 - Address these when making significant architectural changes
 
-### Path Aliases
-- `@/*` maps to project root (configured in tsconfig.json)
-- Consistent across all monorepo packages
+### Path Aliases & Import Paths
+
+**Main App (tsconfig.json)**:
+```typescript
+"@/*": ["./*"]                    // Project root
+"@/modules/*": ["./src/modules/*"] // Feature modules
+"@/core/*": ["./src/core/*"]      // Core infrastructure
+"@/shared/*": ["./src/shared/*"]  // Shared resources
+```
+
+**Import Examples**:
+```typescript
+// Feature modules
+import { FabricService } from '@/modules/fabrics';
+import { AuthService } from '@/modules/auth';
+
+// Core services
+import { getR2Client } from '@/core/storage/r2/client';
+import { createCacheStrategy } from '@/core/cache/strategies/cache-strategy';
+
+// Shared resources
+import { Button } from '@/shared/components/ui/button';
+import { cn } from '@/shared/utils';
+```
 
 ## Key API Endpoints
 
@@ -217,6 +260,11 @@ R2_BUCKET_NAME=...
 - `GET /api/auth/verify` - Verify magic link token and create session
 - `POST /api/auth/signout` - Destroy session
 
+### Test Endpoints (Development Only)
+All test endpoints are isolated in `app/api/__tests__/` to keep production routes clean:
+- Test R2 storage, KV cache, email configuration
+- Not accessible in production builds
+
 ## Development Workflow
 
 ### Initial Setup
@@ -228,10 +276,10 @@ R2_BUCKET_NAME=...
 ### Common Development Tasks
 
 **Adding new fabric data**:
-1. Update schema in `lib/db/schema/fabrics.schema.ts`
+1. Update schema in `src/modules/fabrics/schemas/fabric.schema.ts`
 2. Generate migration: `npm run db:generate`  
 3. Apply migration: `npm run db:push`
-4. Update seed data in `lib/fabric-seed-data.ts`
+4. Update seed data in `src/modules/fabrics/data/seed-data.ts`
 
 **Testing authentication**:
 1. Ensure RESEND_API_KEY is configured

@@ -3,8 +3,8 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { fabricSeedData } from '@/lib/fabric-seed-data'
-import type { Fabric } from '@/lib/fabric-seed-data'
+import { fabricSeedData } from '@/modules/fabrics/data/seed-data'
+import type { Fabric } from '@/modules/fabrics/data/seed-data'
 
 export function FeaturedFabrics() {
   // Get first 6 fabrics as featured

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { users } from '@/lib/auth-schema'
+import { db } from '@/core/database/drizzle/client'
+import { users } from '@/modules/auth'
 import { eq } from 'drizzle-orm'
-import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt'
+import { checkJWTAuth, PERMISSIONS } from '@/modules/auth'
 
 export async function POST(request: Request) {
   try {

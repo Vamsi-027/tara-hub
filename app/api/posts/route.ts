@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getAllPosts, createPost } from "@/lib/kv"
-import type { APIResponse, PostsResponse, DBPost } from "@/lib/db-schema"
+import { getAllPosts, createPost } from "@/core/cache/providers/vercel-kv"
+import type { APIResponse, PostsResponse, DBPost } from "@/core/database/schemas"
 
 export async function GET(request: NextRequest) {
   try {

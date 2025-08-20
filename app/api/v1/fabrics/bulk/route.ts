@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { fabricService } from '@/lib/services/fabric.service';
+import { fabricService } from '@/modules/fabrics';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';

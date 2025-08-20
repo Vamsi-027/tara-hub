@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { legacyVerificationTokens, legacyUsers } from '@/lib/legacy-auth-schema';
-import { db } from '@/lib/db';
+import { legacyVerificationTokens, legacyUsers } from '@/modules/auth';
+import { db } from '@/core/database/drizzle/client';
 import { eq, and, gt } from 'drizzle-orm';
 import jwt from 'jsonwebtoken';
 

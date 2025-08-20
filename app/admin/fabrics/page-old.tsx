@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, Edit, Trash2 } from "lucide-react"
-import { fabricSeedData } from "@/lib/fabric-seed-data"
+import { fabricSeedData } from "@/modules/fabrics/data/seed-data"
 import { EmptyState } from "@/components/empty-state"
 import { FabricModal } from "@/components/fabric-modal"
-import type { Fabric } from "@/lib/types"
+import type { Fabric } from "@/shared/types"
 
 export default function AdminFabricsPage() {
   const [fabrics, setFabrics] = useState(fabricSeedData)

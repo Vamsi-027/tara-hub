@@ -4,9 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { fabricService } from '@/lib/services/fabric.service';
-import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt';
-import { insertFabricSchema } from '@/lib/db/schema/fabrics.schema';
+import { fabricService } from '@/modules/fabrics';
+import { checkJWTAuth, PERMISSIONS } from '@/modules/auth';
+import { insertFabricSchema } from '@/modules/fabrics';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 

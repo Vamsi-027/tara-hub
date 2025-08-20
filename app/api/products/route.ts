@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { getAllHeroCategories, getAllLaunchItems, getAllPromoItems } from "@/lib/kv"
-import type { APIResponse, ProductsResponse } from "@/lib/db-schema"
+import { getAllHeroCategories, getAllLaunchItems, getAllPromoItems } from "@/core/cache/providers/vercel-kv"
+import type { APIResponse, ProductsResponse } from "@/core/database/schemas"
 
 export async function GET() {
   try {

@@ -4,7 +4,7 @@ import {
   updateBlogPost,
   deleteBlogPost,
   incrementBlogViews
-} from '@/lib/blog-model'
+} from '@/modules/blog'
 
 export async function GET(
   request: NextRequest,

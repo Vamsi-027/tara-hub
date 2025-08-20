@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { EmailService } from '@/lib/email-service';
+import { EmailService } from '@/core/email/resend.service';
 import { 
   createVerificationToken, 
   isValidEmail,
   sanitizeEmail
-} from '@/lib/auth-utils';
-import { legacyUsers } from '@/lib/legacy-auth-schema';
-import { db } from '@/lib/db';
+} from '@/modules/auth';
+import { legacyUsers } from '@/modules/auth';
+import { db } from '@/core/database/drizzle/client';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {

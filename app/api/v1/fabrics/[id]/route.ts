@@ -5,12 +5,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@/lib/custom-auth';
-import { fabricService } from '@/lib/services/fabric.service';
+import { getServerSession } from '@/modules/auth';
+import { fabricService } from '@/modules/fabrics';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
-import { checkJWTAuth } from '@/lib/auth-utils-jwt';
+import { checkJWTAuth } from '@/modules/auth';
 
 // ============================================
 // HELPERS (reuse from main route)

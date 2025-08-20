@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { EtsyProductModel } from '@/lib/etsy-product-model'
+import { EtsyProductModel } from '@/modules/products'
 
 export async function GET(request: NextRequest) {
   try {

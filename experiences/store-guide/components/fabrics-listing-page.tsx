@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { type Fabric, type FabricFilters } from '@/lib/api-client'
-import { fabricSeedData, filterFabrics } from '@/lib/fabric-seed-data'
+import { fabricSeedData, filterFabrics } from '@/modules/fabrics/data/seed-data'
 import { FabricCard } from './fabric-card'
 import { FabricFilters as FilterComponent } from './fabric-filters'
 

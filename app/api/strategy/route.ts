@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getAllChannelStrategies, getAllSEOKeywords, getAllBlogPosts, getAllCreativeGuidelines } from "@/lib/kv"
-import type { APIResponse, StrategyResponse } from "@/lib/db-schema"
+import { getAllChannelStrategies, getAllSEOKeywords, getAllBlogPosts, getAllCreativeGuidelines } from "@/core/cache/providers/vercel-kv"
+import type { APIResponse, StrategyResponse } from "@/core/database/schemas"
 
 export async function GET(request: NextRequest) {
   try {

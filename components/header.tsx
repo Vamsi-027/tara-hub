@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Menu, X } from 'lucide-react'
-import { mainNavigation } from '@/lib/navigation' // Import mainNavigation
+import { mainNavigation } from '@/shared/utils/navigation' // Import mainNavigation
 import { config } from '@/lib/config'
 
 export function Header() {

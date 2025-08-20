@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { StrategyResponse } from "@/lib/db-schema"
+import type { StrategyResponse } from "@/core/database/schemas"
 
 export function useStrategy() {
   const [data, setData] = useState<StrategyResponse | null>(null)

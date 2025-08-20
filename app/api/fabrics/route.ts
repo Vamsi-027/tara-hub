@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import * as jwt from 'jsonwebtoken'
-import { fabricService } from '@/lib/services/fabric.service'
+import { fabricService } from '@/modules/fabrics'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
 export async function GET(request: NextRequest) {

@@ -3,7 +3,7 @@ import {
   createBlogPost,
   getAllBlogPosts,
   BlogPostModel
-} from '@/lib/blog-model'
+} from '@/modules/blog'
 
 export async function GET(request: NextRequest) {
   try {

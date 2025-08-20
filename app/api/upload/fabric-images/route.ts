@@ -4,13 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { R2StorageV3 } from '@/lib/r2-client-v3';
+import { R2StorageV3 } from '@/core/storage/r2/client';
 import { nanoid } from 'nanoid';
-import { checkJWTAuth, PERMISSIONS } from '@/lib/auth-utils-jwt';
+import { checkJWTAuth, PERMISSIONS } from '@/modules/auth';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-import { fabricImageRepository } from '@/lib/repositories/fabric-image.repository';
-import { db } from '@/lib/db';
+import { fabricImageRepository } from '@/modules/fabrics';
+import { db } from '@/core/database/drizzle/client';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];

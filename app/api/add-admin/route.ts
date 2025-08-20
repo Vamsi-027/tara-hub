@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { legacyUsers } from '@/lib/legacy-auth-schema';
+import { db } from '@/core/database/drizzle/client';
+import { legacyUsers } from '@/modules/auth';
 import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {

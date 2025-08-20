@@ -22,7 +22,7 @@ import {
   Eye,
   Trash2
 } from "lucide-react"
-import { useFabricImport } from "@/hooks/use-fabrics"
+import { useFabricImport } from "@/modules/fabrics"
 import { toast } from "sonner"
 import Link from "next/link"
 

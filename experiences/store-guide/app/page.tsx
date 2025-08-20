@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { getFeaturedFabrics, getFabricCategories } from '@/lib/fabric-seed-data'
+import { getFeaturedFabrics, getFabricCategories } from '@/modules/fabrics/data/seed-data'
 import { FabricCard } from '@/components/fabric-card'
 import { Award, Star, Shield, Users, ArrowRight, Sparkles, Palette, Leaf } from 'lucide-react'
 
