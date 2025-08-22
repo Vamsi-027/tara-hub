@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tara Hub - A Next.js 15 fabric marketplace platform built with Turbo monorepo architecture, featuring admin dashboard, email-based authentication with magic links, and hybrid data persistence using PostgreSQL + Redis.
 
+**Current State**: The codebase is in a transition period from a flat structure to a module-based architecture. Both old paths (lib/, components/) and new paths (src/modules/, src/shared/) coexist temporarily.
+
 ## Development Commands
 
 ```bash
@@ -85,7 +87,8 @@ src/
 - **Root App**: Admin dashboard at `/app/admin/` (main auth and management)
 - **experiences/fabric-store**: Customer-facing fabric browsing (port 3006)
 - **experiences/store-guide**: Store guide application (port 3007)  
-- **packages/**: Shared libraries (planned for future use)
+- **packages/**: Legacy shared libraries (being migrated to src/shared)
+- **api-service/**: Railway-deployed backend service for heavy operations
 - **Workspace orchestration**: Turbo with parallel builds and dev servers
 
 ### Core Technology Stack
@@ -96,14 +99,17 @@ src/
 - **UI**: Radix UI primitives + shadcn/ui components + Tailwind CSS
 - **Storage**: Cloudflare R2 for image uploads and asset management
 - **Email**: Resend API for magic link delivery and notifications
-- **Deployment**: Vercel with automatic deployments on main branch
+- **Deployment**: 
+  - Vercel for Next.js apps (admin, experiences)
+  - Railway for backend API service (heavy operations)
+- **Background Jobs**: Bull/BullMQ (planned) for async processing
 
 ### Authentication Architecture
 
 **Custom Magic Link System** (replaces NextAuth due to Jest worker conflicts):
 - Email-based passwordless authentication using Resend API
 - JWT tokens with HTTP-only cookies (30-day expiry)
-- Admin whitelist enforcement in `lib/auth.ts`
+- Admin whitelist enforcement in auth service
 - Custom middleware for route protection
 - Backward compatibility with legacy database schema
 - Migration from NextAuth due to Jest worker thread incompatibility
@@ -118,6 +124,8 @@ src/
 - `middleware.ts` - Custom JWT-based route protection
 - `src/modules/auth/components/magic-link-form.tsx` - Client-side auth UI
 - `src/modules/auth/schemas/legacy-auth.schema.ts` - NextAuth compatibility
+
+Note: NextAuth dependency still exists in package.json but is not actively used.
 
 ### Data Persistence Strategy
 
@@ -135,12 +143,24 @@ src/
 
 ### API Architecture
 
+**Three-Layer API Design**:
+
+1. **Legacy API (`/api/fabrics/`)**: Simple KV-store based for experience apps
+2. **Admin API (`/api/v1/fabrics/`)**: Full PostgreSQL + Drizzle ORM for admin
+3. **Railway Backend (`api-service/`)**: Heavy operations, bulk imports, async jobs
+
 **RESTful Design** in `app/api/`:
 - **Public routes**: Fabric catalog, blog posts (GET only)
 - **Admin-protected routes**: All CUD operations require authentication
 - **Bulk operations**: `/api/v1/fabrics/bulk` for mass import/export
 - **ISR integration**: 60-second revalidation for performance
 - **Error handling**: Standardized responses with proper HTTP status codes
+
+**Railway Backend Routes**:
+- `/api/sync` - Data synchronization
+- `/api/jobs` - Background job management
+- `/api/webhooks` - External integrations
+- `/api/analytics` - Heavy analytics processing
 
 ### Component Patterns
 
@@ -154,7 +174,53 @@ src/
 - shadcn/ui components built on Radix UI primitives
 - Tailwind CSS with custom design system
 - Responsive design patterns optimized for fabric marketplace
-- Custom hooks in `hooks/` for data fetching and state management
+- Custom hooks in `src/shared/hooks/` for data fetching and state management
+
+### Admin Dashboard Features
+
+**Core Admin Functionality**:
+- **Fabric Management**: Advanced CRUD with bulk operations, CSV/Excel import/export
+- **Inventory Tracking**: Real-time stock levels with visual indicators
+- **Content Management**: Blog posts, social media content, product promos
+- **Team Management**: Role-based access control (platform_admin, tenant_admin, admin, editor, viewer)
+- **Analytics Dashboard**: Performance metrics and reporting (in development)
+
+**Admin UI Patterns**:
+```typescript
+// Authentication check pattern used in all admin pages
+const { isLoading, isAuthenticated, isAdmin } = useAuth({ 
+  required: true,
+  role: 'admin' 
+})
+
+// API permission pattern for admin routes
+const { allowed, userId, error } = await checkPermission('create')
+if (!allowed) return error
+```
+
+**Advanced Features**:
+- **Bulk Import System**: Drag-and-drop CSV/Excel with row-level error feedback
+- **Multi-view Layouts**: Toggle between card and list views for fabric management
+- **Smart Filtering**: Advanced search with category, status, and treatment filters
+- **Toast Notifications**: Consistent feedback using Sonner library
+- **Empty States**: Custom components with contextual CTAs
+
+**Navigation Structure**:
+- Dashboard (overview and metrics)
+- Team (member management)
+- Calendar (scheduling)
+- Blog & Posts (content management)
+- Strategy (business planning)
+- Products & Promos
+- Fabrics (inventory)
+- Etsy Products (integration)
+
+## Architecture Transition Status
+
+The codebase is undergoing a migration from flat structure to module-based architecture:
+- **165 imports fixed** from old paths to new module paths
+- **Mixed import paths** currently exist (both work during transition)
+- **Reference**: See `REFACTORING_ANALYSIS_REPORT.md` for migration details
 
 ## Critical Configuration
 
@@ -162,11 +228,12 @@ src/
 ```env
 # Database (PostgreSQL - Required)
 DATABASE_URL=postgresql://user:password@host:5432/database
-POSTGRES_URL=postgresql://...  # Alternative name
+POSTGRES_URL=postgresql://...  # Alternative name (same database)
 
 # Authentication (Required)
 NEXTAUTH_URL=http://localhost:3000  # or production domain
 NEXTAUTH_SECRET=your-jwt-secret  # Generate: openssl rand -base64 32
+JWT_SECRET=your-jwt-secret      # Same as NEXTAUTH_SECRET
 
 # Email Authentication (Required for magic links)
 RESEND_API_KEY=re_xxxxxxxxxxxxx
@@ -185,6 +252,9 @@ R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET_NAME=...
+
+# Railway Backend (For heavy operations)
+RAILWAY_API_URL=https://your-backend.railway.app
 ```
 
 ### Admin Access Configuration
@@ -212,8 +282,8 @@ R2_BUCKET_NAME=...
 **Import Examples**:
 ```typescript
 // Feature modules
-import { FabricService } from '@/modules/fabrics';
-import { AuthService } from '@/modules/auth';
+import { FabricService } from '@/modules/fabrics/services/fabric.service';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 // Core services
 import { getR2Client } from '@/core/storage/r2/client';
@@ -228,7 +298,7 @@ import { cn } from '@/shared/utils';
 
 ### API Versions - IMPORTANT
 
-**Two Different API Versions:**
+**Three Different API Layers:**
 
 1. **Legacy API (`/api/fabrics/`)**:
    - Simple KV-store based
@@ -241,6 +311,12 @@ import { cn } from '@/shared/utils';
    - Comprehensive 60+ field schema
    - Used by admin dashboard
    - Full authentication and CRUD
+
+3. **Railway Backend (`api-service/`)**:
+   - Heavy operations and background jobs
+   - Bulk imports and exports
+   - Analytics processing
+   - Webhook handling
 
 ### Public Routes
 - `GET /api/fabrics` - Legacy fabric catalog (KV-based)
@@ -281,11 +357,25 @@ All test endpoints are isolated in `app/api/__tests__/` to keep production route
 3. Apply migration: `npm run db:push`
 4. Update seed data in `src/modules/fabrics/data/seed-data.ts`
 
+**Bulk importing fabrics**:
+1. Navigate to `/admin/fabrics/import`
+2. Download CSV template for correct format
+3. Fill template with fabric data
+4. Drag-and-drop or select file to upload
+5. Review import preview and handle any errors
+6. Confirm import to add fabrics to database
+
 **Testing authentication**:
 1. Ensure RESEND_API_KEY is configured
 2. Visit `http://localhost:3000/auth/signin`
 3. Enter whitelisted admin email for magic link
 4. Check email for magic link (15-minute expiry)
+
+**Working with admin features**:
+1. All admin pages require authentication
+2. Use `useAuth({ required: true, role: 'admin' })` hook
+3. API routes check permissions with JWT verification
+4. Toast notifications via `sonner` for user feedback
 
 **Monorepo development**:
 - Use `npm run dev` to start all apps simultaneously
@@ -295,10 +385,10 @@ All test endpoints are isolated in `app/api/__tests__/` to keep production route
 ### Database Management
 
 **Schema Evolution**:
-- Primary schemas in `lib/db/schema/` with comprehensive Drizzle definitions
-- Legacy compatibility maintained in `lib/legacy-auth-schema.ts`
+- Primary schemas in `src/core/database/schemas/` with comprehensive Drizzle definitions
+- Legacy compatibility maintained in `src/modules/auth/schemas/legacy-auth.schema.ts`
 - Use `npm run db:studio` for visual database inspection
-- Seed data management via `/api/seed` endpoint
+- Seed data management via scripts in `scripts/` directory
 
 **Performance Optimization**:
 - KV caching layer for frequently accessed data
@@ -338,3 +428,30 @@ All test endpoints are isolated in `app/api/__tests__/` to keep production route
 - Database schema validation (Zod + Drizzle)
 - API endpoint authentication and authorization
 - Component rendering and user interactions
+
+## Troubleshooting
+
+### Common Import Path Errors
+During the architecture transition, you may encounter import errors:
+- Try both old paths (`lib/`, `components/`) and new paths (`src/modules/`, `src/shared/`)
+- Check `REFACTORING_ANALYSIS_REPORT.md` for specific file mappings
+
+### Authentication Issues
+- Ensure email is in the admin whitelist
+- Check RESEND_API_KEY is valid
+- Verify JWT_SECRET matches NEXTAUTH_SECRET
+
+### Database Connection
+- Both DATABASE_URL and POSTGRES_URL work (same connection)
+- Check Neon dashboard for connection limits
+- Use `npm run db:studio` to debug schema issues
+
+### API Version Confusion
+- Experience apps use `/api/fabrics/` (simple KV)
+- Admin uses `/api/v1/fabrics/` (full PostgreSQL)
+- Don't mix the two API versions
+
+### Build Errors
+- TypeScript/ESLint errors are currently ignored
+- Check `next.config.mjs` for build configuration
+- Railway backend requires separate deployment
