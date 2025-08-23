@@ -98,6 +98,7 @@
     "embla-carousel-react": "latest",
     "input-otp": "latest",
     "ioredis": "^5.7.0",
+    "@tsndr/cloudflare-worker-jwt": "latest",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.454.0",
     "nanoid": "^5.1.5",

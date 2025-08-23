@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import jwt from '@tsndr/cloudflare-worker-jwt';
 
 // Define protected routes and their required roles
 const protectedRoutes = {
@@ -45,32 +46,29 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check if auth token exists (simplified for Edge Runtime)
-  let hasValidToken = false;
-  try {
-    const authCookie = request.cookies.get('auth-token');
-    console.log(`🍪 Middleware checking path: ${pathname}, has auth-token:`, !!authCookie?.value);
-    
-    if (authCookie?.value) {
-      // For Edge Runtime, we'll trust the session API to verify the token
-      // Just check if cookie exists and has reasonable length
-      hasValidToken = authCookie.value.length > 100; // JWT tokens are typically longer
-      console.log('✅ Auth token present in middleware, length:', authCookie.value.length);
-    }
-  } catch (error) {
-    console.log('❌ Error checking auth token in middleware:', error);
-    hasValidToken = false;
-  }
-
   // Check if route requires authentication
   const protectedRoute = Object.entries(protectedRoutes).find(([route]) =>
     pathname === route || pathname.startsWith(`${route}/`)
   );
 
   if (protectedRoute) {
-    // No token means not authenticated
-    if (!hasValidToken) {
-      console.log('❌ No valid token, redirecting to signin');
+    const authCookie = request.cookies.get('auth-token');
+    let isValid = false;
+
+    try {
+      if (authCookie?.value) {
+        isValid = await jwt.verify(
+          authCookie.value,
+          process.env.NEXTAUTH_SECRET || ''
+        );
+        console.log('✅ Auth token verification result:', isValid);
+      }
+    } catch (error) {
+      console.log('❌ Error verifying auth token in middleware:', error);
+    }
+
+    if (!isValid) {
+      console.log('❌ Invalid or expired token, redirecting to signin');
       const signInUrl = new URL('/auth/signin', request.url);
       signInUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(signInUrl);
