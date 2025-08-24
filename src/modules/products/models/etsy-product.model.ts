@@ -1,5 +1,4 @@
-import { kv } from '@vercel/kv'
-import { memoryStore } from './memory-store'
+import { kvClient as kv } from '@/src/core/cache/providers/kv-client'
 
 // Check if KV is available
 const isKVAvailable = () => {

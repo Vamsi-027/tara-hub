@@ -59,7 +59,16 @@ async function checkPermission(
     }
     
     // Verify JWT token
-    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as any;
+    const secret = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET;
+    if (!secret) {
+      console.error('No JWT secret found in environment variables');
+      return {
+        allowed: false,
+        error: errorResponse('Server configuration error', 500)
+      };
+    }
+    console.log('Using JWT secret starting with:', secret.substring(0, 10));
+    const decoded = jwt.verify(token, secret) as any;
     
     if (!decoded || !decoded.email) {
       return {
@@ -69,7 +78,7 @@ async function checkPermission(
     }
     
     const userRole = decoded.role;
-    const userId = decoded.userId;
+    const userId = decoded.id || decoded.userId;
   
   const permissions = {
     create: ['editor', 'admin', 'tenant_admin', 'platform_admin'],
@@ -85,7 +94,8 @@ async function checkPermission(
   }
   
   return { allowed: true, userId };
-  } catch (error) {
+  } catch (error: any) {
+    console.error('JWT verification error:', error.message);
     return {
       allowed: false,
       error: errorResponse('Authentication failed', 401),
@@ -203,7 +213,9 @@ export async function POST(request: NextRequest) {
         const validated = bulkDeleteSchema.parse(body);
         
         // Perform bulk delete
+        console.log('Deleting fabrics:', validated.ids);
         const result = await fabricService.bulkDelete(validated.ids, userId!);
+        console.log('Delete result:', result);
         
         // Return results
         return apiResponse({

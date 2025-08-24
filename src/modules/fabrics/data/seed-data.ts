@@ -1,9 +1,29 @@
-import { kv } from './kv'
-import { type Fabric } from './types'
-
-// Re-exporting Fabric to satisfy incorrect imports elsewhere in the project.
-// The correct long-term fix is to update those imports to point to './types'.
-export type { Fabric } from './types'
+// Fabric type for seed data
+export interface Fabric {
+  id: string
+  name: string
+  description?: string
+  category: string
+  color: string
+  composition?: string
+  width?: string
+  weight?: string
+  durability?: string
+  careInstructions?: string
+  inStock: boolean
+  swatchImageUrl?: string
+  detailImages?: string[]
+  applications?: string[]
+  features?: string[]
+  origin?: string
+  designer?: string
+  collection?: string
+  patternRepeat?: string
+  flammabilityRating?: string
+  abrasionRating?: string
+  lightFastness?: string
+  pillResistance?: string
+}
 
 export const fabricSeedData: Fabric[] = [
  {

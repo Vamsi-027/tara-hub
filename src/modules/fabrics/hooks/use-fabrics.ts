@@ -1,3 +1,5 @@
+"use client"
+
 /**
  * FABRIC HOOKS
  * React hooks for fabric CRUD operations

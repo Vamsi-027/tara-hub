@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { R2StorageV3 } from '@/core/storage/r2/client';
+import { R2StorageV3 } from '@/src/core/storage/r2/client-v3-legacy';
 
 export async function GET(
   request: NextRequest,

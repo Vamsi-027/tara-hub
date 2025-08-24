@@ -4,13 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { R2StorageV3 } from '@/core/storage/r2/client';
+import { getR2Client } from '@/src/core/storage/r2/client';
 import { nanoid } from 'nanoid';
-import { checkJWTAuth, PERMISSIONS } from '@/modules/auth';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-import { fabricImageRepository } from '@/modules/fabrics';
-import { db } from '@/core/database/drizzle/client';
+import { db } from '@/src/core/database/drizzle/client';
+import { fabricService } from '@/src/modules/fabrics';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -60,12 +59,13 @@ export async function POST(request: NextRequest) {
     const fabricId = searchParams.get('fabricId');
 
     // Check if R2 is configured
-    if (!R2StorageV3.isConfigured()) {
+    const r2Client = getR2Client();
+    if (!process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET_NAME) {
       return NextResponse.json(
         { 
           error: { 
             message: 'R2 storage not configured. Please set up R2 environment variables.',
-            details: 'Missing R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, or S3_URL'
+            details: 'Missing R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, or R2_BUCKET_NAME'
           } 
         },
         { status: 500 }
@@ -130,40 +130,20 @@ export async function POST(request: NextRequest) {
         const uint8Array = new Uint8Array(buffer);
 
         // Upload to R2
-        const uploadResult = await R2StorageV3.upload(key, uint8Array, file.type);
+        const publicUrl = await r2Client.uploadImage(Buffer.from(uint8Array), key, file.type);
 
-        if (uploadResult.success) {
-          uploadedKeys.push(key); // Track for potential cleanup
-          
-          // Construct the public R2 URL
-          const baseUrl = process.env.R2_PUBLIC_URL || process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
-          
-          let publicUrl: string;
-          if (baseUrl) {
-            publicUrl = `${baseUrl}/${key}`;
-          } else {
-            publicUrl = `/api/fabric-image/${encodeURIComponent(key)}`;
-          }
+        uploadedKeys.push(key); // Track for potential cleanup
 
           // Store metadata in database if fabric ID is provided
           if (fabricId) {
             try {
-              const imageRecord = await fabricImageRepository.create({
-                fabricId: fabricId,
-                url: publicUrl,
-                r2Key: key,
-                filename: `${timestamp}-${uniqueId}.${fileExtension}`,
-                originalFilename: file.name,
-                mimeType: file.type,
-                size: file.size,
-                type: i === 0 ? 'main' : 'detail', // First image is main
-                order: i,
-                isPrimary: i === 0,
-                uploadedBy: user.userId || user.id,
-                isProcessed: false,
-              });
-              
-              dbImageRecords.push(imageRecord);
+              // Update fabric with the new image URL
+              const currentFabric = await fabricService.findById(fabricId);
+              if (currentFabric) {
+                const currentImages = currentFabric.images || [];
+                currentImages.push(publicUrl);
+                await fabricService.update(fabricId, { images: currentImages }, user.id);
+              }
             } catch (dbError: any) {
               console.error('Failed to store image metadata in database:', dbError);
               // Don't fail the whole upload if DB insert fails
@@ -179,9 +159,6 @@ export async function POST(request: NextRequest) {
             size: file.size,
             type: file.type
           });
-        } else {
-          uploadErrors.push(`File ${i + 1} (${file.name}): ${uploadResult.error}`);
-        }
       } catch (error: any) {
         console.error('Upload error for file:', file.name, error);
         uploadErrors.push(`File ${i + 1} (${file.name}): ${error.message}`);
@@ -227,22 +204,23 @@ export async function POST(request: NextRequest) {
 // GET endpoint to test R2 configuration
 export async function GET() {
   try {
-    const { allowed, error } = await checkJWTAuth(PERMISSIONS.ADMIN_ONLY);
-    if (!allowed) {
-      return error!;
+    // Check authentication
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
+    
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const config = R2StorageV3.getConfig();
-    const testResult = await R2StorageV3.testConnection();
-
+    const isConfigured = !!(process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET_NAME);
+    
     return NextResponse.json({
-      configured: R2StorageV3.isConfigured(),
+      configured: isConfigured,
       config: {
-        endpoint: config.endpoint,
-        bucket: config.bucket,
-        hasCredentials: config.hasAccessKey && config.hasSecretKey
-      },
-      connectionTest: testResult
+        endpoint: process.env.R2_ACCOUNT_ID ? `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com` : null,
+        bucket: process.env.R2_BUCKET_NAME || null,
+        hasCredentials: !!(process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY)
+      }
     });
   } catch (error: any) {
     return NextResponse.json(

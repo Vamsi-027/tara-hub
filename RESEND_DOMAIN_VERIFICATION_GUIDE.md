@@ -2,7 +2,7 @@
 
 ## Step 1: Access Resend Domain Settings
 
-1. Go to https://resend.com/domains
+1. Go to now, i
 2. Click "Add Domain"
 3. Enter your domain (choose one):
    - `deepcrm.ai` (if you control this domain)

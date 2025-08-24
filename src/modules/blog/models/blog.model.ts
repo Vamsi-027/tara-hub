@@ -1,5 +1,5 @@
-import { kvClient, isKVAvailable } from './kv-client'
-import { memoryStore } from './memory-store'
+import { kvClient, isKVAvailable } from '@/src/core/cache/providers/kv-client'
+import { memoryStore } from '@/src/core/cache/providers/memory-store'
 
 // Use kvClient instead of direct kv import
 const kv = kvClient

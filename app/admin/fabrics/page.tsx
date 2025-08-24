@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { FabricCardEnhanced, FabricCardSkeleton } from "@/components/admin/fabric-card-enhanced"
 import { EmptyState } from "@/components/empty-state"
-import { useFabrics, useCreateFabric, useBulkFabricOperations } from "@/modules/fabrics"
+import { useFabrics, useCreateFabric, useBulkFabricOperations } from "@/modules/fabrics/index.client"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,6 +80,25 @@ export default function AdminFabricsPage() {
         refetch()
       } catch (error) {
         console.error('Bulk delete failed:', error)
+      } finally {
+        setBulkLoading(false)
+      }
+    }
+  }
+
+  const handleSingleDelete = async (id: string) => {
+    console.log('handleSingleDelete called with id:', id)
+    if (confirm(`Are you sure you want to delete this fabric?`)) {
+      setBulkLoading(true)
+      try {
+        console.log('Calling bulkDelete with id:', id)
+        const result = await bulkDelete([id])
+        console.log('Delete result:', result)
+        toast.success('Fabric deleted successfully')
+        refetch()
+      } catch (error) {
+        console.error('Delete failed:', error)
+        toast.error('Failed to delete fabric')
       } finally {
         setBulkLoading(false)
       }
@@ -331,10 +350,7 @@ export default function AdminFabricsPage() {
               fabric={fabric}
               onView={handleView}
               onEdit={handleEdit}
-              onDelete={(id) => {
-                setSelectedIds([id]);
-                handleBulkDelete();
-              }}
+              onDelete={handleSingleDelete}
             />
           ))}
         </div>
@@ -447,7 +463,7 @@ export default function AdminFabricsPage() {
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => handleBulkDelete()}
+                        onClick={() => handleSingleDelete(fabric.id)}
                         className="text-red-600"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />

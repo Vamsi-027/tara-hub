@@ -1,7 +1,18 @@
 import { kv } from '@vercel/kv'
-import type { Fabric } from './types'
-import { fabricSeedData } from './fabric-seed-data'
-import { memoryStore } from './memory-store'
+import { fabricSeedData } from '@/src/modules/fabrics/data/seed-data'
+import { memoryStore } from '@/src/core/cache/providers/memory-store'
+
+// Simple fabric type for KV store
+export interface Fabric {
+  id: string
+  name: string
+  description?: string
+  category: string
+  color: string
+  price: number
+  inStock: boolean
+  imageUrl?: string
+}
 
 // Check if KV is available
 const isKVAvailable = () => {
@@ -106,9 +117,21 @@ export async function getFabric(id: string): Promise<Fabric | null> {
   } catch (error) {
     console.error('Error fetching fabric from KV:', error)
     // Fallback to seed data
-    return fabricSeedData.find(f => f.id === id) || null
+    return simpleFabrics.find(f => f.id === id) || null
   }
 }
+
+// Transform seed data to simple format
+const simpleFabrics: Fabric[] = fabricSeedData.map(f => ({
+  id: f.id,
+  name: f.name,
+  description: f.description,
+  category: f.category,
+  color: f.color,
+  price: 0, // Seed data doesn't have price
+  inStock: f.inStock,
+  imageUrl: f.swatchImageUrl
+}))
 
 export async function getAllFabrics(filters?: {
   category?: string
@@ -118,6 +141,11 @@ export async function getAllFabrics(filters?: {
   if (!isKVAvailable()) {
     // Use memory store
     let fabrics = memoryStore.getAllFabrics()
+    if (fabrics.length === 0) {
+      // Load seed data if memory is empty
+      simpleFabrics.forEach(f => memoryStore.setFabric(f.id, f))
+      fabrics = simpleFabrics
+    }
     if (filters?.category) {
       fabrics = fabrics.filter(f => f.category === filters.category)
     }
@@ -146,8 +174,8 @@ export async function getAllFabrics(filters?: {
     }
 
     if (fabricIds.length === 0) {
-      // If KV is empty, return seed data
-      return fabricSeedData
+      // If KV is empty, return simple formatted seed data
+      return simpleFabrics
     }
 
     // Fetch all fabric data

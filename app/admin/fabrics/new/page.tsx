@@ -35,7 +35,7 @@ import {
   Building2
 } from "lucide-react"
 import { ImageUpload } from "@/components/ui/image-upload"
-import { useCreateFabric } from "@/modules/fabrics"
+import { useCreateFabric } from "@/src/modules/fabrics/index.client"
 import { toast } from "sonner"
 import Link from "next/link"
 import { 
@@ -136,6 +136,12 @@ export default function NewFabricPage() {
     metaTitle: '',
     metaDescription: '',
     images: [] as string[],
+    // Pricing fields
+    currency: 'USD',
+    priceUnit: 'per_yard',
+    procurementCost: '',
+    retailPrice: '',
+    wholesalePrice: '',
     // Performance fields
     martindale: '',
     wyzenbeek: '',

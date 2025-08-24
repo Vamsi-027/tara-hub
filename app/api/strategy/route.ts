@@ -1,6 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getAllChannelStrategies, getAllSEOKeywords, getAllBlogPosts, getAllCreativeGuidelines } from "@/core/cache/providers/vercel-kv"
-import type { APIResponse, StrategyResponse } from "@/core/database/schemas"
+
+// Define types locally
+type APIResponse<T> = {
+  success: boolean
+  data?: T
+  error?: string
+}
+
+type StrategyResponse = {
+  channels: any[]
+  seoKeywords: any[]
+  blogPosts: any[]
+  creativeGuidelines: any[]
+}
 
 export async function GET(request: NextRequest) {
   try {

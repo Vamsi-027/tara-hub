@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -61,7 +61,7 @@ interface TeamMember {
 }
 
 export default function TeamManagementPage() {
-  const { data: session } = useSession()
+  const { user } = useAuth()
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
@@ -410,7 +410,7 @@ export default function TeamManagementPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => setEditingMember(member)}
-                        disabled={member.email === session?.user?.email}
+                        disabled={member.email === user?.email}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -418,7 +418,7 @@ export default function TeamManagementPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemoveMember(member.id)}
-                        disabled={member.email === session?.user?.email}
+                        disabled={member.email === user?.email}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

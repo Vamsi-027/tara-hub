@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import * as jwt from 'jsonwebtoken'
-import { fabricService } from '@/modules/fabrics'
+import { getAllFabrics, createFabric, updateFabric } from '@/src/modules/fabrics/services/fabric-kv.service'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
 export async function GET(request: NextRequest) {
@@ -32,35 +32,33 @@ export async function GET(request: NextRequest) {
       filters.search = search
     }
 
-    // Get real fabrics from admin database
-    const result = await fabricService.search(
-      filters,
-      { field: 'createdAt', direction: 'desc' },
-      { page: 1, limit: 100 } // Reasonable limit for public API
-    )
+    // Get fabrics from KV store (simple legacy format)
+    const fabrics = await getAllFabrics()
+    
+    // Apply filters if provided
+    let filteredFabrics = fabrics
+    
+    if (category) {
+      filteredFabrics = filteredFabrics.filter(f => f.category === category)
+    }
+    
+    if (color) {
+      filteredFabrics = filteredFabrics.filter(f => f.color === color)
+    }
+    
+    if (inStock !== null) {
+      filteredFabrics = filteredFabrics.filter(f => f.inStock === (inStock === 'true'))
+    }
+    
+    if (search) {
+      const searchLower = search.toLowerCase()
+      filteredFabrics = filteredFabrics.filter(f => 
+        f.name.toLowerCase().includes(searchLower) ||
+        f.description?.toLowerCase().includes(searchLower)
+      )
+    }
 
-    // Transform to legacy format for backward compatibility
-    const legacyFabrics = result.data.map(fabric => ({
-      id: fabric.id,
-      name: fabric.name,
-      description: fabric.description,
-      category: fabric.type, // Map type -> category for legacy
-      color: fabric.primaryColor,
-      price: fabric.retailPrice,
-      inStock: (fabric.availableQuantity || 0) > 0,
-      imageUrl: fabric.mainImageUrl,
-      // Include some enhanced fields for better UX
-      isStainResistant: fabric.isStainResistant,
-      isPetFriendly: fabric.isPetFriendly,
-      isOutdoorSafe: fabric.isOutdoorSafe,
-      durabilityRating: fabric.durabilityRating,
-      material: fabric.primaryMaterial,
-      width: fabric.width,
-      retailPrice: fabric.retailPrice,
-      status: fabric.status
-    }))
-
-    return NextResponse.json(legacyFabrics)
+    return NextResponse.json(filteredFabrics)
   } catch (error) {
     console.error('Error fetching fabrics:', error)
     return NextResponse.json(
@@ -111,20 +109,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create fabric using the v1 service (but transform from legacy format)
-    const fabricData = {
-      sku: body.sku || `FAB-${Date.now()}`,
+    // Create fabric using KV service (simple format)
+    const fabric = await createFabric({
       name: body.name,
       description: body.description,
-      type: body.category || 'Upholstery', // Map category -> type
-      primaryColor: body.color,
-      retailPrice: body.price || 0,
-      stockQuantity: body.stockQuantity || 0,
-      status: 'Active',
-      isActive: true
-    }
-    
-    const fabric = await fabricService.create(fabricData, user.userId || 'legacy-api')
+      category: body.category,
+      color: body.color,
+      price: body.price || 0,
+      inStock: body.inStock !== false,
+      imageUrl: body.imageUrl
+    })
     
     // Trigger ISR revalidation
     revalidatePath('/fabrics')

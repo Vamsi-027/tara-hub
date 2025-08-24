@@ -35,7 +35,7 @@ import {
   Building2
 } from "lucide-react"
 import { ImageUpload } from "@/components/ui/image-upload"
-import { useFabric } from "@/modules/fabrics"
+import { useFabric } from "@/src/modules/fabrics/index.client"
 import { toast } from "sonner"
 import Link from "next/link"
 import { 
@@ -152,6 +152,12 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
     metaTitle: '',
     metaDescription: '',
     images: [] as string[],
+    // Pricing fields
+    currency: 'USD',
+    priceUnit: 'per_yard',
+    procurementCost: '',
+    retailPrice: '',
+    wholesalePrice: '',
     // Performance fields (existing in schema)
     martindale: '',
     wyzenbeek: '',
@@ -225,6 +231,10 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
         durabilityRating: fabric.durabilityRating || '',
         cleaningCode: fabric.cleaningCode || '',
         currency: fabric.currency || 'USD',
+        priceUnit: fabric.priceUnit || 'per_yard',
+        procurementCost: fabric.procurementCost ? String(fabric.procurementCost) : '',
+        retailPrice: fabric.retailPrice ? String(fabric.retailPrice) : '',
+        wholesalePrice: fabric.wholesalePrice ? String(fabric.wholesalePrice) : '',
         supplierId: fabric.supplierId || '',
         supplierName: fabric.supplierName || '',
         stockQuantity: fabric.stockQuantity ? String(fabric.stockQuantity) : '0',
@@ -279,6 +289,7 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
       setFormData(loadedData)
       setOriginalData(loadedData) // Store original data for comparison
       setChangedFields(new Set()) // Reset changed fields when loading
+      // Fabric data loaded, ready to track changes
       
       if (fabric.colors && Array.isArray(fabric.colors)) {
         setColors(fabric.colors)
@@ -335,13 +346,19 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
     // Track which fields have been changed
     if (originalData) {
       const originalValue = (originalData as any)[field]
+      // Check if field changed from original value
       if (value !== originalValue) {
-        setChangedFields(prev => new Set([...prev, field]))
+        setChangedFields(prev => {
+          const newSet = new Set([...prev, field])
+          // Updated changed fields set
+          return newSet
+        })
       } else {
         // If value is reverted to original, remove from changed fields
         setChangedFields(prev => {
           const newSet = new Set(prev)
           newSet.delete(field)
+          // Removed field from changed set
           return newSet
         })
       }
@@ -371,8 +388,10 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Process form submission with tracked changes
+    
     // Check if there are any changes
-    if (changedFields.size === 0 && colors === fabric?.colors) {
+    if (changedFields.size === 0 && JSON.stringify(colors) === JSON.stringify(fabric?.colors || [])) {
       toast.info('No changes detected')
       return
     }
@@ -535,9 +554,13 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
             Cancel
           </Button>
           <Button 
-            onClick={handleSubmit} 
-            disabled={updating || changedFields.size === 0}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(e as any);
+            }} 
+            disabled={updating}
             variant={changedFields.size > 0 ? "default" : "secondary"}
+            title={changedFields.size === 0 ? "Make changes to enable save" : `Save ${changedFields.size} change(s)`}
           >
             {updating ? (
               <>

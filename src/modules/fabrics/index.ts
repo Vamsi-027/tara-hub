@@ -12,12 +12,14 @@
 // Services
 export { FabricService } from './services/fabric.service';
 
+// Service instances
+import { FabricService } from './services/fabric.service';
+export const fabricService = new FabricService();
+
 // Repositories
 export { FabricRepository } from './repositories/fabric.repository';
 
-// Hooks
-export { useFabrics } from './hooks/use-fabrics';
-export { useFabricDetail } from './hooks/use-fabric-detail';
+// Hooks are exported in index.client.ts for client-side use only
 
 // Types
 export type {
@@ -29,5 +31,5 @@ export type {
   ImportResult
 } from './types';
 
-// Schemas (for validation)
-export { fabricSchema, fabricFilterSchema } from './schemas/fabric.schema';
+// Schemas (for validation) - export what actually exists
+export { fabrics, selectFabricSchema, insertFabricSchema } from './schemas/fabric.schema';

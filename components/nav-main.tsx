@@ -54,9 +54,9 @@ export function NavMain({
                   isActive={pathname === item.url}
                   asChild
                 >
-                  <Link href={item.url}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
+                  <Link href={item.url} className="flex items-center gap-2 w-full">
+                    {item.icon && <item.icon className="h-4 w-4 flex-shrink-0" />}
+                    <span className="truncate">{item.title}</span>
                     {item.items && (
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     )}

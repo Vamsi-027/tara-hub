@@ -14,7 +14,13 @@
       "Bash(git add:*)",
       "Bash(rm:*)",
       "Bash(git push:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(for url in http://localhost:3001/auth/signin)",
+      "Bash(done)",
+      "Bash(for:*)",
+      "Bash(del \"C:\\Users\\varak\\repos\\tara-hub\\src\\modules\\fabrics\\repositories\\base.repository.ts\")",
+      "Read(/C:\\mnt\\c\\Users\\varak\\repos/**)",
+      "Bash(bash:*)"
     ],
     "deny": [],
     "ask": [],

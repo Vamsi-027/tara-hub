@@ -33,11 +33,13 @@ export default function AdminLayout({
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen">
-        <AppSidebar />
-        <main className="flex-1 overflow-auto">
-          {children}
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex h-screen w-full">
+        <AppSidebar className="border-r" />
+        <main className="flex-1 overflow-auto bg-background">
+          <div className="h-full w-full">
+            {children}
+          </div>
         </main>
       </div>
     </SidebarProvider>

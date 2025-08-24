@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense } from 'react';
-import { MagicLinkForm } from '@/components/auth/magic-link-form';
+import { MagicLinkForm } from '@/src/modules/auth/components/magic-link-form';
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription } from '@/components/ui/card'
 import { Loader2, ArrowRight } from 'lucide-react';

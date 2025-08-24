@@ -4,21 +4,29 @@
  * Handles validation, caching, events, and orchestration
  */
 
-import { fabricRepository } from '@/modules/fabrics';
-import { 
+import { fabricRepository } from '../repositories/fabric.repository';
+import type { 
   Fabric, 
-  NewFabric, 
-  FabricFilter, 
-  FabricSort,
-  insertFabricSchema
-} from '@/modules/fabrics';
-import { PaginatedResult } from '@/lib/repositories/base.repository';
-import { redis } from '@/core/cache/providers/redis';
+  FabricFilter
+} from '../types';
+import { insertFabricSchema } from '../schemas/fabric.schema';
 import { z } from 'zod';
+
+// Define missing types
+type NewFabric = Partial<Fabric>;
+type FabricSort = { field: string; direction: 'asc' | 'desc' };
+type PaginatedResult<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
 
 export class FabricService {
   private readonly CACHE_TTL = 300; // 5 minutes
   private readonly CACHE_PREFIX = 'fabric:';
+  private fabricRepository = fabricRepository;
   
   // ============================================
   // CRUD OPERATIONS WITH BUSINESS LOGIC
@@ -34,13 +42,13 @@ export class FabricService {
     if (cached) return cached;
     
     // Fetch from database
-    const fabric = await fabricRepository.findById(id);
+    const fabric = await this.fabricRepository.findById(id);
     
     // Cache if found
     if (fabric) {
       await this.setCache(cacheKey, fabric);
       // Increment view count asynchronously
-      fabricRepository.incrementViewCount(id).catch(console.error);
+      this.fabricRepository.incrementViewCount(id).catch(console.error);
     }
     
     return fabric;
@@ -59,7 +67,7 @@ export class FabricService {
     const cached = await this.getFromCache<Fabric>(cacheKey);
     if (cached) return cached;
     
-    const fabric = await fabricRepository.findBySku(sku);
+    const fabric = await this.fabricRepository.findBySku(sku);
     
     if (fabric) {
       await this.setCache(cacheKey, fabric);
@@ -76,7 +84,7 @@ export class FabricService {
     const cached = await this.getFromCache<Fabric>(cacheKey);
     if (cached) return cached;
     
-    const fabric = await fabricRepository.findBySlug(slug);
+    const fabric = await this.fabricRepository.findBySlug(slug);
     
     if (fabric) {
       await this.setCache(cacheKey, fabric);
@@ -106,7 +114,7 @@ export class FabricService {
     if (cached) return cached;
     
     // Search in database
-    const result = await fabricRepository.search(
+    const result = await this.fabricRepository.search(
       validatedFilter,
       validatedSort,
       validatedPagination.page,
@@ -127,7 +135,7 @@ export class FabricService {
     const validated = insertFabricSchema.parse(data);
     
     // Check for duplicate SKU
-    const existing = await fabricRepository.findBySku(validated.sku);
+    const existing = await this.fabricRepository.findBySku(validated.sku);
     if (existing) {
       throw new Error(`Fabric with SKU ${validated.sku} already exists`);
     }
@@ -138,7 +146,7 @@ export class FabricService {
       // Ensure slug is unique
       let slugSuffix = 0;
       let finalSlug = validated.slug;
-      while (await fabricRepository.findBySlug(finalSlug)) {
+      while (await this.fabricRepository.findBySlug(finalSlug)) {
         slugSuffix++;
         finalSlug = `${validated.slug}-${slugSuffix}`;
       }
@@ -153,7 +161,7 @@ export class FabricService {
     // Create fabric
     let fabric;
     try {
-      fabric = await fabricRepository.create(validated, userId);
+      fabric = await this.fabricRepository.create(validated, userId);
     } catch (dbError: any) {
       console.error('Database error creating fabric:', dbError);
       // Re-throw with better error message
@@ -237,7 +245,13 @@ export class FabricService {
       throw new Error('Fabric not found');
     }
     
-    const deleted = await fabricRepository.softDelete(id, userId);
+    // Use soft delete by updating deletedAt field
+    const deleted = await fabricRepository.update(id, {
+      deletedAt: new Date(),
+      deletedBy: userId,
+      updatedAt: new Date(),
+      updatedBy: userId
+    }, userId);
     
     if (deleted) {
       // Clear caches
@@ -247,7 +261,7 @@ export class FabricService {
       await this.emitEvent('fabric.deleted', { id, fabric });
     }
     
-    return deleted;
+    return !!deleted;
   }
   
   /**
@@ -709,9 +723,8 @@ export class FabricService {
    */
   private async getFromCache<T>(key: string): Promise<T | null> {
     try {
-      if (!redis) return null;
-      const cached = await redis.get(key);
-      return cached ? JSON.parse(cached) : null;
+      // Redis caching disabled for now - returning null to bypass cache
+      return null;
     } catch (error) {
       console.error('Cache get error:', error);
       return null;
@@ -723,7 +736,8 @@ export class FabricService {
    */
   private async setCache(key: string, value: any, ttl: number = this.CACHE_TTL): Promise<void> {
     try {
-      if (!redis) return;
+      // Redis caching disabled for now
+      return;
       await redis.setex(key, ttl, JSON.stringify(value));
     } catch (error) {
       console.error('Cache set error:', error);
@@ -735,7 +749,8 @@ export class FabricService {
    */
   private async clearFabricCaches(fabric: Fabric): Promise<void> {
     try {
-      if (!redis) return;
+      // Redis caching disabled for now
+      return;
       
       const keys = [
         `${this.CACHE_PREFIX}id:${fabric.id}`,
@@ -801,9 +816,10 @@ export class FabricService {
       console.log(`Event: ${eventName}`, data);
       
       // Could also trigger webhooks, notifications, etc.
-      if (redis) {
-        await redis.publish(`fabric-events:${eventName}`, JSON.stringify(data));
-      }
+      // Redis disabled for now
+      // if (redis) {
+      //   await redis.publish(`fabric-events:${eventName}`, JSON.stringify(data));
+      // }
     } catch (error) {
       console.error('Event emit error:', error);
     }

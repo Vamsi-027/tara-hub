@@ -43,7 +43,9 @@
       "Bash(npm test)",
       "Bash(ls:*)",
       "Bash(git fetch:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(git clone:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": [],

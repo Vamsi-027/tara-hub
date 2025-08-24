@@ -92,3 +92,32 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Fix for sidebar text cutoff issues */
+@layer components {
+  /* Ensure sidebar text doesn't get cut off */
+  [data-sidebar="menu-button"] span {
+    @apply whitespace-nowrap overflow-hidden text-ellipsis;
+    min-width: 0;
+  }
+  
+  /* Fix icon alignment in sidebar */
+  [data-sidebar="menu-button"] svg {
+    @apply flex-shrink-0;
+  }
+  
+  /* Ensure proper spacing in sidebar items */
+  [data-sidebar="menu"] {
+    @apply w-full;
+  }
+  
+  /* Fix collapsed sidebar icon centering */
+  .group-data-[collapsible=icon] [data-sidebar="menu-button"] {
+    @apply justify-center;
+  }
+  
+  /* Prevent text overflow in navigation labels */
+  [data-sidebar="group-label"] {
+    @apply truncate;
+  }
+}

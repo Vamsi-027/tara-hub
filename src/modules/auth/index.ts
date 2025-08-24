@@ -8,22 +8,29 @@
  * - Admin whitelist enforcement
  */
 
-// Services
-export { AuthService } from './services/auth.service';
-export { MagicLinkService } from './services/magic-link.service';
-export { SessionService } from './services/session.service';
+// Schemas - Export directly for database operations
+export { legacyUsers, legacyVerificationTokens } from './schemas/legacy-auth.schema';
 
-// Middleware
-export { withAuth } from './middleware/with-auth';
-export { requireAdmin } from './middleware/require-admin';
+// Utils - Token and auth utilities
+export { 
+  createVerificationToken,
+  verifyAndConsumeToken,
+  createUserSession,
+  logFailedLoginAttempt,
+  checkRateLimit,
+  hashPassword,
+  verifyPassword,
+  cleanupExpiredTokens,
+  getUserByEmail,
+  updateUserLastLogin,
+  getRecentLoginAttempts,
+  generateSecureToken,
+  isValidEmail,
+  sanitizeEmail
+} from './utils/token.utils';
 
-// Hooks
-export { useAuth } from './hooks/use-auth';
-export { useSession } from './hooks/use-session';
-
-// Utils
-export { verifyToken, generateToken } from './utils/token.utils';
-export { isAdminEmail } from './utils/admin.utils';
+// JWT Auth utilities for API routes
+export { checkJWTAuth, PERMISSIONS } from './utils/jwt.utils';
 
 // Types
 export type {

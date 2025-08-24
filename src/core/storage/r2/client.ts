@@ -1,60 +1,156 @@
 /**
  * Unified Cloudflare R2 Storage Client
- * Consolidates r2-client.ts, r2-client-v2.ts, r2-client-v3.ts into a single implementation
+ * Enhanced version with retry logic, better error handling, and performance optimizations
  */
 
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { 
+  S3Client, 
+  PutObjectCommand, 
+  DeleteObjectCommand, 
+  GetObjectCommand,
+  HeadObjectCommand,
+  ListObjectsV2Command,
+  DeleteObjectsCommand 
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
 
 export interface R2Config {
   accountId: string;
   accessKeyId: string;
   secretAccessKey: string;
   bucketName: string;
+  publicUrl?: string; // Optional CDN URL
+  maxRetries?: number;
+  region?: string;
+}
+
+export interface UploadOptions {
+  contentType?: string;
+  cacheControl?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface BatchUploadFile {
+  buffer: Buffer;
+  key: string;
+  options?: UploadOptions;
 }
 
 export class R2StorageClient {
   private client: S3Client;
   private bucketName: string;
   private publicUrl: string;
+  private cdnUrl?: string;
+  private maxRetries: number;
 
   constructor(config: R2Config) {
     this.bucketName = config.bucketName;
     this.publicUrl = `https://${config.accountId}.r2.cloudflarestorage.com`;
+    this.cdnUrl = config.publicUrl;
+    this.maxRetries = config.maxRetries || 3;
 
+    // Enhanced S3 client configuration with connection pooling
     this.client = new S3Client({
-      region: 'auto',
-      endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+      region: config.region || 'auto',
+      endpoint: this.publicUrl,
       credentials: {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
       },
+      maxAttempts: this.maxRetries,
+      requestHandler: new NodeHttpHandler({
+        connectionTimeout: 5000,
+        socketTimeout: 60000,
+      }),
     });
   }
 
   /**
-   * Upload an image to R2
+   * Execute operation with exponential backoff retry
    */
-  async uploadImage(file: Buffer, key: string, contentType: string = 'image/jpeg'): Promise<string> {
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    retries: number = this.maxRetries
+  ): Promise<T> {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        
+        // Don't retry on client errors (4xx)
+        if (error.$metadata?.httpStatusCode && error.$metadata.httpStatusCode >= 400 && error.$metadata.httpStatusCode < 500) {
+          throw error;
+        }
+        
+        // Exponential backoff: 1s, 2s, 4s...
+        if (attempt < retries - 1) {
+          const delay = Math.pow(2, attempt) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    throw lastError || new Error('Operation failed after retries');
+  }
+
+  /**
+   * Upload an image to R2 with enhanced options
+   */
+  async uploadImage(
+    file: Buffer, 
+    key: string, 
+    options: UploadOptions = {}
+  ): Promise<string> {
+    const { 
+      contentType = 'image/jpeg',
+      cacheControl = 'public, max-age=31536000, immutable',
+      metadata = {}
+    } = options;
+
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: key,
       Body: file,
       ContentType: contentType,
+      CacheControl: cacheControl,
+      Metadata: metadata,
     });
 
-    await this.client.send(command);
-    return `${this.publicUrl}/${this.bucketName}/${key}`;
+    await this.executeWithRetry(() => this.client.send(command));
+    
+    // Return CDN URL if configured, otherwise R2 URL
+    return this.getPublicUrl(key);
   }
 
   /**
-   * Upload multiple images
+   * Upload multiple images with parallel execution and error resilience
    */
-  async uploadImages(files: Array<{ buffer: Buffer; key: string; contentType?: string }>): Promise<string[]> {
-    const uploads = files.map(file => 
-      this.uploadImage(file.buffer, file.key, file.contentType)
+  async uploadImages(files: BatchUploadFile[]): Promise<Array<{ success: boolean; url?: string; error?: string; key: string }>> {
+    const results = await Promise.allSettled(
+      files.map(file => 
+        this.uploadImage(file.buffer, file.key, file.options).then(url => ({ 
+          success: true as const, 
+          url, 
+          key: file.key 
+        }))
+      )
     );
-    return Promise.all(uploads);
+
+    return results.map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value;
+      } else {
+        return {
+          success: false,
+          key: files[index].key,
+          error: result.reason?.message || 'Upload failed',
+        };
+      }
+    });
   }
 
   /**
