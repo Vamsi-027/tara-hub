@@ -1,0 +1,35 @@
+{
+  "name": "@tara-hub/medusa-backend",
+  "version": "1.0.0",
+  "description": "Medusa v2 backend for Tara Hub marketplace",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "medusa dev",
+    "build": "medusa build",
+    "start": "medusa start",
+    "db:migrate": "medusa db:migrate",
+    "db:create": "medusa db:create",
+    "db:seed": "medusa db:seed",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@medusajs/framework": "^2.1.4",
+    "@medusajs/medusa": "^2.1.4",
+    "@medusajs/admin-sdk": "^2.0.6",
+    "drizzle-orm": "^0.44.4",
+    "@neondatabase/serverless": "^0.10.4",
+    "dotenv": "^16.4.5",
+    "zod": "^3.25.0",
+    "nanoid": "^5.1.5",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -13,7 +13,9 @@
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
         "KV_REST_API_URL",
-        "KV_REST_API_TOKEN"
+        "KV_REST_API_TOKEN",
+        "MEDUSA_BACKEND_URL",
+        "MEDUSA_PORT"
       ]
     },
     "dev": {
@@ -27,7 +29,9 @@
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
         "KV_REST_API_URL",
-        "KV_REST_API_TOKEN"
+        "KV_REST_API_TOKEN",
+        "MEDUSA_BACKEND_URL",
+        "MEDUSA_PORT"
       ]
     },
     "lint": {
@@ -45,6 +49,14 @@
     "@tara-hub/lib#build": {
       "outputs": ["dist/**"],
       "cache": true
+    },
+    "@tara-hub/medusa-backend#build": {
+      "outputs": ["dist/**"],
+      "cache": true
+    },
+    "@tara-hub/medusa-backend#dev": {
+      "cache": false,
+      "persistent": true
     }
   }
 }

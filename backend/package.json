@@ -1,0 +1,54 @@
+{
+  "name": "@tara-hub/backend",
+  "version": "1.0.0",
+  "description": "Tara Hub Backend Services",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev --filter=@tara-hub/backend",
+    "build": "turbo build --filter=@tara-hub/backend",
+    "start": "node api-gateway/server.js",
+    "db:migrate": "cd infrastructure/database && npx drizzle-kit migrate",
+    "db:push": "cd infrastructure/database && npx drizzle-kit push",
+    "db:studio": "cd infrastructure/database && npx drizzle-kit studio",
+    "medusa:dev": "cd medusa && npm run dev",
+    "medusa:build": "cd medusa && npm run build"
+  },
+  "dependencies": {
+    "@medusajs/framework": "^2.1.4",
+    "@medusajs/medusa": "^2.1.4",
+    "drizzle-orm": "^0.44.4",
+    "@neondatabase/serverless": "^0.10.4",
+    "@aws-sdk/client-s3": "^3.864.0",
+    "@aws-sdk/s3-request-presigner": "^3.864.0",
+    "@upstash/redis": "^1.34.3",
+    "@vercel/kv": "latest",
+    "@tsndr/cloudflare-worker-jwt": "^3.2.0",
+    "resend": "^6.0.1",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "nanoid": "^5.1.5",
+    "zod": "^3.25.76",
+    "dotenv": "^16.4.5",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "winston": "^3.17.0",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/express": "^5.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.9",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.7.2",
+    "tsx": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

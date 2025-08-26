@@ -84,7 +84,7 @@ src/
 ```
 
 ### Monorepo Structure (Turbo)
-- **Root App**: Admin dashboard at `/app/admin/` (main auth and management)
+- **Root App**: Admin dashboard at `/app/` (main auth and management)
 - **experiences/fabric-store**: Customer-facing fabric browsing (port 3006)
 - **experiences/store-guide**: Store guide application (port 3007)  
 - **packages/**: Legacy shared libraries (being migrated to src/shared)
