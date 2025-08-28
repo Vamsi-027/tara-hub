@@ -1,0 +1,186 @@
+{
+  "fieldMapping": {
+    "primary": {
+      "description": "Essential fields that must be displayed",
+      "fields": {
+        "name": {
+          "dbField": "name",
+          "label": "Product Name",
+          "type": "string",
+          "required": true,
+          "default": "Untitled Fabric",
+          "display": "title"
+        },
+        "price": {
+          "dbField": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true,
+          "default": 99.00,
+          "display": "currency",
+          "unit": "per yard"
+        },
+        "image": {
+          "dbField": ["swatch_image_url", "images[0]"],
+          "label": "Product Image",
+          "type": "url",
+          "required": true,
+          "default": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+          "display": "image"
+        },
+        "inStock": {
+          "dbField": "in_stock",
+          "label": "Availability",
+          "type": "boolean",
+          "required": true,
+          "default": true,
+          "display": "badge"
+        },
+        "sku": {
+          "dbField": "sku",
+          "label": "SKU",
+          "type": "string",
+          "required": true,
+          "default": "N/A",
+          "display": "code"
+        }
+      }
+    },
+    "secondary": {
+      "description": "Important details that enhance product information",
+      "fields": {
+        "material": {
+          "dbField": ["material", "composition"],
+          "label": "Material",
+          "type": "string",
+          "required": false,
+          "display": "text"
+        },
+        "width": {
+          "dbField": "width",
+          "label": "Width",
+          "type": "string",
+          "required": false,
+          "display": "measurement"
+        },
+        "brand": {
+          "dbField": "brand",
+          "label": "Brand",
+          "type": "string",
+          "required": false,
+          "display": "text"
+        },
+        "color": {
+          "dbField": ["color", "color_family"],
+          "label": "Color",
+          "type": "string",
+          "required": false,
+          "display": "color-swatch"
+        },
+        "usage": {
+          "dbField": "usage",
+          "label": "Usage",
+          "type": "enum",
+          "values": ["Indoor", "Outdoor", "Both"],
+          "required": false,
+          "display": "tag"
+        }
+      }
+    },
+    "tertiary": {
+      "description": "Additional details shown as tags or small text",
+      "fields": {
+        "weight": {
+          "dbField": "weight",
+          "label": "Weight",
+          "type": "string",
+          "required": false,
+          "display": "tag"
+        },
+        "pattern": {
+          "dbField": "pattern",
+          "label": "Pattern",
+          "type": "string",
+          "required": false,
+          "display": "tag"
+        },
+        "stockUnit": {
+          "dbField": "stock_unit",
+          "label": "Unit",
+          "type": "string",
+          "required": false,
+          "default": "yard",
+          "display": "inline"
+        }
+      }
+    },
+    "ignored": {
+      "description": "Fields excluded from product cards",
+      "fields": [
+        "id",
+        "is_active",
+        "status",
+        "created_at",
+        "updated_at",
+        "properties",
+        "description",
+        "durability",
+        "care_instructions",
+        "colors",
+        "style",
+        "collection",
+        "category",
+        "color_hex"
+      ],
+      "reason": "Internal metadata, technical details, or redundant information"
+    }
+  },
+  "cardLayout": {
+    "structure": [
+      {
+        "section": "header",
+        "content": ["image", "inStock", "selectionButton"]
+      },
+      {
+        "section": "body",
+        "content": [
+          {
+            "row": "brand-title",
+            "fields": ["brand", "name"]
+          },
+          {
+            "row": "price-sku",
+            "fields": ["price", "sku"]
+          },
+          {
+            "row": "specifications",
+            "fields": ["material", "width", "color", "usage"],
+            "layout": "2-column-grid"
+          },
+          {
+            "row": "tags",
+            "fields": ["weight", "pattern"],
+            "layout": "flex-wrap"
+          }
+        ]
+      }
+    ]
+  },
+  "displayRules": {
+    "truncation": {
+      "name": "2-lines",
+      "material": "truncate",
+      "color": "truncate"
+    },
+    "conditionalDisplay": {
+      "brand": "show-if-exists",
+      "specifications": "show-if-any-exists",
+      "tags": "show-if-any-exists"
+    },
+    "emptyState": {
+      "hideEmptyFields": true,
+      "showPlaceholderImage": true,
+      "defaultPrice": 99.00
+    }
+  }
+}

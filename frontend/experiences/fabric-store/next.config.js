@@ -6,19 +6,17 @@ const nextConfig = {
     externalDir: true
   },
   images: {
-    domains: ['images.unsplash.com', 'localhost'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.unsplash.com',
-        pathname: '/**',
-      }
-    ],
+    // Use unoptimized to allow any image URL without configuration
+    // This is simpler for a demo with various external image sources
+    unoptimized: true,
+    // Alternative: specify all domains (commented out for now)
+    // domains: [
+    //   'images.unsplash.com',
+    //   'localhost',
+    //   'thehearthandhomestore.monday.com',
+    //   'cdn.shopify.com',
+    //   'i.etsystatic.com'
+    // ],
   },
 }
 

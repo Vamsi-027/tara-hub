@@ -6,7 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tara Hub - A Next.js 15 fabric marketplace platform built with Turbo monorepo architecture, featuring admin dashboard, email-based authentication with magic links, and hybrid data persistence using PostgreSQL + Redis.
 
-**Current State**: The codebase is in a transition period from a flat structure to a module-based architecture. Both old paths (lib/, components/) and new paths (src/modules/, src/shared/) coexist temporarily.
+## 🚨 CRITICAL: READ THIS FIRST FOR PRODUCTIVITY
+
+**CURRENT WORKING ADMIN APP**:
+- **Location**: `/app/` directory (Next.js 15 App Router)
+- **Start Command**: `npx next dev` (from repository root)
+- **Port**: 3000
+- **Components**: `/components/ui/` with relative imports
+- **Auth**: Simple magic link form, admin pages at `/app/admin/`
+
+**DOCUMENTATION WARNING**: Much of this file describes **planned modular architecture** (`src/modules/`, advanced auth services) that is **NOT YET IMPLEMENTED**. For immediate work:
+1. Use `/app/` structure
+2. Run `npx next dev` from root
+3. Components are in `/components/` not `/src/shared/`
+4. Auth is basic, not the complex system described below
 
 ## Development Commands
 
@@ -14,14 +27,17 @@ Tara Hub - A Next.js 15 fabric marketplace platform built with Turbo monorepo ar
 # Install dependencies
 npm install
 
-# Development (Monorepo with Turbo)
-npm run dev               # Start all apps in parallel
-npm run dev:admin         # Start admin app only (port 3000)
-npm run dev:all           # Explicit parallel start for all apps
+# IMPORTANT: Admin App (Current Working Setup)
+npx next dev              # Start admin app from ROOT (port 3000)
+# Note: Admin app is at /app/, NOT a separate workspace
 
-# Individual experience apps
-cd experiences/fabric-store && npm run dev    # Port 3006
-cd experiences/store-guide && npm run dev     # Port 3007
+# Development (Monorepo with Turbo - Legacy/Planned)
+npm run dev               # Start all apps in parallel (may not work)
+npm run dev:admin         # Legacy command (doesn't work with current structure)
+
+# Individual experience apps (Working)
+cd frontend/experiences/fabric-store && npm run dev    # Port 3006
+cd frontend/experiences/store-guide && npm run dev     # Port 3007
 
 # Build
 npm run build             # Build all apps with Turbo
@@ -83,13 +99,18 @@ src/
     └── types/                  # Shared TypeScript types
 ```
 
-### Monorepo Structure (Turbo)
-- **Root App**: Admin dashboard at `/app/` (main auth and management)
-- **experiences/fabric-store**: Customer-facing fabric browsing (port 3006)
-- **experiences/store-guide**: Store guide application (port 3007)  
-- **packages/**: Legacy shared libraries (being migrated to src/shared)
-- **api-service/**: Railway-deployed backend service for heavy operations
-- **Workspace orchestration**: Turbo with parallel builds and dev servers
+### Current Working Structure (IMPORTANT)
+- **Root Admin App**: `/app/` with Next.js 15 App Router (START HERE)
+  - Auth pages: `/app/auth/signin/`, `/app/auth/verify/`
+  - Admin pages: `/app/admin/fabrics/`, `/app/admin/blog/`, etc.
+  - API routes: `/app/api/auth/signin/route.ts`
+  - Components: `/components/ui/` with relative imports
+- **Experience Apps**: 
+  - `/frontend/experiences/fabric-store/` (port 3006)
+  - `/frontend/experiences/store-guide/` (port 3007)  
+- **Backend Services**: 
+  - `/backend/api-service/` (Railway deployment)
+  - Clean Architecture structure (advanced features)
 
 ### Core Technology Stack
 - **Framework**: Next.js 15 with App Router and React 19
@@ -104,28 +125,27 @@ src/
   - Railway for backend API service (heavy operations)
 - **Background Jobs**: Bull/BullMQ (planned) for async processing
 
-### Authentication Architecture
+### Authentication Architecture (CURRENT WORKING)
 
-**Custom Magic Link System** (replaces NextAuth due to Jest worker conflicts):
-- Email-based passwordless authentication using Resend API
-- JWT tokens with HTTP-only cookies (30-day expiry)
-- Admin whitelist enforcement in auth service
-- Custom middleware for route protection
-- Backward compatibility with legacy database schema
-- Migration from NextAuth due to Jest worker thread incompatibility
+**Simplified Magic Link System**:
+- Basic email-based authentication (currently for UI testing)
+- JWT token verification in `middleware.ts`
+- Admin whitelist in middleware.ts (hardcoded emails)
+- Simple API routes for signin flow
 
-**Key Authentication Files** (Updated Paths):
-- `src/modules/auth/services/auth.service.ts` - Main authentication service
-- `src/modules/auth/utils/token.utils.ts` - Token generation and verification
-- `src/modules/auth/middleware/auth.middleware.ts` - Route protection
-- `src/core/email/resend.service.ts` - Professional HTML email templates
-- `app/api/auth/signin/route.ts` - Magic link generation endpoint
-- `app/api/auth/verify/route.ts` - Token verification and session creation
-- `middleware.ts` - Custom JWT-based route protection
-- `src/modules/auth/components/magic-link-form.tsx` - Client-side auth UI
-- `src/modules/auth/schemas/legacy-auth.schema.ts` - NextAuth compatibility
+**Current Working Files**:
+- `app/api/auth/signin/route.ts` - Basic signin endpoint (logs email, returns success)
+- `middleware.ts` - JWT verification and admin route protection
+- `components/magic-link-form.tsx` - Working signin form component
+- `app/auth/signin/page.tsx` - Signin page with magic link form
 
-Note: NextAuth dependency still exists in package.json but is not actively used.
+**Admin Whitelist** (in middleware.ts):
+- varaku@gmail.com, vamsicheruku027@gmail.com, admin@deepcrm.ai, etc.
+
+**Planned Architecture** (documented but not implemented):
+- Advanced auth service in `src/modules/auth/`
+- Resend integration for actual email delivery
+- Complex role-based permissions
 
 ### Data Persistence Strategy
 
@@ -279,19 +299,19 @@ RAILWAY_API_URL=https://your-backend.railway.app
 "@/shared/*": ["./src/shared/*"]  // Shared resources
 ```
 
-**Import Examples**:
+**CURRENT Working Import Examples**:
 ```typescript
-// Feature modules
+// Current admin app imports (WORKING)
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent } from '../../../components/ui/card';
+import { MagicLinkForm } from '../../../components/magic-link-form';
+
+// Local utilities
+import { cn } from '../utils';
+
+// PLANNED imports (not yet working)
 import { FabricService } from '@/modules/fabrics/services/fabric.service';
-import { AuthService } from '@/modules/auth/services/auth.service';
-
-// Core services
-import { getR2Client } from '@/core/storage/r2/client';
-import { createCacheStrategy } from '@/core/cache/strategies/cache-strategy';
-
-// Shared resources
 import { Button } from '@/shared/components/ui/button';
-import { cn } from '@/shared/utils';
 ```
 
 ## Key API Endpoints
@@ -343,11 +363,14 @@ All test endpoints are isolated in `app/api/__tests__/` to keep production route
 
 ## Development Workflow
 
-### Initial Setup
+### Initial Setup (UPDATED FOR CURRENT STRUCTURE)
 1. **Clone and install**: `git clone ... && cd tara-hub && npm install`
 2. **Environment setup**: Copy `.env.example` to `.env.local` and configure
-3. **Database setup**: `npm run db:push` to sync schema
-4. **Start development**: `npm run dev:admin` for admin, or `npm run dev` for all apps
+3. **Database setup**: `npm run db:push` to sync schema (if working with backend)
+4. **Start admin development**: `npx next dev` (from root directory - port 3000)
+5. **Start experience apps**: `cd frontend/experiences/[app-name] && npm run dev`
+
+**IMPORTANT**: The admin app runs from the root directory, not as a workspace.
 
 ### Common Development Tasks
 
