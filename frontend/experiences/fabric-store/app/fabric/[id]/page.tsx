@@ -108,13 +108,27 @@ function ImageGallery({ images, productName }: { images: string[], productName: 
 function ProductDetails({ fabric }: { fabric: Fabric }) {
   const [quantity, setQuantity] = useState(1)
   const [isFavorite, setIsFavorite] = useState(false)
-  const [selectedVariant, setSelectedVariant] = useState(0)
+  const [selectedVariantType, setSelectedVariantType] = useState<'Swatch' | 'Fabric'>('Fabric')
   const [activeTab, setActiveTab] = useState('details')
 
   const handleAddToCart = () => {
-    // Add to cart logic
-    console.log('Adding to cart:', { fabric: fabric.id, quantity })
+    // Find the selected variant from fabric.variants if available
+    const selectedVariant = fabric.variants?.find(v => v.type === selectedVariantType)
+    
+    console.log('Adding to cart:', { 
+      fabricId: fabric.id,
+      fabricName: fabric.name,
+      variantType: selectedVariantType,
+      variantId: selectedVariant?.id,
+      sku: selectedVariant?.sku || fabric.sku,
+      quantity,
+      unitPrice: selectedVariantType === 'Swatch' ? (fabric.swatch_price || 5) : (fabric.price || 99),
+      total: (selectedVariantType === 'Swatch' 
+        ? (fabric.swatch_price || 5) * quantity
+        : (fabric.price || 99) * quantity)
+    })
     // Show success feedback
+    alert(`Added ${quantity} ${selectedVariantType.toLowerCase()}${quantity > 1 ? 's' : ''} to cart!`)
   }
 
   const handleAddToWishlist = () => {
@@ -288,22 +302,77 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
         )}
       </div>
 
-      {/* Compact Price & Availability Section */}
+      {/* Variant Selection and Price Section */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        {/* Variant Selector */}
+        <div className="mb-4">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">Select Option:</label>
+          <div className="grid grid-cols-2 gap-2">
+            {/* Swatch Option */}
+            <button
+              onClick={() => setSelectedVariantType('Swatch')}
+              className={`border-2 rounded-lg p-3 transition-all ${
+                selectedVariantType === 'Swatch'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="text-left">
+                <div className="font-medium text-sm mb-1">Swatch Sample</div>
+                <div className="text-xs text-gray-600 mb-2">{fabric.swatch_size || '4x4 inches'}</div>
+                <div className="text-lg font-bold text-gray-900">
+                  ${(fabric.swatch_price || 5).toFixed(2)}
+                </div>
+                {fabric.swatch_in_stock ? (
+                  <span className="text-xs text-green-600">✓ In Stock</span>
+                ) : (
+                  <span className="text-xs text-red-600">Out of Stock</span>
+                )}
+              </div>
+            </button>
+
+            {/* Fabric Option */}
+            <button
+              onClick={() => setSelectedVariantType('Fabric')}
+              className={`border-2 rounded-lg p-3 transition-all ${
+                selectedVariantType === 'Fabric'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="text-left">
+                <div className="font-medium text-sm mb-1">Full Fabric</div>
+                <div className="text-xs text-gray-600 mb-2">Min: {fabric.minimum_order_yards || '1'} yard</div>
+                <div className="text-lg font-bold text-gray-900">
+                  ${(fabric.price || 99).toFixed(2)}<span className="text-xs text-gray-600">/yard</span>
+                </div>
+                {fabric.in_stock ? (
+                  <span className="text-xs text-green-600">✓ In Stock</span>
+                ) : (
+                  <span className="text-xs text-red-600">Out of Stock</span>
+                )}
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Selected Price Display */}
+        <div className="flex items-center justify-between flex-wrap gap-4 pt-4 border-t border-gray-100">
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-gray-900">
-              ${(fabric.price || 99).toFixed(2)}
+              ${selectedVariantType === 'Swatch' 
+                ? (fabric.swatch_price || 5).toFixed(2)
+                : (fabric.price || 99).toFixed(2)}
             </span>
             <span className="text-sm text-gray-600">
-              per {fabric.stock_unit || 'yard'}
+              {selectedVariantType === 'Swatch' ? 'per swatch' : `per ${fabric.stock_unit || 'yard'}`}
             </span>
           </div>
 
           {/* Stock Status */}
           <div className="flex items-center gap-2">
-            {fabric.in_stock ? (
+            {(selectedVariantType === 'Swatch' ? fabric.swatch_in_stock : fabric.in_stock) ? (
               <>
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="text-sm font-medium text-green-700">In Stock</span>
@@ -343,12 +412,14 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
       </div>
 
 
-      {/* Compact Purchase Section */}
+      {/* Purchase Section */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         {/* Quantity & Total */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Qty:</span>
+            <span className="text-sm font-medium text-gray-700">
+              {selectedVariantType === 'Swatch' ? 'Quantity:' : 'Yards:'}
+            </span>
             <div className="flex items-center border border-gray-300 rounded">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -370,31 +441,48 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
           </div>
           
           <div className="text-right">
+            <div className="text-xs text-gray-500 mb-1">Total:</div>
             <div className="text-lg font-bold text-gray-900">
-              ${((fabric.price || 99) * quantity).toFixed(2)}
+              ${(selectedVariantType === 'Swatch' 
+                ? (fabric.swatch_price || 5) * quantity
+                : (fabric.price || 99) * quantity
+              ).toFixed(2)}
             </div>
           </div>
         </div>
+
+        {/* Variant Info */}
+        {selectedVariantType === 'Fabric' && fabric.minimum_order_yards && parseInt(fabric.minimum_order_yards) > 1 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-3">
+            <p className="text-xs text-yellow-800">
+              Minimum order: {fabric.minimum_order_yards} yards
+            </p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="space-y-2">
           <button
             onClick={handleAddToCart}
-            disabled={!fabric.in_stock}
-            className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           >
             <ShoppingCart className="w-4 h-4" />
-            Add to Cart
+            Add {selectedVariantType} to Cart
           </button>
 
           <div className="flex gap-2">
-            <button className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-1">
-              <Package className="w-3 h-3" />
-              Sample
-            </button>
+            {selectedVariantType === 'Fabric' && (
+              <button 
+                onClick={() => setSelectedVariantType('Swatch')}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-1"
+              >
+                <Package className="w-3 h-3" />
+                Order Swatch
+              </button>
+            )}
             <button className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-1">
               <Info className="w-3 h-3" />
-              Quote
+              Request Quote
             </button>
           </div>
         </div>

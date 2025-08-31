@@ -256,20 +256,23 @@ function FabricCard({
           {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
         </button>
 
-        {/* Stock Status Badge */}
-        {essentialFields.inStock ? (
-          <div className="absolute top-2 left-2">
+        {/* Stock Status Badge - Show both swatch and fabric availability */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {fabric.swatch_in_stock && (
             <span className="inline-flex items-center px-2 py-1 bg-green-600/90 backdrop-blur-sm text-white text-[10px] font-semibold rounded uppercase tracking-wide">
-              IN STOCK
+              SWATCH
             </span>
-          </div>
-        ) : (
-          <div className="absolute top-2 left-2">
+          )}
+          {essentialFields.inStock ? (
+            <span className="inline-flex items-center px-2 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-semibold rounded uppercase tracking-wide">
+              FABRIC
+            </span>
+          ) : !fabric.swatch_in_stock && (
             <span className="inline-flex items-center px-2 py-1 bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-semibold rounded uppercase tracking-wide">
               OUT OF STOCK
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Content Container - Flex grow for equal height cards */}
@@ -286,15 +289,29 @@ function FabricCard({
           </h3>
         </div>
 
-        {/* Price Section */}
+        {/* Price Section - Show both swatch and fabric prices */}
         <div className="mb-3">
-          <div className="flex items-end">
-            <span className="text-2xl font-bold text-gray-900">
-              ${essentialFields.price.toFixed(2)}
-            </span>
-            <span className="text-xs text-gray-500 ml-1">
-              per {essentialFields.unit}
-            </span>
+          <div className="flex flex-col gap-1">
+            {/* Fabric Price */}
+            <div className="flex items-end">
+              <span className="text-2xl font-bold text-gray-900">
+                ${essentialFields.price.toFixed(2)}
+              </span>
+              <span className="text-xs text-gray-500 ml-1">
+                per {essentialFields.unit}
+              </span>
+            </div>
+            {/* Swatch Price if available */}
+            {fabric.swatch_price && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">
+                  Swatch Available
+                </span>
+                <span className="text-sm text-gray-600">
+                  ${fabric.swatch_price.toFixed(2)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

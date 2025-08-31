@@ -62,13 +62,20 @@ export function ImageUpload({
         formData.append('files', file)
       })
 
-      // Add fabric ID to the URL if provided
-      const uploadUrl = fabricId 
-        ? `/api/upload/fabric-images?fabricId=${fabricId}`
-        : '/api/upload/fabric-images'
+      // Use Medusa backend for uploads with proper organization
+      const uploadUrl = 'http://localhost:9000/admin/uploads'
+      
+      // Add context parameters for organized storage
+      if (fabricId) {
+        formData.append('product_id', fabricId)
+        formData.append('category', 'fabrics')
+      }
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
+        headers: {
+          // Add any required auth headers here if needed
+        },
         body: formData,
       })
 
@@ -78,17 +85,21 @@ export function ImageUpload({
         throw new Error(data.error?.message || 'Upload failed')
       }
 
-      if (data.data?.uploads && data.data.uploads.length > 0) {
-        const newImages = data.data.uploads.map((upload: UploadedImage) => upload.url)
+      if (data.uploads && data.uploads.length > 0) {
+        const newImages = data.uploads.map((upload: UploadedImage) => upload.url)
         onChange([...images, ...newImages])
         
-        toast.success(`Successfully uploaded ${data.data.uploads.length} image${data.data.uploads.length > 1 ? 's' : ''}`)
+        toast.success(`Successfully uploaded ${data.uploads.length} image${data.uploads.length > 1 ? 's' : ''} to Cloudflare R2`)
       }
 
-      if (data.data?.errors && data.data.errors.length > 0) {
-        data.data.errors.forEach((error: string) => {
+      if (data.errors && data.errors.length > 0) {
+        data.errors.forEach((error: string) => {
           toast.error(error)
         })
+      }
+
+      if (data.warning) {
+        toast.warning(data.warning)
       }
 
     } catch (error: any) {
@@ -303,7 +314,7 @@ export function ImageUpload({
         <AlertDescription className="text-sm">
           <strong>Image Tips:</strong> Upload high-quality images (min 800x600px). 
           The first image will be used as the primary showcase. You can reorder images by clicking "Make Primary".
-          Images are stored securely in Cloudflare R2.
+          Images are stored securely in Cloudflare R2 with organized folder structure and CDN delivery.
         </AlertDescription>
       </Alert>
     </div>

@@ -31,17 +31,29 @@ export async function GET(request: Request) {
       console.log('Fabric API not available, trying fallback...')
     }
     
-    // Option 2: Try Medusa backend with API key
-    const medusaUrl = `http://localhost:9000/store/fabrics?limit=${limit}&offset=${offset}`
-    const medusaResponse = await fetch(medusaUrl, {
-      headers: {
-        'x-publishable-api-key': 'pk_72f0a4f217ccf1a3912ac25acacbfb55dd513a997f2d9eb6125d29ffba2ef71c'
-      }
-    })
+    // Option 2: Try Medusa backend - PRIMARY DATA SOURCE
+    const medusaUrl = new URL('http://localhost:9000/store/fabrics')
+    medusaUrl.searchParams.set('limit', limit)
+    medusaUrl.searchParams.set('offset', offset)
+    if (category) medusaUrl.searchParams.set('category', category)
+    if (collection) medusaUrl.searchParams.set('collection', collection)
+    if (color_family) medusaUrl.searchParams.set('color_family', color_family)
+    if (pattern) medusaUrl.searchParams.set('pattern', pattern)
     
-    if (medusaResponse.ok) {
-      const data = await medusaResponse.json()
-      return NextResponse.json(data)
+    try {
+      const medusaResponse = await fetch(medusaUrl.toString(), {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-publishable-api-key': process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || 'pk_49ebbbe6498305cd3ec7b42aaedbdebb37145d952652e29238e2a23ab8ce0538'
+        }
+      })
+      
+      if (medusaResponse.ok) {
+        const data = await medusaResponse.json()
+        return NextResponse.json(data)
+      }
+    } catch (error) {
+      console.log('Medusa API not available, trying fallback...')
     }
     
     // Option 3: Return mock data if both fail

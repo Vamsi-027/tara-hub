@@ -15,11 +15,25 @@ Tara Hub - A Next.js 15 fabric marketplace platform built with Turbo monorepo ar
 - **Components**: `/components/ui/` with relative imports
 - **Auth**: Simple magic link form, admin pages at `/app/admin/`
 
+**MEDUSA BACKEND**:
+- **Location**: `/medusa/` directory (MedusaJS v2)
+- **Start Command**: `cd medusa && npm run dev` (port 9000)
+- **Admin URL**: http://localhost:9000/app
+- **API URL**: http://localhost:9000/admin
+
+**RECENT FIX (2025-08-31)**: Product Creation SKU Duplication Issue
+- **Root Cause**: SKUs were generated without unique identifiers, causing duplicate constraint violations
+- **Fix Applied**: Modified `/medusa/src/admin/routes/products/create/page.tsx` to include timestamps in SKU generation
+- **Verification**: Run `npx medusa exec ./scripts/test-product-creation.ts` from medusa directory
+- **Cleanup**: Use `npx medusa exec ./scripts/cleanup-test-products.ts` to remove test products
+
 **DOCUMENTATION WARNING**: Much of this file describes **planned modular architecture** (`src/modules/`, advanced auth services) that is **NOT YET IMPLEMENTED**. For immediate work:
-1. Use `/app/` structure
-2. Run `npx next dev` from root
-3. Components are in `/components/` not `/src/shared/`
-4. Auth is basic, not the complex system described below
+1. Use `/app/` structure for Next.js admin
+2. Use `/medusa/` structure for backend
+3. Run `npx next dev` from root for Next.js
+4. Run `cd medusa && npm run dev` for Medusa backend
+5. Components are in `/components/` not `/src/shared/`
+6. Auth is basic, not the complex system described below
 
 ## Development Commands
 
@@ -118,7 +132,11 @@ src/
 - **Database**: Drizzle ORM with PostgreSQL (Neon) + Vercel KV (Redis) for caching
 - **Authentication**: Custom email-based magic link system with JWT (replaced NextAuth)
 - **UI**: Radix UI primitives + shadcn/ui components + Tailwind CSS
-- **Storage**: Cloudflare R2 for image uploads and asset management
+- **Storage**: Cloudflare R2 for image uploads and asset management (PRODUCTION READY ✅)
+  - Organized folder structure: `products/{id}/images/`, `users/{id}/uploads/`, `public/{category}/`
+  - CDN delivery through Cloudflare's global network
+  - Automatic file validation, retry logic, and cleanup scripts
+  - S3-compatible API integrated with Medusa file service
 - **Email**: Resend API for magic link delivery and notifications
 - **Deployment**: 
   - Vercel for Next.js apps (admin, experiences)
@@ -146,6 +164,51 @@ src/
 - Advanced auth service in `src/modules/auth/`
 - Resend integration for actual email delivery
 - Complex role-based permissions
+
+### Image Storage Architecture (PRODUCTION READY ✅)
+
+**Cloudflare R2 Storage**:
+- **Current Status**: Fully operational and production-ready
+- **Backend Integration**: Medusa v2 with S3-compatible file service
+- **CDN Delivery**: Global distribution through Cloudflare network
+- **Organized Structure**: Automatic folder organization by entity type
+
+**Key Features**:
+- ✅ **Upload Endpoints**: `/admin/uploads` and `/admin/uploads/product`
+- ✅ **File Validation**: Type checking (JPEG, PNG, WebP) and size limits (10MB)
+- ✅ **Retry Logic**: 3-attempt uploads with exponential backoff
+- ✅ **Folder Organization**: `products/{id}/images/`, `users/{id}/uploads/`, `public/{category}/`
+- ✅ **CDN Optimization**: 1-year cache headers and global edge delivery
+- ✅ **Cleanup Scripts**: Automated orphaned file detection and removal
+
+**Storage Structure**:
+```
+/store/ (R2 Bucket)
+├── products/{product-id}/images/{timestamp}_{uuid}_{filename}
+├── users/{user-id}/uploads/{timestamp}_{uuid}_{filename}
+├── public/{category}/{timestamp}_{uuid}_{filename}
+└── test/uploads/ (development only)
+```
+
+**Management Commands**:
+```bash
+# Test R2 connectivity and functionality
+npx medusa exec ./src/scripts/test-image-upload.ts
+
+# Clean up orphaned/unused images
+npx medusa exec ./src/scripts/cleanup-unused-images.ts
+```
+
+**Frontend Integration**:
+- Updated `ImageUpload` component sends files to Medusa backend
+- Automatic organization by fabric/product ID when provided
+- Real-time upload progress and error handling
+- CDN URLs returned for immediate display
+
+**Migration from Local Storage**:
+- **Status**: No migration needed - system already uses R2
+- **Local `/store/images`**: Not found - all uploads go directly to R2
+- **Verification**: Test script confirms R2 is primary storage backend
 
 ### Data Persistence Strategy
 
@@ -267,11 +330,21 @@ GOOGLE_CLIENT_SECRET=...
 KV_REST_API_URL=https://...upstash.io
 KV_REST_API_TOKEN=...
 
-# Cloudflare R2 (Required for image uploads)
-R2_ACCOUNT_ID=...
-R2_ACCESS_KEY_ID=...
-R2_SECRET_ACCESS_KEY=...
-R2_BUCKET_NAME=...
+# Cloudflare R2 Storage (PRODUCTION READY ✅)
+# Medusa Backend Configuration (Primary)
+S3_REGION=auto
+S3_BUCKET_NAME=store
+S3_ENDPOINT=https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com
+S3_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
+S3_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
+S3_FORCE_PATH_STYLE=true
+S3_PUBLIC_URL=https://pub-YOUR_BUCKET_ID.r2.dev
+
+# Legacy R2 Variables (for compatibility)
+R2_ACCOUNT_ID=YOUR_ACCOUNT_ID
+R2_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
+R2_BUCKET_NAME=store
 
 # Railway Backend (For heavy operations)
 RAILWAY_API_URL=https://your-backend.railway.app

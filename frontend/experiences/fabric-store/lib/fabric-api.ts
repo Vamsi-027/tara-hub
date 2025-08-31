@@ -9,6 +9,16 @@ export interface FabricCollection {
   image: string
 }
 
+export interface FabricVariant {
+  id: string
+  title: string
+  sku: string
+  type: 'Swatch' | 'Fabric'
+  price: number
+  inventory_quantity: number
+  in_stock: boolean
+}
+
 export interface Fabric {
   id: string
   name: string
@@ -34,6 +44,12 @@ export interface Fabric {
   metadata?: Record<string, any>
   created_at?: string
   updated_at?: string
+  // New variant fields
+  swatch_price?: number
+  swatch_in_stock?: boolean
+  swatch_size?: string
+  minimum_order_yards?: string
+  variants?: FabricVariant[]
 }
 
 export interface FabricListResponse {

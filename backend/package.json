@@ -9,13 +9,9 @@
     "start": "node api-gateway/server.js",
     "db:migrate": "cd infrastructure/database && npx drizzle-kit migrate",
     "db:push": "cd infrastructure/database && npx drizzle-kit push",
-    "db:studio": "cd infrastructure/database && npx drizzle-kit studio",
-    "medusa:dev": "cd medusa && npm run dev",
-    "medusa:build": "cd medusa && npm run build"
+    "db:studio": "cd infrastructure/database && npx drizzle-kit studio"
   },
   "dependencies": {
-    "@medusajs/framework": "^2.1.4",
-    "@medusajs/medusa": "^2.1.4",
     "drizzle-orm": "^0.44.4",
     "@neondatabase/serverless": "^0.10.4",
     "@aws-sdk/client-s3": "^3.864.0",
