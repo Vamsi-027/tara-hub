@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
+import { withCors } from '../../../lib/cors'
+import { client } from '../../../lib/sanity'
 
 // Since we can't install pg directly due to package issues,
 // we'll proxy through the Medusa backend or main app
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const limit = searchParams.get('limit') || '50'
@@ -56,7 +58,76 @@ export async function GET(request: Request) {
       console.log('Medusa API not available, trying fallback...')
     }
     
-    // Option 3: Return mock data if both fail
+    // Option 3: Try Sanity CMS for fabric data
+    try {
+      console.log('Trying Sanity CMS for fabric data...')
+      
+      const sanityQuery = `
+        *[_type == "fabric"] {
+          _id,
+          name,
+          sku,
+          category,
+          collection,
+          price,
+          "images": images[].asset->url,
+          "swatch_image_url": swatchImage.asset->url,
+          status,
+          description,
+          color,
+          color_family,
+          color_hex,
+          pattern,
+          usage,
+          properties,
+          composition,
+          width,
+          weight,
+          durability,
+          care_instructions,
+          in_stock
+        }[0...${limit}]
+      `
+      
+      const sanityFabrics = await client.fetch(sanityQuery)
+      
+      if (sanityFabrics && sanityFabrics.length > 0) {
+        return NextResponse.json({
+          fabrics: sanityFabrics.map((fabric: any) => ({
+            id: fabric._id,
+            name: fabric.name,
+            sku: fabric.sku,
+            category: fabric.category || '',
+            collection: fabric.collection || '',
+            price: fabric.price || 0,
+            images: fabric.images || [],
+            swatch_image_url: fabric.swatch_image_url,
+            status: fabric.status || 'Active',
+            description: fabric.description,
+            color: fabric.color,
+            color_family: fabric.color_family,
+            color_hex: fabric.color_hex,
+            pattern: fabric.pattern,
+            usage: fabric.usage,
+            properties: fabric.properties || [],
+            composition: fabric.composition,
+            width: fabric.width,
+            weight: fabric.weight,
+            durability: fabric.durability,
+            care_instructions: fabric.care_instructions,
+            in_stock: fabric.in_stock || false
+          })),
+          total: sanityFabrics.length,
+          source: 'sanity',
+          offset: parseInt(offset),
+          limit: parseInt(limit)
+        })
+      }
+    } catch (error) {
+      console.log('Sanity CMS not available, using fallback data...')
+    }
+    
+    // Option 4: Return mock data if all sources fail
     return NextResponse.json({
       fabrics: [
         {
@@ -144,4 +215,20 @@ export async function GET(request: Request) {
       { status: 500 }
     )
   }
+}
+
+// Export wrapped handlers with CORS
+export const GET = withCors(handleGET)
+
+// Handle preflight OPTIONS requests
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+      'Access-Control-Max-Age': '86400',
+    },
+  })
 }

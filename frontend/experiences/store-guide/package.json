@@ -11,8 +11,6 @@
     "sync-data": "node scripts/sync-fabric-data.js"
   },
   "dependencies": {
-    "@tara-hub/lib": "*",
-    "@tara-hub/ui": "*",
     "@vercel/kv": "latest",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.540.0",

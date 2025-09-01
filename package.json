@@ -4,16 +4,6 @@
   "description": "Tara Hub - Multi-tenant Fabric Marketplace Platform",
   "private": true,
   "packageManager": "npm@10.2.0",
-  "workspaces": [
-    "frontend/admin",
-    "frontend/experiences/*",
-    "frontend/shared",
-    "backend/api-gateway",
-    "backend/api-service",
-    "backend/infrastructure",
-    "backend/shared",
-    "shared"
-  ],
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -51,6 +41,7 @@
     "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/react": "19.1.12",
     "@vitejs/plugin-react": "^5.0.0",
     "@vitest/ui": "^3.2.4",
     "eslint": "^9",

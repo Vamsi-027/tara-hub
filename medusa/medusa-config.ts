@@ -39,6 +39,36 @@ module.exports = defineConfig({
           }
         ]
       }
+    },
+    {
+      resolve: "@medusajs/payment",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/payment-stripe",
+            id: "stripe",
+            options: {
+              apiKey: process.env.STRIPE_API_KEY,
+              webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+            }
+          }
+        ]
+      }
+    },
+    {
+      resolve: "@medusajs/notification",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/notification-sendgrid",
+            id: "sendgrid",
+            options: {
+              apiKey: process.env.SENDGRID_API_KEY,
+              from: process.env.SENDGRID_FROM,
+            }
+          }
+        ]
+      }
     }
   ]
 })

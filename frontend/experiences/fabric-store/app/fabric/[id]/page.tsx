@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { useFabric, useFabrics } from '../../../hooks/useFabrics'
 import type { Fabric } from '../../../lib/fabric-api'
+import { ProductRecommendations } from '../../../components/ProductRecommendations'
 
 // Tooltip Component
 function Tooltip({ children, content }: { children: React.ReactNode, content: string }) {
@@ -106,29 +107,47 @@ function ImageGallery({ images, productName }: { images: string[], productName: 
 
 // Product Details Component
 function ProductDetails({ fabric }: { fabric: Fabric }) {
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState(0.5)
   const [isFavorite, setIsFavorite] = useState(false)
   const [selectedVariantType, setSelectedVariantType] = useState<'Swatch' | 'Fabric'>('Fabric')
+  
+  // Reset quantity when switching between Swatch and Fabric
+  const handleVariantTypeChange = (type: 'Swatch' | 'Fabric') => {
+    setSelectedVariantType(type)
+    setQuantity(type === 'Swatch' ? 1 : 0.5)
+  }
   const [activeTab, setActiveTab] = useState('details')
 
   const handleAddToCart = () => {
-    // Find the selected variant from fabric.variants if available
-    const selectedVariant = fabric.variants?.find(v => v.type === selectedVariantType)
+    const cartItem = {
+      id: `fabric-${fabric.id}-${selectedVariantType.toLowerCase()}-${Date.now()}`,
+      variantId: fabric.id,
+      productId: fabric.id,
+      title: fabric.name,
+      variant: `${quantity} ${selectedVariantType.toLowerCase()}${quantity !== 1 ? 's' : ''}`,
+      price: (selectedVariantType === 'Swatch' 
+        ? (fabric.swatch_price || 5) * 100 * quantity
+        : (fabric.price || 99) * 100 * quantity),
+      quantity: quantity,
+      thumbnail: fabric.swatch_image_url || fabric.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+      type: selectedVariantType === 'Swatch' ? 'swatch' : 'fabric' // Add type to distinguish orders
+    }
+
+    // Get existing cart items
+    const existingCart = localStorage.getItem('fabric-cart')
+    const cart = existingCart ? JSON.parse(existingCart) : []
     
-    console.log('Adding to cart:', { 
-      fabricId: fabric.id,
-      fabricName: fabric.name,
-      variantType: selectedVariantType,
-      variantId: selectedVariant?.id,
-      sku: selectedVariant?.sku || fabric.sku,
-      quantity,
-      unitPrice: selectedVariantType === 'Swatch' ? (fabric.swatch_price || 5) : (fabric.price || 99),
-      total: (selectedVariantType === 'Swatch' 
-        ? (fabric.swatch_price || 5) * quantity
-        : (fabric.price || 99) * quantity)
-    })
+    // Add new item to cart
+    const updatedCart = [...cart, cartItem]
+    
+    // Save to localStorage
+    localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+    
     // Show success feedback
-    alert(`Added ${quantity} ${selectedVariantType.toLowerCase()}${quantity > 1 ? 's' : ''} to cart!`)
+    alert(`Added ${quantity} ${selectedVariantType.toLowerCase()}${quantity !== 1 ? 's' : ''} to cart!`)
   }
 
   const handleAddToWishlist = () => {
@@ -310,7 +329,7 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
           <div className="grid grid-cols-2 gap-2">
             {/* Swatch Option */}
             <button
-              onClick={() => setSelectedVariantType('Swatch')}
+              onClick={() => handleVariantTypeChange('Swatch')}
               className={`border-2 rounded-lg p-3 transition-all ${
                 selectedVariantType === 'Swatch'
                   ? 'border-blue-500 bg-blue-50'
@@ -333,7 +352,7 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
 
             {/* Fabric Option */}
             <button
-              onClick={() => setSelectedVariantType('Fabric')}
+              onClick={() => handleVariantTypeChange('Fabric')}
               className={`border-2 rounded-lg p-3 transition-all ${
                 selectedVariantType === 'Fabric'
                   ? 'border-blue-500 bg-blue-50'
@@ -422,17 +441,27 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
             </span>
             <div className="flex items-center border border-gray-300 rounded">
               <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                onClick={() => setQuantity(selectedVariantType === 'Swatch' ? Math.max(1, quantity - 1) : Math.max(0.5, Math.round((quantity - 0.5) * 2) / 2))}
                 className="p-1 hover:bg-gray-100 disabled:opacity-50"
-                disabled={quantity <= 1}
+                disabled={selectedVariantType === 'Swatch' ? quantity <= 1 : quantity <= 0.5}
               >
                 <Minus className="w-3 h-3" />
               </button>
-              <span className="px-3 py-1 font-medium text-sm min-w-[30px] text-center">
-                {quantity}
-              </span>
+              <input
+                type="number"
+                min={selectedVariantType === 'Swatch' ? "1" : "0.5"}
+                max="100"
+                step={selectedVariantType === 'Swatch' ? "1" : "0.5"}
+                value={quantity}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || (selectedVariantType === 'Swatch' ? 1 : 0.5)
+                  const minValue = selectedVariantType === 'Swatch' ? 1 : 0.5
+                  setQuantity(Math.max(minValue, Math.min(100, value)))
+                }}
+                className="px-3 py-1 font-medium text-sm min-w-[50px] text-center border-0 outline-none"
+              />
               <button
-                onClick={() => setQuantity(quantity + 1)}
+                onClick={() => setQuantity(selectedVariantType === 'Swatch' ? quantity + 1 : Math.min(100, Math.round((quantity + 0.5) * 2) / 2))}
                 className="p-1 hover:bg-gray-100"
               >
                 <Plus className="w-3 h-3" />
@@ -470,21 +499,10 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
             Add {selectedVariantType} to Cart
           </button>
 
-          <div className="flex gap-2">
-            {selectedVariantType === 'Fabric' && (
-              <button 
-                onClick={() => setSelectedVariantType('Swatch')}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-1"
-              >
-                <Package className="w-3 h-3" />
-                Order Swatch
-              </button>
-            )}
-            <button className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-1">
-              <Info className="w-3 h-3" />
-              Request Quote
-            </button>
-          </div>
+          <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-1">
+            <Info className="w-3 h-3" />
+            Request Quote
+          </button>
         </div>
       </div>
 
@@ -791,8 +809,38 @@ export default function FabricDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const fabricId = params.id as string
+  const [cartCount, setCartCount] = useState(0)
 
   const { fabric, loading, error } = useFabric(fabricId)
+  
+  // Fetch all fabrics for recommendations
+  const { fabrics: allFabrics } = useFabrics({ limit: 100 })
+
+  // Update cart count
+  const updateCartCount = () => {
+    const cart = localStorage.getItem('fabric-cart')
+    if (cart) {
+      const items = JSON.parse(cart)
+      // Count the number of distinct items/orders, not total quantity
+      setCartCount(items.length)
+    } else {
+      setCartCount(0)
+    }
+  }
+
+  // Listen for cart updates
+  useEffect(() => {
+    updateCartCount()
+    
+    const handleCartUpdate = () => updateCartCount()
+    window.addEventListener('cart-updated', handleCartUpdate)
+    window.addEventListener('storage', handleCartUpdate)
+
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdate)
+      window.removeEventListener('storage', handleCartUpdate)
+    }
+  }, [])
 
   if (loading) {
     return (
@@ -830,24 +878,28 @@ export default function FabricDetailsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header - Mobile Optimized */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3 sm:py-4">
+          <div className="flex items-center justify-between h-16">
             <Link
               href="/browse"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors min-h-[44px]"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors min-h-[40px] px-3 py-2 rounded-lg hover:bg-gray-50"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="hidden sm:inline">Back to Browse</span>
               <span className="sm:hidden">Back</span>
             </Link>
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2">
               <Link
-                href="/checkout"
-                className="flex items-center gap-2 bg-gray-100 text-gray-700 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors min-h-[44px]"
+                href="/cart"
+                className="w-10 h-10 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center relative"
               >
-                <ShoppingCart className="w-4 h-4" />
-                <span className="hidden sm:inline">Cart</span>
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             </div>
           </div>
@@ -871,10 +923,8 @@ export default function FabricDetailsPage() {
           </div>
         </section>
 
-        {/* Related Products Section */}
-        <section className="border-t border-gray-200 pt-12">
-          <RelatedProducts currentFabric={fabric} />
-        </section>
+        {/* Product Recommendations Section */}
+        <ProductRecommendations currentFabric={fabric} allFabrics={allFabrics} />
       </main>
     </div>
   )

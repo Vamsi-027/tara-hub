@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { fabricCollections, fabricSwatches } from '@shared/data/fabric-data'
+import { useHeroCarousel } from '../hooks/useHeroCarousel'
 import {
   MenuIcon,
   XIcon,
@@ -138,110 +139,213 @@ function MobileHeader({ swatchCount }: { swatchCount: number }) {
   )
 }
 
-// Hero Section
-function SwatchesHero() {
+// Hero Carousel Component
+function HeroCarousel() {
+  const [currentSlide, setCurrentSlide] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
+  const { slides: sanitySlides, loading, error } = useHeroCarousel()
+  
+  console.log('HeroCarousel render:', { loading, slidesLength: sanitySlides.length, error })
+
+  // Use Sanity data if available, otherwise use fallback
+  const slides = sanitySlides.length > 0 ? sanitySlides.map(slide => ({
+    id: slide._id,
+    title: slide.title || 'Untitled Slide',
+    subtitle: slide.subtitle || 'No subtitle',
+    description: slide.description || 'No description available',
+    features: slide.features || [],
+    searchPlaceholder: slide.searchPlaceholder || 'Search fabrics...',
+    background: getGradientClass(slide.backgroundGradient || 'blue'),
+    textColor: slide.textColor === 'white' ? 'text-white' : 'text-gray-900',
+    image: slide.image?.asset?.url || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=600&fit=crop',
+    cta: slide.ctaText || null,
+    ctaLink: slide.ctaLink || null,
+    alt: slide.image?.alt || slide.title
+  })) : []
+
+  // Gradient mapping function
+  function getGradientClass(gradient: string) {
+    const gradients = {
+      blue: 'bg-gradient-to-br from-blue-50 to-indigo-100',
+      purple: 'bg-gradient-to-br from-purple-50 to-pink-100', 
+      green: 'bg-gradient-to-br from-green-50 to-teal-100',
+      orange: 'bg-gradient-to-br from-orange-50 to-amber-100'
+    }
+    return gradients[gradient as keyof typeof gradients] || gradients.blue
+  }
+
+  // Color mapping function for feature icons
+  function getFeatureColorClass(color: string) {
+    const colors = {
+      amber: 'bg-amber-100 text-amber-600',
+      green: 'bg-green-100 text-green-600',
+      blue: 'bg-blue-100 text-blue-600',
+      purple: 'bg-purple-100 text-purple-600',
+      red: 'bg-red-100 text-red-600'
+    }
+    return colors[color as keyof typeof colors] || colors.blue
+  }
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+  }
+
+  // Auto-advance slides every 5 seconds
+  useEffect(() => {
+    if (slides.length > 0) {
+      const interval = setInterval(nextSlide, 5000)
+      return () => clearInterval(interval)
+    }
+  }, [slides.length])
+
+  // Loading state
+  if (loading) {
+    return (
+      <section className="relative pt-32 md:pt-20 pb-12 md:pb-20 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[500px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </section>
+    )
+  }
+
+  // Error state - show fallback
+  if (error || slides.length === 0) {
+    console.log('Using fallback slides due to error:', error)
+  }
 
   return (
-    <section className="bg-gradient-to-br from-blue-50 to-indigo-100 pt-32 md:pt-20 pb-12 md:pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-6 md:space-y-8">
-          <div className="space-y-3 md:space-y-4">
-            <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
-              Experience Luxury Fabrics First-Hand
-            </h1>
-            <p className="text-lg md:text-xl lg:text-2xl text-gray-600 font-medium">
-              Touch the Difference Quality Makes
-            </p>
-            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-              Discover our curated collection of premium fabric samples from world-renowned mills. 
-              Each professionally mounted sample includes complete specifications, origin details, and exclusive designer notes.
-            </p>
-          </div>
+    <section className="relative pt-32 md:pt-20 pb-12 md:pb-20 overflow-hidden">
+      {/* Carousel Container */}
+      <div className="relative h-[600px] md:h-[500px]">
+        {slides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+              index === currentSlide 
+                ? 'opacity-100 translate-x-0' 
+                : index < currentSlide 
+                  ? 'opacity-0 -translate-x-full' 
+                  : 'opacity-0 translate-x-full'
+            } ${slide.background}`}
+          >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+              <div className="grid lg:grid-cols-2 gap-12 items-center h-full">
+                {/* Content - Left Side */}
+                <div className="space-y-6 md:space-y-8 lg:pr-8">
+                  {/* Headers */}
+                  <div className="space-y-3 md:space-y-4">
+                    <h1 className={`text-3xl md:text-4xl lg:text-5xl font-bold ${slide.textColor} leading-tight`}>
+                      {slide.title}
+                    </h1>
+                    <h2 className="text-lg md:text-xl lg:text-2xl text-gray-600 font-medium">
+                      {slide.subtitle}
+                    </h2>
+                    <p className="text-base md:text-lg text-gray-600 max-w-xl">
+                      {slide.description}
+                    </p>
+                  </div>
 
-          {/* Trust Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <span className="text-amber-600">✓</span>
-              <span>Trusted by 500+ Interior Designers</span>
-            </div>
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="text-amber-600">✓</span>
-              <span>Access to trade-only collections</span>
-            </div>
-            <div className="hidden md:flex items-center gap-2">
-              <span className="text-amber-600">✓</span>
-              <span>Samples include full pattern repeat</span>
-            </div>
-          </div>
+                  {/* Features - Dynamic from Sanity */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Features</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {slide.features?.filter(feature => feature && feature.text)?.map((feature, featureIndex) => (
+                        <div key={featureIndex} className="flex items-center gap-2 text-sm text-gray-600">
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center ${getFeatureColorClass(feature.color || 'blue')}`}>
+                            <span className="text-xs font-bold">✓</span>
+                          </span>
+                          <span>{feature.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-          {/* Value Props */}
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-8 sm:gap-12">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                <StarIcon className="w-6 h-6 text-amber-600" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">Premium Presentation</div>
-                <div className="text-sm text-gray-600">8×8 samples on archival board</div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <PackageIcon className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">Designer Sets Available</div>
-                <div className="text-sm text-gray-600">Curated 5-piece collections</div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <ClockIcon className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">White Glove Service</div>
-                <div className="text-sm text-gray-600">Tracked delivery in 3-5 days</div>
-              </div>
-            </div>
-          </div>
+                  {/* Search Box */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Find Your Perfect Fabric</h3>
+                    <div className="relative">
+                      <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder={slide.searchPlaceholder || 'Search fabrics by designer, style, color...'}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full h-12 pl-12 pr-28 text-base border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                      />
+                      <Link
+                        href={`/browse${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
+                      >
+                        Search
+                      </Link>
+                    </div>
+                  </div>
 
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search luxury fabrics by designer, collection, or style..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-32 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
-              />
-              <Link
-                href={`/browse${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Browse
-              </Link>
-            </div>
-          </div>
+                  {/* CTA */}
+                  {slide.ctaLink && slide.cta && (
+                    <div className="pt-2">
+                      <Link
+                        href={slide.ctaLink}
+                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-lg text-base font-semibold hover:bg-blue-700 transition-colors"
+                      >
+                        {slide.cta}
+                        <ArrowRightIcon className="w-5 h-5" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
 
-          {/* CTA */}
-          <div className="pt-4">
-            <div className="text-center">
-              <Link
-                href="/browse"
-                className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Explore Fabric Collections
-                <ArrowRightIcon className="w-5 h-5" />
-              </Link>
-              <p className="text-sm text-gray-600 mt-3">Investment pieces from $18</p>
+                {/* Image - Right Side */}
+                <div className="relative lg:order-last order-first">
+                  <div className="aspect-[4/3] relative overflow-hidden rounded-2xl shadow-2xl">
+                    <Image
+                      src={slide.image}
+                      alt={slide.alt || slide.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      priority={index === 0}
+                    />
+                    {/* Optional overlay for better text contrast if needed */}
+                    <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/5"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ))}
+      </div>
+
+      {/* Navigation Arrows */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-800 hover:bg-white transition-colors shadow-lg z-10"
+      >
+        <ArrowRightIcon className="w-5 h-5 rotate-180" />
+      </button>
+      <button
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-800 hover:bg-white transition-colors shadow-lg z-10"
+      >
+        <ArrowRightIcon className="w-5 h-5" />
+      </button>
+
+      {/* Dots Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentSlide(index)}
+            className={`w-3 h-3 rounded-full transition-colors ${
+              index === currentSlide ? 'bg-blue-600' : 'bg-white/60'
+            }`}
+          />
+        ))}
       </div>
     </section>
   )
@@ -355,7 +459,7 @@ function HowItWorks() {
     },
     {
       step: 2,
-      title: 'Add to Swatch Box',
+      title: 'Add to Cart',
       description: 'Build your swatch collection with our easy-to-use interface',
       icon: '📦'
     },
@@ -462,7 +566,7 @@ export default function FabricSwatchesHomepage() {
     <div className="min-h-screen bg-white">
       <SiteHeader />
       <MobileHeader swatchCount={swatchCount} />
-      <SwatchesHero />
+      <HeroCarousel />
       <FeaturedCollections />
       <PopularSwatches />
       <HowItWorks />

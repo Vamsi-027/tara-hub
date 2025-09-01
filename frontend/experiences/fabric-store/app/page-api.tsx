@@ -389,7 +389,7 @@ function HowItWorks() {
     },
     {
       step: 2,
-      title: 'Add to Swatch Box',
+      title: 'Add to Cart',
       description: 'Build your swatch collection with our easy-to-use interface',
       icon: '📦'
     },
