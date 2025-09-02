@@ -447,6 +447,51 @@ async function injectFabricCustomers(
   next()
 }
 
+// Middleware to check Google authentication for admin routes
+async function checkGoogleAuth(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  // Skip auth check for auth endpoints and public assets
+  if (
+    req.path.startsWith("/auth/") ||
+    req.path.startsWith("/app/login") ||
+    req.path.includes(".js") ||
+    req.path.includes(".css") ||
+    req.path.includes(".map")
+  ) {
+    return next()
+  }
+
+  // Check if user is authenticated with Google
+  const session = req.session
+  const isGoogleAuth = session?.auth_context?.app_metadata?.provider === "google"
+  const userEmail = session?.auth_context?.app_metadata?.email
+
+  // Whitelist of allowed Google email addresses
+  const ALLOWED_ADMIN_EMAILS = [
+    "varaku@gmail.com",
+    "vamsicheruku027@gmail.com", 
+    "admin@deepcrm.ai",
+    "batchu.kedareswaraabhinav@gmail.com",
+    "admin@tara-hub.com"
+  ]
+
+  if (!isGoogleAuth || !userEmail || !ALLOWED_ADMIN_EMAILS.includes(userEmail)) {
+    // For app routes, redirect to custom login page
+    if (req.path.startsWith("/app")) {
+      return res.redirect("/app/login")
+    }
+    // For API routes, return 401
+    return res.status(401).json({
+      error: "Authentication required. Please login with an authorized Google account."
+    })
+  }
+
+  next()
+}
+
 export default defineMiddlewares({
   routes: [
     {
@@ -462,11 +507,19 @@ export default defineMiddlewares({
     },
     {
       matcher: "/admin/orders*",
-      middlewares: [injectFabricOrders]
+      middlewares: [checkGoogleAuth, injectFabricOrders]
     },
     {
       matcher: "/admin/customers*",
-      middlewares: [injectFabricCustomers]
+      middlewares: [checkGoogleAuth, injectFabricCustomers]
+    },
+    {
+      matcher: "/app*",
+      middlewares: [checkGoogleAuth]
+    },
+    {
+      matcher: "/admin*",
+      middlewares: [checkGoogleAuth]
     }
   ]
 })
