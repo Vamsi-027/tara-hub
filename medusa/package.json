@@ -18,6 +18,8 @@
     "seed:admin": "medusa exec ./src/scripts/seed-admin-user.ts",
     "seed:fabrics": "medusa exec ./src/scripts/seed-fabrics.ts",
     "import:fabrics": "medusa exec ./src/scripts/import-fabric-data.ts",
+    "setup:contacts": "medusa exec ./src/scripts/setup-contacts.ts",
+    "test:contacts": "medusa exec ./src/scripts/test-contact-integration.ts",
     "start": "medusa start",
     "dev": "medusa develop",
     "test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",

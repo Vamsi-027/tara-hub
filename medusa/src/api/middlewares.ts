@@ -300,9 +300,9 @@ async function injectFabricOrders(
       const fabricOrder = fabricOrders.find((o: any) => o.id === orderId)
       
       if (fabricOrder) {
-        // Return the fabric order directly
+        // Return the fabric order directly (already in correct format)
         return res.json({
-          order: transformFabricOrder(fabricOrder)
+          order: fabricOrder
         })
       }
     } catch (error) {
@@ -320,14 +320,12 @@ async function injectFabricOrders(
       // Get fabric orders from global store
       const fabricOrders = global.fabricStoreData?.orders || []
       
-      // Transform fabric orders to match Medusa format
-      const transformedFabricOrders = fabricOrders.map((order: any) => transformFabricOrder(order))
+      // The fabric orders are already in the correct format from our API
+      // So we just need to merge them without transformation
+      data.orders = [...fabricOrders, ...data.orders]
+      data.count = (data.count || 0) + fabricOrders.length
       
-      // Merge fabric orders with existing orders
-      data.orders = [...transformedFabricOrders, ...data.orders]
-      data.count = (data.count || 0) + transformedFabricOrders.length
-      
-      console.log(`Injected ${transformedFabricOrders.length} fabric orders`)
+      console.log(`Injected ${fabricOrders.length} fabric orders`)
     }
     
     return originalJson(data)
@@ -510,6 +508,17 @@ async function checkAdminAuth(
 
 export default defineMiddlewares({
   routes: [
+    {
+      matcher: "/store/submit-contact",
+      middlewares: [
+        cors({
+          origin: ["http://localhost:3006", "http://localhost:3000", "https://tara-hub.vercel.app"],
+          credentials: true,
+          methods: ["POST", "OPTIONS"],
+          allowedHeaders: ["Content-Type"],
+        })
+      ] // Allow contact form submissions without API key
+    },
     {
       matcher: "/admin/auth*",
       middlewares: [] // No auth check for auth routes

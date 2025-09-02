@@ -8,6 +8,7 @@ import { Filter, X, Plus, Check, ShoppingBag, Search, ArrowLeft, ShoppingCart, H
 import { useFabrics } from '../../hooks/useFabrics'
 import type { Fabric } from '../../lib/fabric-api'
 import { Pagination } from '../../components/Pagination'
+import UserAccount from '../../components/user-account'
 
 // Quick Filters Component
 function QuickFilters({ onFilterApply, fabrics }: { onFilterApply: (filter: any) => void, fabrics: Fabric[] }) {
@@ -904,6 +905,9 @@ export default function BrowsePage() {
                   </span>
                 )}
               </Link>
+              
+              {/* User Account */}
+              <UserAccount />
 
             </div>
           </div>

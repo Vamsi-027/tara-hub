@@ -9,13 +9,18 @@ export default async function fabricSyncLoader(container: MedusaContainer) {
   // Function to sync fabric data
   const syncFabricData = async () => {
     try {
-      // Fetch and sync orders
-      const ordersResponse = await fetch("http://localhost:3006/api/orders")
+      // Fetch and sync orders from database
+      const ordersResponse = await fetch("http://localhost:9000/admin/fabric-orders")
       const ordersData = await ordersResponse.json()
       
-      // Fetch and sync customers
-      const customersResponse = await fetch("http://localhost:3006/api/customers")
-      const customersData = await customersResponse.json()
+      // Try to fetch customers from frontend API (fallback)
+      let customersData = { customers: [], stats: {} }
+      try {
+        const customersResponse = await fetch("http://localhost:3006/api/customers")
+        customersData = await customersResponse.json()
+      } catch (customerError) {
+        logger.warn("Failed to sync customers from frontend, using empty data:", customerError.message)
+      }
       
       // Store in global context for access by API routes
       if (typeof global !== 'undefined') {
@@ -30,7 +35,7 @@ export default async function fabricSyncLoader(container: MedusaContainer) {
         }
       }
       
-      logger.info(`Fabric data synced: ${ordersData.orders?.length || 0} orders, ${customersData.customers?.length || 0} customers`)
+      logger.info(`Fabric sync completed: ${ordersData.orders?.length || 0} orders, ${customersData.customers?.length || 0} customers`)
     } catch (error) {
       logger.error("Failed to sync fabric data:", error)
     }

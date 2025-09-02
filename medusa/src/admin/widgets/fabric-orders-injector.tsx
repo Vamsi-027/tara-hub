@@ -4,32 +4,43 @@ import { Container } from "@medusajs/ui"
 
 const FabricOrdersInjector = () => {
   useEffect(() => {
-    // Function to inject fabric orders into the orders table
-    const injectFabricOrders = async () => {
+    // Function to sync fabric orders to global context
+    const syncFabricOrders = async () => {
       try {
-        // Check if we're on the orders page
-        if (!window.location.pathname.includes("/orders")) return
-        
         // Fetch fabric orders from our custom endpoint
         const response = await fetch("/admin/fabric-orders")
         const data = await response.json()
         
-        // Log for debugging
-        console.log("Fabric orders fetched:", data.orders?.length || 0)
+        // Send data to backend via a sync endpoint
+        try {
+          await fetch("/admin/sync-fabric-orders", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              orders: data.orders || [],
+              customers: [],
+              stats: {}
+            })
+          })
+          
+          console.log("Fabric orders synced to backend:", data.orders?.length || 0)
+        } catch (syncError) {
+          console.error("Failed to sync to backend:", syncError)
+        }
         
-        // The Medusa admin will handle displaying orders through its own components
-        // This widget just ensures the data is available
       } catch (error) {
-        console.error("Failed to inject fabric orders:", error)
+        console.error("Failed to fetch fabric orders:", error)
       }
     }
     
-    // Run injection when component mounts and on navigation
-    injectFabricOrders()
+    // Run sync when component mounts and on navigation
+    syncFabricOrders()
     
     // Listen for route changes
     const handleRouteChange = () => {
-      setTimeout(injectFabricOrders, 500)
+      setTimeout(syncFabricOrders, 500)
     }
     
     window.addEventListener("popstate", handleRouteChange)
