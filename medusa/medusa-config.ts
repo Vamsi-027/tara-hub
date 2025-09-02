@@ -15,6 +15,13 @@ module.exports = defineConfig({
   },
   modules: [
     {
+      resolve: "./src/modules/resend_notification",
+      options: {
+        api_key: process.env.RESEND_API_KEY,
+        from_email: process.env.RESEND_FROM_EMAIL || "Tara Hub Admin <admin@deepcrm.ai>",
+      }
+    },
+    {
       resolve: "@medusajs/auth",
       options: {
         providers: [
@@ -79,21 +86,6 @@ module.exports = defineConfig({
             options: {
               apiKey: process.env.STRIPE_API_KEY,
               webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-            }
-          }
-        ]
-      }
-    },
-    {
-      resolve: "@medusajs/notification",
-      options: {
-        providers: [
-          {
-            resolve: "@medusajs/notification-sendgrid",
-            id: "sendgrid",
-            options: {
-              apiKey: process.env.SENDGRID_API_KEY,
-              from: process.env.SENDGRID_FROM,
             }
           }
         ]

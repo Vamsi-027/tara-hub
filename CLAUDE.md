@@ -116,7 +116,7 @@ tara-hub/
 - **Database**: PostgreSQL (Neon) with Drizzle ORM + MikroORM
 - **Caching**: Vercel KV (Redis)
 - **Storage**: Cloudflare R2 (S3-compatible)
-- **Auth**: JWT-based magic links
+- **Auth**: JWT-based magic links + Google SSO (in progress)
 - **UI**: Radix UI + shadcn/ui + Tailwind CSS
 - **Email**: Resend API
 - **Deployment**: Vercel (frontend) + Railway (backend)
@@ -153,6 +153,11 @@ S3_PUBLIC_URL=https://pub-...r2.dev
 
 # Medusa Backend
 MEDUSA_BACKEND_URL=http://localhost:9000
+
+# Google SSO (Medusa Admin)
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_CALLBACK_URL=http://localhost:9000/auth/google/callback
 ```
 
 ### TypeScript Path Aliases (tsconfig.json)
@@ -185,6 +190,7 @@ MEDUSA_BACKEND_URL=http://localhost:9000
 - Custom widgets in `/medusa/src/admin/widgets/`
 - Product management with SKU generation fixes
 - Inventory tracking enhancements
+- Google SSO integration (in progress)
 
 ## Important Notes
 
@@ -194,11 +200,10 @@ MEDUSA_BACKEND_URL=http://localhost:9000
 - Webpack configured to prevent worker conflicts
 
 ### Admin Access
-Whitelisted admin emails (configured in middleware.ts):
-- varaku@gmail.com
-- vamsicheruku027@gmail.com
-- admin@deepcrm.ai
-- batchu.kedareswaraabhinav@gmail.com
+- Multi-tenant architecture with tenant resolution via subdomain/port
+- Protected routes require JWT authentication
+- Admin panel at `/admin` requires authentication
+- Magic link auth flow sends verification emails
 
 ### Port Allocation
 - 3000: Main admin app
@@ -206,10 +211,11 @@ Whitelisted admin emails (configured in middleware.ts):
 - 3007: Store guide experience
 - 9000: Medusa backend API
 
-### Recent Fixes
+### Recent Fixes & Features
 - **Product SKU Duplication** (2025-08-31): Fixed SKU generation in Medusa admin
 - **Authentication Flow**: Simplified magic link system for admin access
 - **R2 Storage**: Fully integrated with Medusa file service
+- **Google SSO**: Implementation in progress for Medusa admin
 
 ## Deployment
 
@@ -217,6 +223,7 @@ Whitelisted admin emails (configured in middleware.ts):
 - Auto-deploy on push to main branch
 - Environment variables configured in Vercel dashboard
 - Production URL: https://tara-hub.vercel.app
+- Deployment script: `deployment/vercel/scripts/deploy-all.js`
 
 ### Railway Backend
 - Clean Architecture backend service
@@ -235,3 +242,14 @@ Whitelisted admin emails (configured in middleware.ts):
 - Integration tests: `npm run test:integration:http`
 - Module tests: `npm run test:integration:modules`
 - Unit tests: `npm run test:unit`
+
+## Current Development Status
+
+### Active Branch
+- feature/phase1-Abhi
+
+### Work in Progress
+- Google SSO integration for Medusa admin
+- Admin login override components
+- Inventory management enhancements
+- Public API endpoints for fabric data
