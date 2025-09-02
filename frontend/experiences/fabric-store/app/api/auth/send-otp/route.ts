@@ -47,12 +47,21 @@ export async function POST(request: NextRequest) {
 
     // Send OTP via Twilio
     if (client && twilioPhoneNumber) {
+      console.log('Attempting to send OTP via Twilio...');
+      console.log('From:', twilioPhoneNumber);
+      console.log('To:', cleanPhone);
+      console.log('OTP:', otp);
+      
       try {
-        await client.messages.create({
-          body: `Your Tara Hub verification code is: ${otp}. Valid for 10 minutes.`,
+        const message = await client.messages.create({
+          body: `Your verification code is ${otp}`,
           from: twilioPhoneNumber,
           to: cleanPhone
         })
+        
+        console.log('SMS sent successfully!');
+        console.log('Message SID:', message.sid);
+        console.log('Status:', message.status);
       } catch (twilioError: any) {
         console.error('Twilio error details:', {
           message: twilioError.message,
