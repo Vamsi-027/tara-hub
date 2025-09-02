@@ -53,6 +53,10 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Always redirect to home page after sign in
+      return baseUrl + '/'
+    },
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id

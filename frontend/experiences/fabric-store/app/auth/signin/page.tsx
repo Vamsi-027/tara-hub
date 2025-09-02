@@ -19,7 +19,7 @@ export default function SignInPage() {
     setError('')
     try {
       const result = await signIn('google', { 
-        callbackUrl: '/browse',
+        callbackUrl: '/',
         redirect: true 
       })
       if (result?.error) {
@@ -86,7 +86,7 @@ export default function SignInPage() {
       if (result?.error) {
         setError('Invalid OTP')
       } else if (result?.ok) {
-        router.push('/browse')
+        router.push('/')
       }
     } catch (err) {
       setError('Failed to verify OTP')
