@@ -41,7 +41,7 @@ const GoogleOnlyLoginWidget = () => {
   }, [])
 
   const handleGoogleLogin = () => {
-    window.location.href = "/auth/google"
+    window.location.href = "/admin/auth/google"
   }
 
   return (

@@ -456,6 +456,7 @@ async function checkGoogleAuth(
   // Skip auth check for auth endpoints, login page, and public assets
   if (
     req.path.startsWith("/auth/") ||
+    req.path.startsWith("/admin/auth/") ||
     req.path === "/app/login" ||
     req.path.includes(".js") ||
     req.path.includes(".css") ||
@@ -497,6 +498,10 @@ async function checkGoogleAuth(
 
 export default defineMiddlewares({
   routes: [
+    {
+      matcher: "/admin/auth*",
+      middlewares: [] // No auth check for auth routes - must be first
+    },
     {
       matcher: "/admin/uploads*",
       middlewares: [
