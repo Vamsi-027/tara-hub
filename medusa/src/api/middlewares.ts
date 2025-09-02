@@ -453,13 +453,15 @@ async function checkGoogleAuth(
   res: MedusaResponse,
   next: MedusaNextFunction
 ) {
-  // Skip auth check for auth endpoints and public assets
+  // Skip auth check for auth endpoints, login page, and public assets
   if (
     req.path.startsWith("/auth/") ||
-    req.path.startsWith("/app/login") ||
+    req.path === "/app/login" ||
     req.path.includes(".js") ||
     req.path.includes(".css") ||
-    req.path.includes(".map")
+    req.path.includes(".map") ||
+    req.path.includes(".ttf") ||
+    req.path.includes(".woff")
   ) {
     return next()
   }
@@ -479,9 +481,10 @@ async function checkGoogleAuth(
   ]
 
   if (!isGoogleAuth || !userEmail || !ALLOWED_ADMIN_EMAILS.includes(userEmail)) {
-    // For app routes, redirect to custom login page
+    // For app routes, let Medusa handle the redirect to its login page
     if (req.path.startsWith("/app")) {
-      return res.redirect("/app/login")
+      // Don't redirect, let it pass through so Medusa shows login
+      return next()
     }
     // For API routes, return 401
     return res.status(401).json({
