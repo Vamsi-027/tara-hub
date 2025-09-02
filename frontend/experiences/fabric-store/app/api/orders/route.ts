@@ -97,17 +97,72 @@ async function handlePOST(request: NextRequest) {
       order.totals.total = order.totals.subtotal + order.totals.shipping + order.totals.tax
     }
     
-    // Store order persistently
+    // Store order in file storage (backup)
     orderStorage.set(order.id, order)
     
-    console.log(`📦 Order stored: ${order.id}`)
+    // Also store order in Medusa database using authentication-free endpoint
+    try {
+      const medusaResponse = await fetch('http://localhost:9000/fabric-db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+          email: order.email,
+          items: order.items,
+          shipping: order.shipping,
+          totals: order.totals,
+          paymentIntentId: order.paymentIntentId,
+          status: order.status
+        })
+      })
+      
+      if (medusaResponse.ok) {
+        const medusaData = await medusaResponse.json()
+        console.log(`✅ Order stored in database: ${order.id}`)
+        
+        // Add database storage info to timeline
+        order.timeline.push({
+          status: 'database_stored',
+          timestamp: new Date().toISOString(),
+          message: 'Order stored in database'
+        })
+        
+        // Update file storage with database confirmation
+        orderStorage.set(order.id, order)
+      } else {
+        console.error('❌ Failed to store order in database, using file storage only')
+        order.timeline.push({
+          status: 'database_error',
+          timestamp: new Date().toISOString(),
+          message: 'Database storage failed, using file backup'
+        })
+        orderStorage.set(order.id, order)
+      }
+    } catch (dbError) {
+      console.error('❌ Database connection error:', dbError)
+      order.timeline.push({
+        status: 'database_error',
+        timestamp: new Date().toISOString(),
+        message: 'Database connection failed, using file backup'
+      })
+      orderStorage.set(order.id, order)
+    }
+    
+    console.log(`📦 Order processed: ${order.id}`)
     console.log(`   Customer: ${order.email}`)
     console.log(`   Items: ${order.items.length}`)
     console.log(`   Total: $${(order.totals.total / 100).toFixed(2)}`)
+    console.log(`   Storage: File ✅ ${order.timeline.some(t => t.status === 'database_stored') ? 'Database ✅' : 'Database ❌'}`)
     
     return NextResponse.json({
       success: true,
-      order
+      order,
+      storage: {
+        file: true,
+        database: order.timeline.some(t => t.status === 'database_stored')
+      }
     })
   } catch (error) {
     console.error('Error creating order:', error)
