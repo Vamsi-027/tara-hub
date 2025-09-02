@@ -23,11 +23,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate phone number format (basic validation)
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/
-    if (!phoneRegex.test(phone)) {
+    // Validate phone number format (improved validation)
+    // Allow + prefix, country code, and 7-15 digits
+    const phoneRegex = /^\+?[1-9]\d{7,15}$/
+    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '') // Remove spaces, dashes, parentheses
+    
+    if (!phoneRegex.test(cleanPhone)) {
       return NextResponse.json(
-        { error: 'Invalid phone number format' },
+        { 
+          error: 'Invalid phone number format. Please use format: +1234567890',
+          received: phone,
+          cleaned: cleanPhone
+        },
         { status: 400 }
       )
     }
@@ -35,8 +42,8 @@ export async function POST(request: NextRequest) {
     const otp = generateOTP()
     const expires = Date.now() + 10 * 60 * 1000 // 10 minutes
 
-    // Store OTP
-    otpStore.set(phone, { otp, expires })
+    // Store OTP (use cleaned phone number)
+    otpStore.set(cleanPhone, { otp, expires })
 
     // Send OTP via Twilio
     if (client && twilioPhoneNumber) {
@@ -44,20 +51,34 @@ export async function POST(request: NextRequest) {
         await client.messages.create({
           body: `Your Tara Hub verification code is: ${otp}. Valid for 10 minutes.`,
           from: twilioPhoneNumber,
-          to: phone
+          to: cleanPhone
         })
-      } catch (twilioError) {
-        console.error('Twilio error:', twilioError)
+      } catch (twilioError: any) {
+        console.error('Twilio error details:', {
+          message: twilioError.message,
+          code: twilioError.code,
+          status: twilioError.status,
+          phone: cleanPhone,
+          twilioPhoneNumber: twilioPhoneNumber
+        })
+        
         // In development, continue even if Twilio fails
         if (process.env.NODE_ENV === 'development') {
           console.log('Development mode - OTP:', otp)
         } else {
-          throw twilioError
+          return NextResponse.json(
+            { 
+              error: 'Failed to send SMS', 
+              details: twilioError.message,
+              code: twilioError.code 
+            },
+            { status: 500 }
+          )
         }
       }
     } else {
       // Development mode without Twilio
-      console.log('Twilio not configured. OTP for', phone, ':', otp)
+      console.log('Twilio not configured. OTP for', cleanPhone, ':', otp)
     }
 
     return NextResponse.json({
