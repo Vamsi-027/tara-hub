@@ -5,15 +5,15 @@ export async function GET(
   res: MedusaResponse,
   next: MedusaNextFunction
 ) {
-  // Redirect to Google OAuth with admin scope
+  // Build Google OAuth URL with the redirect URI that matches what's in Google Console
   const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${process.env.GOOGLE_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.GOOGLE_CALLBACK_URL || 'http://localhost:9000/auth/google/callback')}` +
+    `&redirect_uri=${encodeURIComponent('http://localhost:9000/api/auth/callback/google')}` + // MUST match Google Console
     `&response_type=code` +
     `&scope=${encodeURIComponent('email profile')}` +
     `&access_type=offline` +
     `&prompt=consent` +
-    `&state=admin` // Mark this as admin login
+    `&state=admin`
 
   return res.redirect(googleAuthUrl)
 }

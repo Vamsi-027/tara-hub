@@ -447,8 +447,8 @@ async function injectFabricCustomers(
   next()
 }
 
-// Middleware to check Google authentication for admin routes
-async function checkGoogleAuth(
+// Middleware to check authentication for admin routes
+async function checkAdminAuth(
   req: MedusaRequest,
   res: MedusaResponse,
   next: MedusaNextFunction
@@ -467,12 +467,12 @@ async function checkGoogleAuth(
     return next()
   }
 
-  // Check if user is authenticated with Google
-  const session = req.session
-  const isGoogleAuth = session?.auth_context?.app_metadata?.provider === "google"
-  const userEmail = session?.auth_context?.app_metadata?.email
-
-  // Whitelist of allowed Google email addresses
+  // For Medusa v2, check if there's a user in the request
+  // The auth module sets req.auth_context when authenticated
+  const authContext = req.auth_context
+  const actorId = authContext?.actor_id // This is the user email in Medusa v2
+  
+  // Whitelist of allowed admin email addresses
   const ALLOWED_ADMIN_EMAILS = [
     "varaku@gmail.com",
     "vamsicheruku027@gmail.com", 
@@ -481,16 +481,28 @@ async function checkGoogleAuth(
     "admin@tara-hub.com"
   ]
 
-  if (!isGoogleAuth || !userEmail || !ALLOWED_ADMIN_EMAILS.includes(userEmail)) {
-    // For app routes, let Medusa handle the redirect to its login page
+  // Check if user is authenticated and in whitelist
+  if (!actorId || !ALLOWED_ADMIN_EMAILS.includes(actorId)) {
+    // For app routes, let Medusa handle the authentication
     if (req.path.startsWith("/app")) {
-      // Don't redirect, let it pass through so Medusa shows login
+      // Let it pass through so Medusa can handle authentication
       return next()
     }
-    // For API routes, return 401
-    return res.status(401).json({
-      error: "Authentication required. Please login with an authorized Google account."
-    })
+    // For API routes that require auth, check properly
+    if (req.path.startsWith("/admin/")) {
+      // If no auth context, user is not authenticated
+      if (!authContext) {
+        return res.status(401).json({
+          error: "Authentication required."
+        })
+      }
+      // If authenticated but not in whitelist
+      if (actorId && !ALLOWED_ADMIN_EMAILS.includes(actorId)) {
+        return res.status(403).json({
+          error: "Access denied. Your email is not authorized for admin access."
+        })
+      }
+    }
   }
 
   next()
@@ -500,7 +512,7 @@ export default defineMiddlewares({
   routes: [
     {
       matcher: "/admin/auth*",
-      middlewares: [] // No auth check for auth routes - must be first
+      middlewares: [] // No auth check for auth routes
     },
     {
       matcher: "/admin/uploads*",
@@ -515,19 +527,11 @@ export default defineMiddlewares({
     },
     {
       matcher: "/admin/orders*",
-      middlewares: [checkGoogleAuth, injectFabricOrders]
+      middlewares: [injectFabricOrders]
     },
     {
       matcher: "/admin/customers*",
-      middlewares: [checkGoogleAuth, injectFabricCustomers]
-    },
-    {
-      matcher: "/app*",
-      middlewares: [checkGoogleAuth]
-    },
-    {
-      matcher: "/admin*",
-      middlewares: [checkGoogleAuth]
+      middlewares: [injectFabricCustomers]
     }
   ]
 })
