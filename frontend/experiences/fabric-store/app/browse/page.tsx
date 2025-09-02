@@ -4,11 +4,11 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Filter, X, Plus, Check, ShoppingBag, Search, ArrowLeft, ShoppingCart, Heart, Star, Zap, TrendingUp, DollarSign } from 'lucide-react'
+import { Filter, X, Plus, Check, ShoppingBag, Search, Heart, ShoppingCart, Star, Zap, TrendingUp, DollarSign } from 'lucide-react'
 import { useFabrics } from '../../hooks/useFabrics'
 import type { Fabric } from '../../lib/fabric-api'
 import { Pagination } from '../../components/Pagination'
-import UserAccount from '../../components/user-account'
+import Header from '../../components/header'
 
 // Quick Filters Component
 function QuickFilters({ onFilterApply, fabrics }: { onFilterApply: (filter: any) => void, fabrics: Fabric[] }) {
@@ -699,55 +699,12 @@ export default function BrowsePage() {
     pattern: [],
     usage: []
   })
-  const [wishlistCount, setWishlistCount] = useState(0)
   const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null)
   const [priceRange, setPriceRange] = useState<{ min: number, max: number } | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 12  // 4 cards x 3 rows
   const [totalPages, setTotalPages] = useState(0)
-  const [cartCount, setCartCount] = useState(0)
 
-  // Update cart count
-  const updateCartCount = () => {
-    const cart = localStorage.getItem('fabric-cart')
-    if (cart) {
-      const items = JSON.parse(cart)
-      // Count the number of distinct items/orders, not total quantity
-      setCartCount(items.length)
-    } else {
-      setCartCount(0)
-    }
-  }
-
-  // Update wishlist count
-  const updateWishlistCount = () => {
-    const wishlist = localStorage.getItem('fabric-wishlist')
-    if (wishlist) {
-      const items = JSON.parse(wishlist)
-      setWishlistCount(items.length)
-    } else {
-      setWishlistCount(0)
-    }
-  }
-
-  // Listen for cart and wishlist updates
-  useEffect(() => {
-    updateCartCount()
-    updateWishlistCount()
-    
-    const handleCartUpdate = () => updateCartCount()
-    const handleWishlistUpdate = () => updateWishlistCount()
-    
-    window.addEventListener('cart-updated', handleCartUpdate)
-    window.addEventListener('storage', handleCartUpdate)
-    window.addEventListener('wishlist-updated', handleWishlistUpdate)
-
-    return () => {
-      window.removeEventListener('cart-updated', handleCartUpdate)
-      window.removeEventListener('storage', handleCartUpdate)
-      window.removeEventListener('wishlist-updated', handleWishlistUpdate)
-    }
-  }, [])
 
   // Use the API hook to fetch fabrics with pagination and search
   const { fabrics, loading, error, count } = useFabrics({
@@ -862,57 +819,7 @@ export default function BrowsePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link 
-                href="/" 
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors min-h-[40px] px-2 py-2 rounded-lg hover:bg-gray-50"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="hidden sm:inline font-medium">Back to Home</span>
-              </Link>
-              <div className="h-6 w-px bg-gray-300" />
-              <h1 className="text-xl font-bold text-gray-900">Browse Fabrics</h1>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Wishlist Icon */}
-              <Link
-                href="/wishlist"
-                className="relative flex items-center justify-center w-10 h-10 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Wishlist"
-              >
-                <Heart className="w-5 h-5 text-gray-700" />
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
-                    {wishlistCount}
-                  </span>
-                )}
-              </Link>
-              
-              {/* Main Cart Icon */}
-              <Link 
-                href="/cart"
-                className="relative flex items-center justify-center w-10 h-10 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Shopping Cart"
-              >
-                <ShoppingCart className="w-5 h-5 text-gray-700" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-black text-white text-xs rounded-full flex items-center justify-center font-semibold">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-              
-              {/* User Account */}
-              <UserAccount />
-
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Search Bar */}
       <div className="bg-white border-b border-gray-200">

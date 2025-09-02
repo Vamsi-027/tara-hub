@@ -700,5 +700,50 @@
         "message": "Order stored in database"
       }
     ]
+  },
+  {
+    "id": "order_1756847317809_o4vkfw67w",
+    "email": "batchu.kedareswaraabhinav@gmail.com",
+    "items": [
+      {
+        "id": "swatch-prod_01K3YRNJNR0BFT9RBYEAZ74536-1756847305712",
+        "title": "Cotton Nylon Mixed Fabric",
+        "variant": "Swatch Sample",
+        "price": 500,
+        "quantity": 1
+      }
+    ],
+    "shipping": {
+      "firstName": "Kedareswara Abhinav",
+      "lastName": "Batchu",
+      "address": "1166 Schulte Hill Dr",
+      "city": "Maryland Heights",
+      "state": "Missouri",
+      "zipCode": "63043",
+      "country": "US"
+    },
+    "totals": {
+      "subtotal": 500,
+      "shipping": 1000,
+      "tax": 40,
+      "total": 1540
+    },
+    "paymentIntentId": "pi_3S31RRChDaIEk0Lx1s4BGrpY",
+    "status": "pending",
+    "createdAt": "2025-09-02T21:08:38.420Z",
+    "updatedAt": "2025-09-02T21:08:38.420Z",
+    "notes": [],
+    "timeline": [
+      {
+        "status": "created",
+        "timestamp": "2025-09-02T21:08:38.420Z",
+        "message": "Order created"
+      },
+      {
+        "status": "database_stored",
+        "timestamp": "2025-09-02T21:08:38.740Z",
+        "message": "Order stored in database"
+      }
+    ]
   }
 ]
