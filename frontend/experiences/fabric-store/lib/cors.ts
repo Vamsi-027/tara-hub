@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 // CORS configuration
 const CORS_OPTIONS = {
@@ -57,8 +57,8 @@ export function corsResponse(request: Request, response?: NextResponse) {
 }
 
 // Utility wrapper for API handlers
-export function withCors(handler: (request: Request, ...args: any[]) => Promise<NextResponse>) {
-  return async (request: Request, ...args: any[]) => {
+export function withCors(handler: (request: NextRequest, ...args: any[]) => Promise<NextResponse>) {
+  return async (request: NextRequest, ...args: any[]) => {
     // Handle preflight OPTIONS request
     if (request.method === 'OPTIONS') {
       return corsResponse(request)

@@ -1,13 +1,8 @@
 {
-  "name": "tara-hub-fabric-store",
-  "buildCommand": "cd ../.. && npm install && cd experiences/fabric-store && npm run build",
-  "outputDirectory": ".next",
-  "devCommand": "npm run dev",
-  "installCommand": "echo 'Skipping install - handled by buildCommand'",
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
     "NEXT_PUBLIC_APP_NAME": "Fabric Store"
   },
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- experiences/fabric-store packages"
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- frontend/experiences/fabric-store packages"
 }

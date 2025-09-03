@@ -109,20 +109,20 @@ export default function CartPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{item.title}</h3>
                     <p className="text-gray-600">{item.variant}</p>
-                    {item.type && (
+                    {(item as any).type && (
                       <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                        item.type === 'swatch' 
+                        (item as any).type === 'swatch' 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-blue-100 text-blue-800'
                       }`}>
-                        {item.type === 'swatch' ? 'Swatch Sample' : 'Fabric Order'}
+                        {(item as any).type === 'swatch' ? 'Swatch Sample' : 'Fabric Order'}
                       </span>
                     )}
                     <p className="text-lg font-medium mt-2">
                       ${(item.price / 100).toFixed(2)}
                     </p>
                   </div>
-                  {item.type === 'swatch' ? (
+                  {(item as any).type === 'swatch' ? (
                     // Swatches can't change quantity (always 1)
                     <div className="flex items-center space-x-2">
                       <span className="w-12 text-center text-gray-500 bg-gray-100 py-1 px-2 rounded">1</span>

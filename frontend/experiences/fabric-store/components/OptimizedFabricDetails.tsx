@@ -43,76 +43,76 @@ const getRelevantFields = (fabric: Fabric) => {
   return {
     // Core Details (Always Show)
     core: {
-      name: fabric.name,
-      sku: fabric.sku,
-      brand: fabric.brand,
-      category: fabric.category || fabric.types,
-      description: fabric.description,
-      price: fabric.price || 99,
-      stock_unit: fabric.stock_unit || 'yards',
-      in_stock: fabric.in_stock,
-      availability: fabric.availability,
-      last_updated: fabric.last_updated
+      name: (fabric as any).name,
+      sku: (fabric as any).sku,
+      brand: (fabric as any).brand,
+      category: (fabric as any).category || (fabric as any).types,
+      description: (fabric as any).description,
+      price: (fabric as any).price || 99,
+      stock_unit: (fabric as any).stock_unit || 'yards',
+      in_stock: (fabric as any).in_stock,
+      availability: (fabric as any).availability,
+      last_updated: (fabric as any).last_updated
     },
 
     // Visual Elements
     visual: {
-      images: fabric.images?.length ? fabric.images : [fabric.swatch_image_url],
-      swatch_image_url: fabric.swatch_image_url,
-      lifestyle_image: fabric.lifestyle_image,
-      color: fabric.color || fabric.color_family,
-      color_hex: fabric.color_hex || '#94a3b8'
+      images: (fabric as any).images?.length ? (fabric as any).images : [(fabric as any).swatch_image_url],
+      swatch_image_url: (fabric as any).swatch_image_url,
+      lifestyle_image: (fabric as any).lifestyle_image,
+      color: (fabric as any).color || (fabric as any).color_family,
+      color_hex: (fabric as any).color_hex || '#94a3b8'
     },
 
     // Material & Physical Properties (Only if present)
     material: Object.fromEntries(
       Object.entries({
-        'Material': fabric.material || fabric.composition || fabric.fiber_content,
-        'Width': fabric.width,
-        'Weight': fabric.weight,
-        'Pattern': fabric.pattern,
-        'Style': fabric.style
+        'Material': (fabric as any).material || (fabric as any).composition || (fabric as any).fiber_content,
+        'Width': (fabric as any).width,
+        'Weight': (fabric as any).weight,
+        'Pattern': (fabric as any).pattern,
+        'Style': (fabric as any).style
       }).filter(([_, value]) => hasValue(value))
     ),
 
     // Performance & Usage (Only if present)  
     performance: Object.fromEntries(
       Object.entries({
-        'Durability': fabric.durability && fabric.durability !== 'Standard durability' ? fabric.durability : null,
-        'Martindale Rating': fabric.martindale ? `${fabric.martindale} cycles` : null,
-        'Grade': fabric.grade,
-        'Usage': fabric.usage,
-        'Application': fabric.types
+        'Durability': (fabric as any).durability && (fabric as any).durability !== 'Standard durability' ? (fabric as any).durability : null,
+        'Martindale Rating': (fabric as any).martindale ? `${(fabric as any).martindale} cycles` : null,
+        'Grade': (fabric as any).grade,
+        'Usage': (fabric as any).usage,
+        'Application': (fabric as any).types
       }).filter(([_, value]) => hasValue(value))
     ),
 
     // Care Instructions (Only if present)
     care: Object.fromEntries(
       Object.entries({
-        'Care Instructions': fabric.care_instructions,
-        'Cleaning Code': fabric.cleaning_code,
-        'Washable': fabric.washable ? 'Yes' : null,
-        'Bleach Safe': fabric.bleach_cleanable ? 'Yes' : null
+        'Care Instructions': (fabric as any).care_instructions,
+        'Cleaning Code': (fabric as any).cleaning_code,
+        'Washable': (fabric as any).washable ? 'Yes' : null,
+        'Bleach Safe': (fabric as any).bleach_cleanable ? 'Yes' : null
       }).filter(([_, value]) => hasValue(value))
     ),
 
     // Feature Badges (Only true values)
     badges: [
-      ...(fabric.stain_resistant ? ['Stain Resistant'] : []),
-      ...(fabric.fade_resistant ? ['Fade Resistant'] : []),
-      ...(fabric.washable ? ['Machine Washable'] : []),
-      ...(fabric.bleach_cleanable ? ['Bleach Safe'] : []),
-      ...(fabric.ca_117 ? ['CA 117 Compliant'] : []),
-      ...(fabric.quick_ship ? ['Quick Ship'] : []),
-      ...(fabric.closeout ? ['Closeout'] : [])
+      ...((fabric as any).stain_resistant ? ['Stain Resistant'] : []),
+      ...((fabric as any).fade_resistant ? ['Fade Resistant'] : []),
+      ...((fabric as any).washable ? ['Machine Washable'] : []),
+      ...((fabric as any).bleach_cleanable ? ['Bleach Safe'] : []),
+      ...((fabric as any).ca_117 ? ['CA 117 Compliant'] : []),
+      ...((fabric as any).quick_ship ? ['Quick Ship'] : []),
+      ...((fabric as any).closeout ? ['Closeout'] : [])
     ],
 
     // Pricing Details
     pricing: {
-      main_price: fabric.price || 99,
-      swatch_price: fabric.swatch_price,
-      closeout: fabric.closeout,
-      quick_ship: fabric.quick_ship
+      main_price: (fabric as any).price || 99,
+      swatch_price: (fabric as any).swatch_price,
+      closeout: (fabric as any).closeout,
+      quick_ship: (fabric as any).quick_ship
     }
   }
 }
@@ -183,7 +183,7 @@ function TabbedContent({ fabric, relevantFields }: { fabric: Fabric, relevantFie
   const [activeTab, setActiveTab] = useState('description')
 
   const tabs = [
-    { id: 'description', label: 'Description', show: !!fabric.description },
+    { id: 'description', label: 'Description', show: !!(fabric as any).description },
     { id: 'specifications', label: 'Specifications', show: Object.keys(relevantFields.material).length > 0 || Object.keys(relevantFields.performance).length > 0 },
     { id: 'care', label: 'Care Instructions', show: Object.keys(relevantFields.care).length > 0 },
     { id: 'reviews', label: 'Reviews', show: true }
@@ -210,9 +210,9 @@ function TabbedContent({ fabric, relevantFields }: { fabric: Fabric, relevantFie
 
       {/* Tab Content */}
       <div className="py-8">
-        {activeTab === 'description' && fabric.description && (
+        {activeTab === 'description' && (fabric as any).description && (
           <div className="prose prose-gray max-w-none">
-            <p className="text-gray-700 leading-relaxed">{fabric.description}</p>
+            <p className="text-gray-700 leading-relaxed">{(fabric as any).description}</p>
           </div>
         )}
 
@@ -289,15 +289,15 @@ export function OptimizedFabricDetails({ fabric }: OptimizedFabricDetailsProps) 
   const relevantFields = getRelevantFields(fabric)
 
   const handleAddToCart = () => {
-    console.log('Adding to cart:', { fabric: fabric.id, quantity })
+    console.log('Adding to cart:', { fabric: (fabric as any).id, quantity })
     // Add to cart logic here
   }
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: fabric.name,
-        text: fabric.description,
+        title: (fabric as any).name,
+        text: (fabric as any).description,
         url: window.location.href,
       })
     }

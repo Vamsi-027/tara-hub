@@ -35,7 +35,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, isLoading }:
 
     // Add dots where there are gaps
     range.forEach((i) => {
-      if (l !== undefined) {
+      if (l !== undefined && typeof i === 'number') {
         if (i - l === 2) {
           rangeWithDots.push(l + 1)
         } else if (i - l !== 1) {
@@ -43,7 +43,9 @@ export function Pagination({ currentPage, totalPages, onPageChange, isLoading }:
         }
       }
       rangeWithDots.push(i)
-      l = i as number
+      if (typeof i === 'number') {
+        l = i
+      }
     })
 
     return rangeWithDots

@@ -254,21 +254,21 @@ function FabricCard({
     // Primary fields
     name: fabric.name || 'Untitled Fabric',
     price: fabric.price || 99.00,
-    image: fabric.swatch_image_url || fabric.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+    image: fabric.swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
     inStock: fabric.in_stock ?? true,
     
     // Secondary fields
-    material: fabric.material || fabric.composition || null,
-    width: fabric.width || null,
-    brand: fabric.brand || null,
-    color: fabric.color || fabric.color_family || null,
+    material: (fabric as any).material || (fabric as any).composition || null,
+    width: (fabric as any).width || null,
+    brand: (fabric as any).brand || null,
+    color: (fabric as any).color || (fabric as any).color_family || null,
     colorHex: fabric.color_hex || '#94a3b8',
     usage: fabric.usage || null,
     
     // Tertiary fields
-    weight: fabric.weight || null,
-    pattern: fabric.pattern || null,
-    unit: fabric.stock_unit || 'yard'
+    weight: (fabric as any).weight || null,
+    pattern: (fabric as any).pattern || null,
+    unit: (fabric as any).stock_unit || 'yard'
   }
 
   const handleCardClick = () => {
@@ -636,13 +636,13 @@ function SearchComponent({ onSearch, fabrics }: { onSearch: (term: string) => vo
         }
         
         // Add materials
-        if (fabric.material?.toLowerCase().includes(searchTerm.toLowerCase())) {
-          uniqueSuggestions.add(fabric.material)
+        if ((fabric as any).material?.toLowerCase().includes(searchTerm.toLowerCase())) {
+          uniqueSuggestions.add((fabric as any).material)
         }
         
         // Add brands
-        if (fabric.brand?.toLowerCase().includes(searchTerm.toLowerCase())) {
-          uniqueSuggestions.add(fabric.brand)
+        if ((fabric as any).brand?.toLowerCase().includes(searchTerm.toLowerCase())) {
+          uniqueSuggestions.add((fabric as any).brand)
         }
       })
       
@@ -750,7 +750,7 @@ export default function BrowsePage() {
     if (activeQuickFilter) {
       switch (activeQuickFilter) {
         case 'popular':
-          return fabric.is_featured || false
+          return (fabric as any).is_featured || false
         case 'new':
           return fabric.created_at && new Date(fabric.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
         case 'premium':

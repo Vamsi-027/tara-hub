@@ -29,7 +29,7 @@ export default function ProductGrid({ products, columns = 3 }: ProductGridProps)
     <div className={`grid grid-cols-1 md:grid-cols-2 ${gridCols} gap-6`}>
       {products.map((product) => {
         const fabricProduct = transformMedusaToFabric(product)
-        return <ProductCard key={product.id} product={fabricProduct} />
+        return <ProductCard key={product.id} product={fabricProduct as any} />
       })}
     </div>
   )

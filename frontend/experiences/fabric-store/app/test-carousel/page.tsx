@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { getHeroSlides } from '../../lib/sanity'
 
 export default function TestCarousel() {
-  const [slides, setSlides] = useState([])
+  const [slides, setSlides] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function test() {
@@ -17,7 +17,7 @@ export default function TestCarousel() {
         setSlides(data)
       } catch (err) {
         console.error('Error:', err)
-        setError(err.message)
+        setError((err as Error).message || 'Unknown error')
       } finally {
         setLoading(false)
       }

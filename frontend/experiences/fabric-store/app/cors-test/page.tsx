@@ -36,7 +36,7 @@ export default function CorsTest() {
         }
         
       } catch (err) {
-        setError(err.message)
+        setError((err as Error).message || 'Unknown error')
         console.error('CORS test error:', err)
       } finally {
         setLoading(false)
@@ -64,7 +64,7 @@ export default function CorsTest() {
         alert(`❌ CORS Test Failed: ${response.status}`)
       }
     } catch (err) {
-      alert(`❌ CORS Error: ${err.message}`)
+      alert(`❌ CORS Error: ${(err as Error).message || 'Unknown error'}`)
     }
   }
 
@@ -95,10 +95,10 @@ export default function CorsTest() {
           <p className="text-sm text-gray-600 mb-3">Found {fabrics.length} fabrics:</p>
           
           {fabrics.slice(0, 2).map((fabric, index) => (
-            <div key={fabric.id || index} className="border-l-4 border-blue-400 pl-3 mb-3">
-              <div className="font-medium">{fabric.name}</div>
+            <div key={(fabric as any).id || index} className="border-l-4 border-blue-400 pl-3 mb-3">
+              <div className="font-medium">{(fabric as any).name}</div>
               <div className="text-sm text-gray-600">
-                SKU: {fabric.sku} • Price: ${fabric.price}
+                SKU: {(fabric as any).sku} • Price: ${(fabric as any).price}
               </div>
             </div>
           ))}
@@ -124,10 +124,10 @@ export default function CorsTest() {
           <p className="text-sm text-gray-600 mb-3">Found {orders.length} orders:</p>
           
           {orders.slice(0, 2).map((order, index) => (
-            <div key={order.id || index} className="border-l-4 border-green-400 pl-3 mb-3">
-              <div className="font-medium">{order.id}</div>
+            <div key={(order as any).id || index} className="border-l-4 border-green-400 pl-3 mb-3">
+              <div className="font-medium">{(order as any).id}</div>
               <div className="text-sm text-gray-600">
-                {order.email} • ${((order.totals?.total || 0) / 100).toFixed(2)}
+                {(order as any).email} • ${(((order as any).totals?.total || 0) / 100).toFixed(2)}
               </div>
             </div>
           ))}
@@ -153,10 +153,10 @@ export default function CorsTest() {
           <p className="text-sm text-gray-600 mb-3">Found {heroSlides.length} hero slides:</p>
           
           {heroSlides.slice(0, 2).map((slide, index) => (
-            <div key={slide._id || index} className="border-l-4 border-purple-400 pl-3 mb-3">
-              <div className="font-medium">{slide.title || 'Untitled Slide'}</div>
+            <div key={(slide as any)._id || index} className="border-l-4 border-purple-400 pl-3 mb-3">
+              <div className="font-medium">{(slide as any).title || 'Untitled Slide'}</div>
               <div className="text-sm text-gray-600">
-                ID: {slide._id} • Order: {slide.order}
+                ID: {(slide as any)._id} • Order: {(slide as any).order}
               </div>
             </div>
           ))}

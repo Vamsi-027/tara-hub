@@ -42,9 +42,9 @@ export default function WishlistPage() {
       productId: fabric.id,
       title: fabric.name,
       variant: type === 'swatch' ? 'Swatch Sample' : '1 yard',
-      price: type === 'swatch' ? (fabric.swatch_price || 5) * 100 : (fabric.price || 99) * 100,
+      price: type === 'swatch' ? ((fabric as any).swatch_price || 5) * 100 : (fabric.price || 99) * 100,
       quantity: 1,
-      thumbnail: fabric.swatch_image_url || fabric.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+      thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
       type
     }
 
@@ -125,7 +125,7 @@ export default function WishlistPage() {
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <Link href={`/fabric/${fabric.id}`}>
                       <Image
-                        src={fabric.swatch_image_url || fabric.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'}
+                        src={(fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'}
                         alt={fabric.name}
                         fill
                         className="object-cover hover:scale-105 transition-transform duration-300"
@@ -150,8 +150,8 @@ export default function WishlistPage() {
                       </h3>
                     </Link>
                     
-                    {fabric.brand && (
-                      <p className="text-sm text-gray-500 mb-2">{fabric.brand}</p>
+                    {(fabric as any).brand && (
+                      <p className="text-sm text-gray-500 mb-2">{(fabric as any).brand}</p>
                     )}
                     
                     <div className="flex items-center justify-between mb-4">

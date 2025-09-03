@@ -8,7 +8,8 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Filter, X } from 'lucide-react'
-import type { MedusaCollection, MedusaCategory } from '../lib/medusa-api'
+import type { MedusaCollection } from '../lib/medusa-api'
+type MedusaCategory = any // Temporary type placeholder
 
 interface ProductFiltersProps {
   collections: MedusaCollection[]

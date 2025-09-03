@@ -1,4 +1,5 @@
 import { createClient } from '@sanity/client'
+// @ts-ignore - No type declarations available for @sanity/image-url
 import imageUrlBuilder from '@sanity/image-url'
 
 // Sanity client configuration

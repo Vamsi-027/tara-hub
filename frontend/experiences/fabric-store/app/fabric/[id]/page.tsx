@@ -129,7 +129,7 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
         ? (fabric.swatch_price || 5) * 100 * quantity
         : (fabric.price || 99) * 100 * quantity),
       quantity: quantity,
-      thumbnail: fabric.swatch_image_url || fabric.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+      thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
       type: selectedVariantType === 'Swatch' ? 'swatch' : 'fabric' // Add type to distinguish orders
     }
 
@@ -168,69 +168,69 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
 
     const fields = [
       // Basic Properties
-      { label: 'Material', value: fabric.material || fabric.fiber_content || fabric.composition, category: 'basic' },
-      { label: 'Width', value: fabric.width, category: 'basic' },
-      { label: 'Weight', value: fabric.weight, category: 'basic' },
-      { label: 'Pattern', value: fabric.pattern, category: 'basic' },
-      { label: 'Style', value: fabric.style, category: 'basic' },
-      { label: 'Grade', value: fabric.grade, category: 'basic' },
-      { label: 'Brand', value: fabric.brand, category: 'basic' },
-      { label: 'Collection', value: fabric.collection, category: 'basic' },
+      { label: 'Material', value: (fabric as any).material || (fabric as any).fiber_content || (fabric as any).composition, category: 'basic' },
+      { label: 'Width', value: (fabric as any).width, category: 'basic' },
+      { label: 'Weight', value: (fabric as any).weight, category: 'basic' },
+      { label: 'Pattern', value: (fabric as any).pattern, category: 'basic' },
+      { label: 'Style', value: (fabric as any).style, category: 'basic' },
+      { label: 'Grade', value: (fabric as any).grade, category: 'basic' },
+      { label: 'Brand', value: (fabric as any).brand, category: 'basic' },
+      { label: 'Collection', value: (fabric as any).collection, category: 'basic' },
       { label: 'Category', value: fabric.category, category: 'basic' },
       
       // Color & Design
       { label: 'Color Family', value: fabric.color_family, category: 'color' },
-      { label: 'Primary Color', value: fabric.primary_color, category: 'color' },
-      { label: 'Secondary Colors', value: fabric.secondary_colors?.join(', '), category: 'color' },
+      { label: 'Primary Color', value: (fabric as any).primary_color, category: 'color' },
+      { label: 'Secondary Colors', value: (fabric as any).secondary_colors?.join(', '), category: 'color' },
       { label: 'Color Hex', value: fabric.color_hex, category: 'color' },
       
       // Dimensions & Repeats
-      { label: 'Horizontal Repeat', value: fabric.h_repeat, category: 'dimensions' },
-      { label: 'Vertical Repeat', value: fabric.v_repeat, category: 'dimensions' },
+      { label: 'Horizontal Repeat', value: (fabric as any).h_repeat, category: 'dimensions' },
+      { label: 'Vertical Repeat', value: (fabric as any).v_repeat, category: 'dimensions' },
       
       // Performance
-      { label: 'Durability', value: fabric.durability, category: 'performance' },
-      { label: 'Martindale Rating', value: fabric.martindale ? `${fabric.martindale} cycles` : null, category: 'performance' },
-      { label: 'Usage', value: fabric.usage || fabric.usage_suitability, category: 'performance' },
-      { label: 'Application Type', value: fabric.types, category: 'performance' },
-      { label: 'Performance Metrics', value: fabric.performance_metrics, category: 'performance' },
+      { label: 'Durability', value: (fabric as any).durability, category: 'performance' },
+      { label: 'Martindale Rating', value: (fabric as any).martindale ? `${(fabric as any).martindale} cycles` : null, category: 'performance' },
+      { label: 'Usage', value: (fabric as any).usage || (fabric as any).usage_suitability, category: 'performance' },
+      { label: 'Application Type', value: (fabric as any).types, category: 'performance' },
+      { label: 'Performance Metrics', value: (fabric as any).performance_metrics, category: 'performance' },
       
       // Care & Maintenance
-      { label: 'Care Instructions', value: fabric.care_instructions || fabric.cleaning, category: 'care' },
-      { label: 'Cleaning Code', value: fabric.cleaning_code, category: 'care' },
-      { label: 'Machine Washable', value: fabric.washable ? 'Yes' : null, category: 'care' },
-      { label: 'Bleach Safe', value: fabric.bleach_cleanable ? 'Yes' : null, category: 'care' },
+      { label: 'Care Instructions', value: (fabric as any).care_instructions || (fabric as any).cleaning, category: 'care' },
+      { label: 'Cleaning Code', value: (fabric as any).cleaning_code, category: 'care' },
+      { label: 'Machine Washable', value: (fabric as any).washable ? 'Yes' : null, category: 'care' },
+      { label: 'Bleach Safe', value: (fabric as any).bleach_cleanable ? 'Yes' : null, category: 'care' },
       
       // Resistance Properties
-      { label: 'Stain Resistant', value: fabric.stain_resistant ? 'Yes' : null, category: 'features' },
-      { label: 'Fade Resistant', value: fabric.fade_resistant ? 'Yes' : null, category: 'features' },
+      { label: 'Stain Resistant', value: (fabric as any).stain_resistant ? 'Yes' : null, category: 'features' },
+      { label: 'Fade Resistant', value: (fabric as any).fade_resistant ? 'Yes' : null, category: 'features' },
       
       // Compliance & Safety
-      { label: 'CA 117 Compliant', value: fabric.ca_117 ? 'Yes' : null, category: 'features' },
+      { label: 'CA 117 Compliant', value: (fabric as any).ca_117 ? 'Yes' : null, category: 'features' },
       
       // Additional Features
-      { label: 'Quick Ship', value: fabric.quick_ship ? 'Available' : null, category: 'features' },
-      { label: 'Closeout', value: fabric.closeout ? 'Yes' : null, category: 'features' },
+      { label: 'Quick Ship', value: (fabric as any).quick_ship ? 'Available' : null, category: 'features' },
+      { label: 'Closeout', value: (fabric as any).closeout ? 'Yes' : null, category: 'features' },
       
       // Business Info
-      { label: 'Supplier', value: fabric.supplier_name, category: 'business' },
-      { label: 'Availability', value: fabric.availability, category: 'business' },
-      { label: 'Stock Unit', value: fabric.stock_unit, category: 'business' },
-      { label: 'Low Stock Threshold', value: fabric.low_stock_threshold, category: 'business' },
+      { label: 'Supplier', value: (fabric as any).supplier_name, category: 'business' },
+      { label: 'Availability', value: (fabric as any).availability, category: 'business' },
+      { label: 'Stock Unit', value: (fabric as any).stock_unit, category: 'business' },
+      { label: 'Low Stock Threshold', value: (fabric as any).low_stock_threshold, category: 'business' },
       
       // Technical Documents
-      { label: 'Technical Documents', value: fabric.technical_documents, category: 'technical' },
-      { label: 'Cleaning PDF', value: fabric.cleaning_pdf, category: 'technical' },
+      { label: 'Technical Documents', value: (fabric as any).technical_documents, category: 'technical' },
+      { label: 'Cleaning PDF', value: (fabric as any).cleaning_pdf, category: 'technical' },
       
       // Pricing
-      { label: 'Swatch Price', value: fabric.swatch_price ? `$${fabric.swatch_price}` : null, category: 'pricing' },
-      { label: 'Procurement Cost', value: fabric.procurement_cost ? `$${fabric.procurement_cost}` : null, category: 'pricing' },
+      { label: 'Swatch Price', value: (fabric as any).swatch_price ? `$${(fabric as any).swatch_price}` : null, category: 'pricing' },
+      { label: 'Procurement Cost', value: (fabric as any).procurement_cost ? `$${(fabric as any).procurement_cost}` : null, category: 'pricing' },
       
       // Metadata
       { label: 'SKU', value: fabric.sku, category: 'meta' },
-      { label: 'Is Featured', value: fabric.is_featured ? 'Yes' : null, category: 'meta' },
-      { label: 'Keywords', value: fabric.keywords, category: 'meta' },
-      { label: 'Version', value: fabric.version, category: 'meta' }
+      { label: 'Is Featured', value: (fabric as any).is_featured ? 'Yes' : null, category: 'meta' },
+      { label: 'Keywords', value: (fabric as any).keywords, category: 'meta' },
+      { label: 'Version', value: (fabric as any).version, category: 'meta' }
     ]
 
     return fields.filter(field => hasValue(field.value))
@@ -257,14 +257,14 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
         {/* Brand & Category Badge */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3 flex-wrap">
-            {fabric.brand && (
+            {(fabric as any).brand && (
               <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                {fabric.brand}
+                {(fabric as any).brand}
               </span>
             )}
-            {fabric.collection && (
+            {(fabric as any).collection && (
               <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                {fabric.collection}
+                {(fabric as any).collection}
               </span>
             )}
             {fabric.category && (
@@ -385,7 +385,7 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
                 : (fabric.price || 99).toFixed(2)}
             </span>
             <span className="text-sm text-gray-600">
-              {selectedVariantType === 'Swatch' ? 'per swatch' : `per ${fabric.stock_unit || 'yard'}`}
+              {selectedVariantType === 'Swatch' ? 'per swatch' : `per ${(fabric as any).stock_unit || 'yard'}`}
             </span>
           </div>
 
@@ -417,12 +417,12 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
               🏠 {fabric.usage}
             </span>
           )}
-          {fabric.grade && (
+          {(fabric as any).grade && (
             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
-              Grade: {fabric.grade}
+              Grade: {(fabric as any).grade}
             </span>
           )}
-          {fabric.quick_ship && (
+          {(fabric as any).quick_ship && (
             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
               ⚡ Quick Ship
             </span>
@@ -584,7 +584,7 @@ function ProductDetails({ fabric }: { fabric: Fabric }) {
                   <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                     <h4 className="font-semibold text-green-800 mb-2">Care Instructions</h4>
                     <p className="text-green-700 text-sm">
-                      {fabric.care_instructions || fabric.cleaning || 'Professional cleaning recommended for best results.'}
+                      {(fabric as any).care_instructions || (fabric as any).cleaning || 'Professional cleaning recommended for best results.'}
                     </p>
                   </div>
 
@@ -761,7 +761,7 @@ function RelatedProducts({ currentFabric }: { currentFabric: Fabric }) {
             {/* Image */}
             <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
               <Image
-                src={fabric.swatch_image_url || fabric.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'}
+                src={(fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'}
                 alt={fabric.name}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -780,9 +780,9 @@ function RelatedProducts({ currentFabric }: { currentFabric: Fabric }) {
             
             {/* Content */}
             <div className="p-4">
-              {fabric.brand && (
+              {(fabric as any).brand && (
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                  {fabric.brand}
+                  {(fabric as any).brand}
                 </p>
               )}
               <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
@@ -793,7 +793,7 @@ function RelatedProducts({ currentFabric }: { currentFabric: Fabric }) {
                   ${(fabric.price || 99).toFixed(2)}
                 </span>
                 <span className="text-xs text-gray-500">
-                  per {fabric.stock_unit || 'yard'}
+                  per {(fabric as any).stock_unit || 'yard'}
                 </span>
               </div>
             </div>
@@ -869,10 +869,10 @@ export default function FabricDetailsPage() {
     )
   }
 
-  const images = fabric.images?.length > 0 
-    ? fabric.images 
-    : fabric.swatch_image_url 
-      ? [fabric.swatch_image_url]
+  const images = (fabric as any).images?.length > 0 
+    ? (fabric as any).images 
+    : (fabric as any).swatch_image_url 
+      ? [(fabric as any).swatch_image_url]
       : []
 
   return (

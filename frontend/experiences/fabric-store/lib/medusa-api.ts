@@ -154,7 +154,7 @@ export interface MedusaProductTag {
 }
 
 // Transform Medusa product to Fabric format
-export function transformMedusaToFabric(product: MedusaProduct): Fabric {
+export function transformMedusaToFabric(product: MedusaProduct): any {
   // Get the first variant for pricing (or default variant)
   const defaultVariant = product.variants?.[0]
   const price = defaultVariant?.prices?.[0]?.amount || 0

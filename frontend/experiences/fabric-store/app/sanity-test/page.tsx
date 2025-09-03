@@ -38,7 +38,7 @@ export default function SanityTest() {
   }
 
   // Create slide
-  const createSlide = async (e) => {
+  const createSlide = async (e: any) => {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -72,14 +72,14 @@ export default function SanityTest() {
         setError(`❌ Failed to create: ${errorData.error}`)
       }
     } catch (err) {
-      setError(`❌ Error: ${err.message}`)
+      setError(`❌ Error: ${(err as Error).message || 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
   }
 
   // Delete slide
-  const deleteSlide = async (slideId) => {
+  const deleteSlide = async (slideId: any) => {
     if (!confirm('Are you sure you want to delete this slide?')) return
     
     setLoading(true)
@@ -96,14 +96,14 @@ export default function SanityTest() {
         setError(`❌ Failed to delete: ${errorData.error}`)
       }
     } catch (err) {
-      setError(`❌ Error: ${err.message}`)
+      setError(`❌ Error: ${(err as Error).message || 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
   }
 
   // Toggle slide active status
-  const toggleSlide = async (slide) => {
+  const toggleSlide = async (slide: any) => {
     setLoading(true)
     try {
       const response = await fetch('/api/hero-slides', {
@@ -123,7 +123,7 @@ export default function SanityTest() {
         setError(`❌ Failed to update: ${errorData.error}`)
       }
     } catch (err) {
-      setError(`❌ Error: ${err.message}`)
+      setError(`❌ Error: ${(err as Error).message || 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -166,7 +166,7 @@ export default function SanityTest() {
           </div>
           <div>
             <strong>Total Slides:</strong> {slides.length}<br/>
-            <strong>Active Slides:</strong> {slides.filter(s => s.isActive).length}<br/>
+            <strong>Active Slides:</strong> {slides.filter((s: any) => s.isActive).length}<br/>
             <strong>Status:</strong> {loading ? '⏳ Loading...' : '✅ Ready'}
           </div>
         </div>
@@ -314,14 +314,14 @@ export default function SanityTest() {
           </div>
           
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {slides.map((slide) => (
-              <div key={slide._id} className={`border rounded p-3 ${slide.isActive ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+            {slides.map((slide: any) => (
+              <div key={(slide as any)._id} className={`border rounded p-3 ${(slide as any).isActive ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-medium">{slide.title}</h3>
-                    <p className="text-sm text-gray-600">{slide.subtitle}</p>
+                    <h3 className="font-medium">{(slide as any).title}</h3>
+                    <p className="text-sm text-gray-600">{(slide as any).subtitle}</p>
                     <div className="text-xs text-gray-500 mt-1">
-                      Order: {slide.order} • {slide.isActive ? '✅ Active' : '❌ Inactive'} • Background: {slide.backgroundGradient}
+                      Order: {(slide as any).order} • {(slide as any).isActive ? '✅ Active' : '❌ Inactive'} • Background: {(slide as any).backgroundGradient}
                     </div>
                   </div>
                   
@@ -330,16 +330,16 @@ export default function SanityTest() {
                       onClick={() => toggleSlide(slide)}
                       disabled={loading}
                       className={`px-2 py-1 rounded text-xs ${
-                        slide.isActive 
+                        (slide as any).isActive 
                           ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
                           : 'bg-green-100 text-green-700 hover:bg-green-200'
                       } disabled:opacity-50`}
                     >
-                      {slide.isActive ? '❌' : '✅'}
+                      {(slide as any).isActive ? '❌' : '✅'}
                     </button>
                     
                     <button
-                      onClick={() => deleteSlide(slide._id)}
+                      onClick={() => deleteSlide((slide as any)._id)}
                       disabled={loading}
                       className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs hover:bg-red-200 disabled:opacity-50"
                     >

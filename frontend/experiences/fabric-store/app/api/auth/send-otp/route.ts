@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import twilio from 'twilio'
-import { otpStore } from '../[...nextauth]/route'
+import { otpStore } from '../../../../lib/otp-store'
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID
 const authToken = process.env.TWILIO_AUTH_TOKEN
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER
 
-const client = accountSid && authToken ? twilio(accountSid, authToken) : null
+// Dynamic import for Twilio to avoid build issues
+async function getTwilioClient() {
+  if (!accountSid || !authToken) return null
+  try {
+    const twilio = (await import('twilio')).default
+    return twilio(accountSid, authToken)
+  } catch (error) {
+    console.error('Failed to load Twilio:', error)
+    return null
+  }
+}
 
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
@@ -46,6 +55,7 @@ export async function POST(request: NextRequest) {
     otpStore.set(cleanPhone, { otp, expires })
 
     // Send OTP via Twilio
+    const client = await getTwilioClient()
     if (client && twilioPhoneNumber) {
       console.log('Attempting to send OTP via Twilio...');
       console.log('From:', twilioPhoneNumber);

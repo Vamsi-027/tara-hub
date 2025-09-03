@@ -41,9 +41,9 @@ export default function HeroDebug() {
         <div className="bg-white border rounded p-4">
           <h2 className="font-semibold mb-4">Direct API Result:</h2>
           <div className="text-sm space-y-2">
-            <div>Source: {apiTest?.source || 'loading'}</div>
-            <div>Total: {apiTest?.total || 0}</div>
-            <div>Slides: {apiTest?.slides?.length || 0}</div>
+            <div>Source: {(apiTest as any)?.source || 'loading'}</div>
+            <div>Total: {(apiTest as any)?.total || 0}</div>
+            <div>Slides: {(apiTest as any)?.slides?.length || 0}</div>
           </div>
           
           <div className="mt-4">

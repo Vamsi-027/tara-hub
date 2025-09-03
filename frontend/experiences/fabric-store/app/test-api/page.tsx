@@ -18,7 +18,7 @@ export default function TestAPIPage() {
         results.listFabrics = { success: true, count: fabrics.count, data: fabrics.fabrics }
         console.log('✅ List fabrics:', fabrics)
       } catch (error) {
-        results.listFabrics = { success: false, error: error.message }
+        results.listFabrics = { success: false, error: (error as Error).message || 'Unknown error' }
         console.error('❌ List fabrics failed:', error)
       }
 
@@ -29,7 +29,7 @@ export default function TestAPIPage() {
         results.collections = { success: true, count: collections.collections.length, data: collections.collections }
         console.log('✅ Get collections:', collections)
       } catch (error) {
-        results.collections = { success: false, error: error.message }
+        results.collections = { success: false, error: (error as Error).message || 'Unknown error' }
         console.error('❌ Get collections failed:', error)
       }
 
@@ -40,7 +40,7 @@ export default function TestAPIPage() {
         results.categories = { success: true, count: categories.categories.length, data: categories.categories }
         console.log('✅ Get categories:', categories)
       } catch (error) {
-        results.categories = { success: false, error: error.message }
+        results.categories = { success: false, error: (error as Error).message || 'Unknown error' }
         console.error('❌ Get categories failed:', error)
       }
 
@@ -51,7 +51,7 @@ export default function TestAPIPage() {
         results.search = { success: true, count: searchResults.fabrics.length, data: searchResults.fabrics }
         console.log('✅ Search fabrics:', searchResults)
       } catch (error) {
-        results.search = { success: false, error: error.message }
+        results.search = { success: false, error: (error as Error).message || 'Unknown error' }
         console.error('❌ Search fabrics failed:', error)
       }
 

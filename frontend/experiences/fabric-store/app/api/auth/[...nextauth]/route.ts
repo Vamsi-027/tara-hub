@@ -4,11 +4,9 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { NextAuthOptions } from 'next-auth'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import { otpStore } from '../../../../lib/otp-store'
 
-// In production, this should be stored in a database
-const otpStore = new Map<string, { otp: string; expires: number; verified?: boolean }>()
-
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -66,13 +64,10 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (token) {
-        session.user = {
-          ...session.user,
-          id: token.id as string,
-          phone: token.phone as string,
-          provider: token.provider as string
-        }
+      if (token && session.user) {
+        (session.user as any).id = token.id as string;
+        (session.user as any).phone = token.phone as string;
+        (session.user as any).provider = token.provider as string
       }
       return session
     }
@@ -87,6 +82,3 @@ export const authOptions: NextAuthOptions = {
 const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
-
-// Export OTP store for use in other API routes
-export { otpStore }

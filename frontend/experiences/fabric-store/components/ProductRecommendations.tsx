@@ -26,16 +26,16 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
           if (fabric.category === currentFabric.category) score += 40
           
           // Same brand gets medium score  
-          if (fabric.brand === currentFabric.brand) score += 30
+          if ((fabric as any).brand === (currentFabric as any).brand) score += 30
           
           // Similar color family gets medium score
-          if (fabric.color_family === currentFabric.color_family) score += 25
+          if ((fabric as any).color_family === (currentFabric as any).color_family) score += 25
           
           // Same pattern gets medium score
-          if (fabric.pattern === currentFabric.pattern) score += 20
+          if ((fabric as any).pattern === (currentFabric as any).pattern) score += 20
           
           // Similar usage gets low score
-          if (fabric.usage === currentFabric.usage) score += 15
+          if ((fabric as any).usage === (currentFabric as any).usage) score += 15
           
           // Similar price range gets low score
           const currentPrice = currentFabric.price || 0
@@ -44,7 +44,7 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
           if (priceDiff < currentPrice * 0.3) score += 10
           
           // Premium fabrics get slight boost
-          if (fabric.grade === 'Premium' || fabric.is_featured) score += 5
+          if ((fabric as any).grade === 'Premium' || (fabric as any).is_featured) score += 5
           
           return { fabric, score }
         })
@@ -67,9 +67,9 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
       productId: fabric.id,
       title: fabric.name,
       variant: type === 'swatch' ? 'Swatch Sample' : '1 yard',
-      price: type === 'swatch' ? (fabric.swatch_price || 5) * 100 : (fabric.price || 99) * 100,
+      price: type === 'swatch' ? ((fabric as any).swatch_price || 5) * 100 : (fabric.price || 99) * 100,
       quantity: 1,
-      thumbnail: fabric.swatch_image_url || fabric.images?.[0],
+      thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0],
       type
     }
 
@@ -130,7 +130,7 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
             <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
               <Link href={`/fabric/${fabric.id}`}>
                 <Image
-                  src={fabric.swatch_image_url || fabric.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'}
+                  src={(fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'}
                   alt={fabric.name}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -147,7 +147,7 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
               </button>
 
               {/* Premium Badge */}
-              {fabric.is_featured && (
+              {(fabric as any).is_featured && (
                 <div className="absolute top-2 left-2">
                   <span className="inline-flex items-center px-2 py-1 bg-yellow-500/90 backdrop-blur-sm text-white text-xs font-semibold rounded uppercase tracking-wide">
                     <Star className="w-3 h-3 mr-1" />
@@ -159,9 +159,9 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
             
             {/* Content */}
             <div className="p-4">
-              {fabric.brand && (
+              {(fabric as any).brand && (
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                  {fabric.brand}
+                  {(fabric as any).brand}
                 </p>
               )}
               
@@ -176,7 +176,7 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
                   ${(fabric.price || 99).toFixed(2)}
                 </span>
                 <span className="text-xs text-gray-500">
-                  per {fabric.stock_unit || 'yard'}
+                  per {(fabric as any).stock_unit || 'yard'}
                 </span>
               </div>
 
@@ -186,7 +186,7 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
                   onClick={() => addToCart(fabric, 'swatch')}
                   className="flex-1 bg-green-600 text-white text-xs py-2 px-3 rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  Swatch ${(fabric.swatch_price || 5).toFixed(2)}
+                  Swatch ${((fabric as any).swatch_price || 5).toFixed(2)}
                 </button>
                 <button
                   onClick={() => addToCart(fabric, 'fabric')}
