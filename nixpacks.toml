@@ -2,10 +2,10 @@
 nixPkgs = ['nodejs_22', 'npm-9_x']
 
 [phases.install]
-cmds = ['npm ci']
+cmds = ['cd medusa && npm ci']
 
 [phases.build] 
-cmds = ['npm run build:railway']
+cmds = ['cd medusa && npm run build']
 
 [start]
-cmd = 'npm start'
+cmd = 'cd medusa && npm start'
