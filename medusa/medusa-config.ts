@@ -3,14 +3,16 @@ import path from "path"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
-// Worker mode configuration
+// Worker/Server Mode
 const isWorkerMode = process.env.MEDUSA_WORKER_MODE === "worker"
-const isServerMode = process.env.MEDUSA_WORKER_MODE === "server" || !process.env.MEDUSA_WORKER_MODE
+const isServerMode =
+  process.env.MEDUSA_WORKER_MODE === "server" || !process.env.MEDUSA_WORKER_MODE
 
 export default defineConfig({
   projectConfig: {
-    databaseUrl: process.env.DATABASE_URL,
-    redisUrl: process.env.REDIS_URL,
+    databaseUrl: process.env.DATABASE_URL, // Neon PostgreSQL
+    redisUrl: process.env.REDIS_URL,       // Upstash Redis
+    workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server",
     http: {
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
@@ -19,13 +21,44 @@ export default defineConfig({
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
   },
+
+  // Admin Panel Configuration
   admin: {
-    disable: isWorkerMode || process.env.DISABLE_MEDUSA_ADMIN === "true",
+    disable: isWorkerMode, // Disable admin UI in worker mode
     path: "/app",
-    outDir: process.env.MEDUSA_ADMIN_BUILD_PATH || path.resolve(process.cwd(), ".medusa/server/public/admin"),
-    backendUrl: process.env.MEDUSA_BACKEND_URL || process.env.RAILWAY_PUBLIC_DOMAIN || "http://localhost:9000",
+    outDir:
+      process.env.MEDUSA_ADMIN_BUILD_PATH ||
+      path.resolve(process.cwd(), ".medusa/server/public/admin"),
+    backendUrl:
+      process.env.MEDUSA_BACKEND_URL ||
+      process.env.RAILWAY_PUBLIC_DOMAIN ||
+      "http://localhost:9000",
   },
+
   modules: [
+    // Redis Modules for Production
+    {
+      resolve: "@medusajs/medusa/cache-redis",
+      options: {
+        redisUrl: process.env.REDIS_URL,
+      },
+    },
+    {
+      resolve: "@medusajs/medusa/event-bus-redis",
+      options: {
+        redisUrl: process.env.REDIS_URL,
+      },
+    },
+    {
+      resolve: "@medusajs/medusa/workflow-engine-redis",
+      options: {
+        redis: {
+          url: process.env.REDIS_URL,
+        },
+      },
+    },
+
+    // Resend Notification Module
     {
       resolve: "./src/modules/resend_notification",
       options: {
@@ -33,6 +66,8 @@ export default defineConfig({
         from_email: process.env.RESEND_FROM_EMAIL || "Tara Hub Admin <admin@deepcrm.ai>",
       },
     },
+
+    // Authentication Modules
     {
       resolve: "@medusajs/auth",
       options: {
@@ -45,7 +80,7 @@ export default defineConfig({
               clientSecret: process.env.GOOGLE_CLIENT_SECRET,
               callbackUrl:
                 process.env.GOOGLE_CALLBACK_URL ||
-                "http://localhost:9000/auth/google/callback",
+                `${process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"}/auth/google/callback`,
               successRedirect: "/app",
               admin: {
                 successRedirect: "/app",
@@ -61,6 +96,8 @@ export default defineConfig({
         ],
       },
     },
+
+    // S3 File Storage
     {
       resolve: "@medusajs/file",
       options: {
@@ -85,6 +122,8 @@ export default defineConfig({
         ],
       },
     },
+
+    // Stripe Payment Gateway
     {
       resolve: "@medusajs/payment",
       options: {
@@ -100,6 +139,8 @@ export default defineConfig({
         ],
       },
     },
+
+    // SendGrid Notifications
     {
       resolve: "@medusajs/notification",
       options: {
@@ -115,6 +156,8 @@ export default defineConfig({
         ],
       },
     },
+
+    // Custom Modules
     { resolve: "./src/modules/contact" },
   ],
 })

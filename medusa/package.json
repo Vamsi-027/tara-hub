@@ -15,6 +15,7 @@
   "scripts": {
     "build": "medusa build",
     "build:admin": "medusa build",
+    "predeploy": "medusa db:migrate",
     "postinstall": "echo 'No admin build needed during postinstall'",
     "seed": "medusa exec ./src/scripts/seed.ts",
     "seed:admin": "medusa exec ./src/scripts/seed-admin-user.ts",
