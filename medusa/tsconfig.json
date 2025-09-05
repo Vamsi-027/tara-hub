@@ -48,6 +48,8 @@
     "src/scripts/cleanup-unused-images.ts",
     "src/workflows/sync-fabric-orders.ts",
     "src/admin/routes/**/*",
+    "src/admin/widgets/**/*",
+    "src/admin/**/*",
     "src/api/fabric-db/**/*",
     "src/api/middlewares/**/*",
     "src/api/middlewares.ts",
