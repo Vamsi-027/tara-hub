@@ -39,7 +39,7 @@ function executeCommand(command, description, cwd = null) {
 
 async function deployFabricStore() {
   const isProd = process.argv.includes('--prod');
-  const experiencePath = path.join(process.cwd(), 'experiences', 'fabric-store');
+  const experiencePath = path.join(process.cwd(), 'frontend', 'experiences', 'fabric-store');
   
   log('\n🚀 Starting Fabric Store Deployment', 'yellow');
   log(`Mode: ${isProd ? 'Production' : 'Preview'}`, 'blue');

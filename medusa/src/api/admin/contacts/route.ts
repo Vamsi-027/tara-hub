@@ -1,7 +1,6 @@
 import { 
   MedusaRequest, 
   MedusaResponse,
-  MedusaContainer,
   AuthenticatedMedusaRequest
 } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
@@ -10,7 +9,7 @@ export const GET = async (
   req: AuthenticatedMedusaRequest,
   res: MedusaResponse
 ) => {
-  const container = req.scope as MedusaContainer
+  const container = req.scope
   const contactService = container.resolve("contactService")
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 
@@ -63,7 +62,7 @@ export const GET = async (
     const result = await contactService.listContacts(filters, {
       skip: parseInt(offset as string),
       take: parseInt(limit as string),
-      order: { [order_by as string]: sort.toUpperCase() as "ASC" | "DESC" }
+      order: { [order_by as string]: (typeof sort === 'string' ? sort.toUpperCase() : 'DESC') as "ASC" | "DESC" }
     })
 
     res.json(result)
@@ -80,11 +79,12 @@ export const POST = async (
   req: AuthenticatedMedusaRequest,
   res: MedusaResponse
 ) => {
-  const container = req.scope as MedusaContainer
+  const container = req.scope
   const contactService = container.resolve("contactService")
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 
   try {
+    const body = req.body as any
     const { 
       name, 
       email, 
@@ -95,7 +95,7 @@ export const POST = async (
       category,
       priority,
       source 
-    } = req.body
+    } = body
 
     // Validate required fields
     if (!name || !email || !subject || !message) {

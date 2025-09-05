@@ -10,7 +10,7 @@ export default async function showProductSchema({ container }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   
   logger.info("📋 Medusa Product Schema Overview")
-  logger.info("=" * 50)
+  logger.info("=".repeat(50))
   
   // Define the main product-related tables in Medusa
   const productSchema = {

@@ -1,9 +1,18 @@
 import { 
-  SubscriberArgs,
-  SubscriberConfig,
+  // SubscriberArgs, // Not exported
+  // SubscriberConfig, // Not exported
   type INotificationModuleService,
   type IUserModuleService
 } from "@medusajs/framework/types"
+
+type SubscriberArgs<T = any> = {
+  event: { name: string; data: T }
+  container: any
+}
+
+type SubscriberConfig = {
+  event: string[]
+}
 import { Modules } from "@medusajs/framework/utils"
 import { Resend } from "resend"
 
@@ -17,17 +26,20 @@ export default async function userInvitationSubscriber({
   accepted?: boolean
   metadata?: Record<string, any>
   data?: any
+  user?: {
+    email?: string
+  }
 }>) {
   console.log("🔔 User invitation event triggered:", event.name, event.data)
 
   try {
     // Get the notification service
-    const notificationService = container.resolve<INotificationModuleService>(
+    const notificationService = container.resolve(
       Modules.NOTIFICATION
-    )
+    ) as INotificationModuleService
     
     // Get the user service to fetch invitation details
-    const userService = container.resolve<IUserModuleService>(Modules.USER)
+    const userService = container.resolve(Modules.USER) as IUserModuleService
     
     // For direct Resend integration (fallback if module doesn't work)
     const resendApiKey = process.env.RESEND_API_KEY
@@ -52,7 +64,7 @@ export default async function userInvitationSubscriber({
         console.log("📋 Fetching invitation details for ID:", event.data.id)
         
         // Fetch the invitation details using the user service
-        const invitations = await userService.listInvites({
+        const invitations = await (userService as any).listInvites({
           id: [event.data.id]
         })
         

@@ -289,7 +289,7 @@ curl -X POST http://localhost:3000/api/commerce/cart/items \
 
 ```env
 # Production Medusa Backend
-MEDUSA_BACKEND_URL=https://your-medusa.railway.app
+MEDUSA_BACKEND_URL=http://localhost:9000
 
 # Enable Redis caching
 KV_REST_API_URL=your_redis_url

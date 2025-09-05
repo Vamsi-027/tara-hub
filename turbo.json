@@ -41,22 +41,6 @@
     "type-check": {
       "dependsOn": ["^type-check"],
       "outputs": []
-    },
-    "@tara-hub/ui#build": {
-      "outputs": ["dist/**"],
-      "cache": true
-    },
-    "@tara-hub/lib#build": {
-      "outputs": ["dist/**"],
-      "cache": true
-    },
-    "@tara-hub/medusa-backend#build": {
-      "outputs": ["dist/**"],
-      "cache": true
-    },
-    "@tara-hub/medusa-backend#dev": {
-      "cache": false,
-      "persistent": true
     }
   }
 }

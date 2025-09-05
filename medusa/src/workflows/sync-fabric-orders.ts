@@ -1,13 +1,19 @@
-import { createWorkflow, WorkflowData, transform } from "@medusajs/framework/workflows-sdk"
+import { createWorkflow, WorkflowData, createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
 import { Modules } from "@medusajs/framework/utils"
 
 type FabricOrderInput = {
   syncAll?: boolean
 }
 
-export const syncFabricOrdersWorkflow = createWorkflow(
-  "sync-fabric-orders",
-  async (input: WorkflowData<FabricOrderInput>) => {
+type SyncResult = {
+  success: boolean
+  syncedCount?: number
+  error?: string
+}
+
+const syncOrdersStep = createStep(
+  "sync-orders-step", 
+  async (input: FabricOrderInput): Promise<StepResponse<SyncResult, undefined>> => {
     try {
       // Fetch orders from fabric store
       const response = await fetch("http://localhost:3006/api/orders")
@@ -46,17 +52,25 @@ export const syncFabricOrdersWorkflow = createWorkflow(
       
       console.log(`Synced ${transformedOrders.length} fabric orders`)
       
-      return {
+      return new StepResponse({
         success: true,
         syncedCount: transformedOrders.length
-      }
-    } catch (error) {
+      })
+    } catch (error: any) {
       console.error("Failed to sync fabric orders:", error)
-      return {
+      return new StepResponse({
         success: false,
-        error: error.message
-      }
+        error: error.message || "Unknown error"
+      })
     }
+  }
+)
+
+export const syncFabricOrdersWorkflow = createWorkflow(
+  "sync-fabric-orders",
+  (input: WorkflowData<FabricOrderInput>) => {
+    const result = syncOrdersStep(input)
+    return { syncResult: result }
   }
 )
 

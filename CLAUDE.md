@@ -21,20 +21,28 @@ Tara Hub - A Next.js 15 fabric marketplace platform with Turbo monorepo architec
 - **Ports**: API on 9000, Admin UI on 9000/app
 - **Database**: PostgreSQL with MikroORM
 - **Storage**: Cloudflare R2 (S3-compatible)
+- **Payment**: Stripe integration
+- **Notifications**: Resend (primary), Sendgrid (secondary)
+- **Custom Modules**: Contact, Fabric Details, Resend Notification
 - **Key Scripts**:
   - `npm run seed` - Seed database
+  - `npm run seed:admin` - Seed admin user
   - `npm run seed:fabrics` - Seed fabric data
   - `npm run import:fabrics` - Import fabric CSV data
+  - `npm run setup:contacts` - Setup contact module
+  - `npm run build:admin` - Build admin UI
 
 **Experience Apps**:
 - **Fabric Store**: `/frontend/experiences/fabric-store/` (port 3006)
+  - SMS Auth with Twilio
+  - Stripe payment integration
+  - Swatch selection system
 - **Store Guide**: `/frontend/experiences/store-guide/` (port 3007)
 - **Sanity Studio**: `/frontend/experiences/sanity-studio/`
 
 **Backend Service (Clean Architecture)**:
 - **Location**: `/backend/` directory
 - **Purpose**: Domain-driven design implementation
-- **Deployment**: Railway platform
 
 ## Development Commands
 
@@ -43,10 +51,14 @@ Tara Hub - A Next.js 15 fabric marketplace platform with Turbo monorepo architec
 npm install
 
 # Main Admin App
-npx next dev              # Start admin app (port 3000)
+npm run dev               # Start admin app (port 3000)
 npm run build             # Build with Turbo
 npm run lint              # Run ESLint across monorepo
 npm run type-check        # TypeScript checking
+npm run format            # Format code with Prettier
+npm run format:check      # Check code formatting
+npm run clean             # Clean build artifacts
+npm run reset             # Clean and reinstall dependencies
 
 # Medusa Backend
 cd medusa && npm run dev  # Start Medusa (port 9000)
@@ -57,17 +69,15 @@ cd medusa && npm run import:fabrics # Import CSV data
 npm run dev:fabric-store  # Start fabric store (port 3006)
 npm run dev:store-guide   # Start store guide (port 3007)
 
-# Database Operations
-npm run db:push           # Push schema changes
-npm run db:migrate        # Run migrations
-npm run db:studio         # Open Drizzle Studio GUI
-npm run db:seed           # Seed sample data
+# Database Operations (from backend/)
+cd backend && npm run db:push     # Push schema changes
+cd backend && npm run db:migrate  # Run migrations
+cd backend && npm run db:studio   # Open Drizzle Studio GUI
+cd backend && npm run db:seed     # Seed sample data
 
 # Testing
-npm run test              # Run Vitest tests
-npm run test:unit         # Unit tests with coverage
-npm run test:watch        # Watch mode
-npm run test:ui           # Vitest UI
+npm run test              # Run tests with Turbo
+# Note: Main repo uses Turbo test, individual packages may have specific test frameworks
 
 # Deployment
 npm run deploy            # Deploy all apps
@@ -106,8 +116,11 @@ tara-hub/
 │   ├── application/        # Use cases
 │   └── infrastructure/     # External implementations
 ├── components/             # Shared UI components
+├── scripts/                # Database and deployment utilities
+├── docs/                   # Documentation directory
 ├── src/                    # Legacy/planned module structure
 └── deployment/             # Deployment configurations
+    ├── vercel/             # Vercel deployment scripts
 ```
 
 ### Technology Stack
@@ -117,10 +130,14 @@ tara-hub/
 - **Caching**: Vercel KV (Redis)
 - **Storage**: Cloudflare R2 (S3-compatible)
 - **Auth**: JWT-based magic links + Google SSO (in progress)
+- **SMS**: Twilio integration (fabric-store)
+- **Payment**: Stripe integration (Medusa + fabric-store)
 - **UI**: Radix UI + shadcn/ui + Tailwind CSS
-- **Email**: Resend API
-- **Deployment**: Vercel (frontend) + Railway (backend)
+- **Email**: Resend API (primary), Sendgrid (secondary)
+- **Formatting**: Prettier
+- **Deployment**: Vercel (frontend)
 - **Build**: Turbo monorepo
+- **Node Requirements**: >=18.0.0 (backend requires >=20 for Medusa)
 
 ## Key Configuration Files
 
@@ -158,6 +175,29 @@ MEDUSA_BACKEND_URL=http://localhost:9000
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GOOGLE_CALLBACK_URL=http://localhost:9000/auth/google/callback
+
+# Twilio (SMS)
+TWILIO_ACCOUNT_SID=...
+TWILIO_AUTH_TOKEN=...
+TWILIO_PHONE_NUMBER=...
+
+# Stripe Payments
+STRIPE_API_KEY=...
+STRIPE_SECRET_KEY=...
+STRIPE_WEBHOOK_SECRET=...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=...
+
+# Sendgrid Email (Secondary)
+SENDGRID_API_KEY=...
+SENDGRID_FROM=...
+
+# CORS Configuration
+STORE_CORS=...
+ADMIN_CORS=...
+AUTH_CORS=...
+
+# Email Server
+EMAIL_SERVER_PORT=465
 ```
 
 ### TypeScript Path Aliases (tsconfig.json)
@@ -210,6 +250,7 @@ GOOGLE_CALLBACK_URL=http://localhost:9000/auth/google/callback
 - 3006: Fabric store experience
 - 3007: Store guide experience
 - 9000: Medusa backend API
+- 9000/app: Medusa Admin UI
 
 ### Recent Fixes & Features
 - **Product SKU Duplication** (2025-08-31): Fixed SKU generation in Medusa admin
@@ -225,18 +266,21 @@ GOOGLE_CALLBACK_URL=http://localhost:9000/auth/google/callback
 - Production URL: https://tara-hub.vercel.app
 - Deployment script: `deployment/vercel/scripts/deploy-all.js`
 
-### Railway Backend
-- Clean Architecture backend service
-- Heavy operations and async processing
-- Separate deployment from frontend
+
+## Utility Scripts
+
+Located in `/scripts/`:
+- `seed-data.js` - Comprehensive data seeding
+- `sync-env-from-vercel.js` - Pull env vars from Vercel  
+- `sync-env-to-vercel.js` - Push env vars to Vercel
+- `start-medusa-with-fabrics.sh` - Start Medusa with fabric seeding
+- `check-db-tables.js` - Database schema inspection
 
 ## Testing
 
 ### Available Test Commands
-- `npm run test` - Run all tests
-- `npm run test:unit` - Unit tests with coverage
-- `npm run test:watch` - Watch mode for development
-- `npm run test:ui` - Vitest UI interface
+- `npm run test` - Run tests with Turbo (main repo)
+- Note: Main repository uses Turbo for test coordination, individual packages may have their own test frameworks
 
 ### Medusa Testing
 - Integration tests: `npm run test:integration:http`

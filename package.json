@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:railway": "next build",
     "lint": "turbo lint",
     "test": "turbo test",
     "type-check": "turbo type-check",
@@ -27,6 +28,9 @@
     "test:integration": "turbo test:integration",
     "deploy": "node deployment/vercel/scripts/deploy-all.js",
     "deploy:prod": "node deployment/vercel/scripts/deploy-all.js --prod --parallel",
+    "deploy:admin": "node deployment/vercel/scripts/deploy-admin.js",
+    "deploy:fabric-store": "node deployment/vercel/scripts/deploy-fabric-store.js",
+    "deploy:store-guide": "node deployment/vercel/scripts/deploy-store-guide.js",
     "deploy:frontend": "turbo deploy --filter=@tara-hub/frontend...",
     "deploy:backend": "turbo deploy --filter=@tara-hub/backend...",
     "env:manage": "node deployment/vercel/scripts/manage-env-vars.js",
@@ -79,9 +83,13 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.541.0",
+    "next": "15.1.0",
     "pg": "^8.16.3",
+    "react": "19.1.12",
+    "react-dom": "19.1.12",
     "react-hot-toast": "^2.6.0",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "xmlbuilder": "^15.1.1"
   }
 }

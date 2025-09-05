@@ -22,7 +22,7 @@ export function useFabrics(filters?: FabricFilters) {
         
         // Fallback to static data if API fails
         try {
-          const { fabricSwatches } = await import('@shared/data/fabric-data')
+          const { fabricSwatches } = await import('../../shared/data/fabric-data')
           const transformed = fabricSwatches.map((f: any) => ({
             ...f,
             color_family: f.colorFamily,
@@ -116,7 +116,7 @@ export function useFabricCollections() {
         
         // Fallback to static data
         try {
-          const { fabricCollections } = await import('@shared/data/fabric-data')
+          const { fabricCollections } = await import('../../shared/data/fabric-data')
           setCollections(fabricCollections)
         } catch (fallbackErr) {
           console.error('Fallback also failed:', fallbackErr)
@@ -156,7 +156,7 @@ export function useFabricSearch(query: string, debounceMs = 300) {
         
         // Fallback to static data search
         try {
-          const { fabricSwatches } = await import('@shared/data/fabric-data')
+          const { fabricSwatches } = await import('../../shared/data/fabric-data')
           const searchLower = query.toLowerCase()
           const filtered = fabricSwatches.filter((f: any) => 
             f.name.toLowerCase().includes(searchLower) ||
@@ -206,7 +206,7 @@ export function useFabricCategories() {
         
         // Fallback to static data
         try {
-          const { fabricSwatches } = await import('@shared/data/fabric-data')
+          const { fabricSwatches } = await import('../../shared/data/fabric-data')
           const uniqueCategories = [...new Set(fabricSwatches.map((f: any) => f.category))]
           setCategories(uniqueCategories)
         } catch (fallbackErr) {

@@ -1,7 +1,6 @@
 import { 
   MedusaRequest, 
   MedusaResponse,
-  MedusaContainer,
   AuthenticatedMedusaRequest
 } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
@@ -10,7 +9,7 @@ export const GET = async (
   req: AuthenticatedMedusaRequest,
   res: MedusaResponse
 ) => {
-  const container = req.scope as MedusaContainer
+  const container = req.scope
   const contactService = container.resolve("contactService")
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 
@@ -46,13 +45,14 @@ export const PUT = async (
   req: AuthenticatedMedusaRequest,
   res: MedusaResponse
 ) => {
-  const container = req.scope as MedusaContainer
+  const container = req.scope
   const contactService = container.resolve("contactService")
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 
   try {
     const { id } = req.params
-    const { status, priority, admin_notes } = req.body
+    const body = req.body as any
+    const { status, priority, admin_notes } = body
 
     // Validate status if provided
     const validStatuses = ["new", "in_progress", "resolved", "closed"]
@@ -104,7 +104,7 @@ export const DELETE = async (
   req: AuthenticatedMedusaRequest,
   res: MedusaResponse
 ) => {
-  const container = req.scope as MedusaContainer
+  const container = req.scope
   const contactService = container.resolve("contactService")
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 

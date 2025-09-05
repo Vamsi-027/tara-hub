@@ -142,8 +142,6 @@ MEDUSA_BACKEND_URL=http://localhost:9000
 MEDUSA_ADMIN_CORS=http://localhost:3000
 MEDUSA_STORE_CORS=http://localhost:3006,http://localhost:3007
 
-# Railway Service
-RAILWAY_API_URL=
 ```
 
 ### 5. Medusa: `/tara-hub/medusa/.env`
@@ -197,7 +195,7 @@ COOKIE_SECRET=supersecret
 
 ### Required External Services:
 1. **PostgreSQL Database** (Neon, Supabase, or local)
-2. **Redis Cache** (Upstash, Railway, or local)
+2. **Redis Cache** (Upstash or local)
 3. **Sanity CMS Account** (for hero carousel)
 4. **Resend API Key** (for email authentication)
 5. **Cloudflare R2** (for image storage - optional but recommended)

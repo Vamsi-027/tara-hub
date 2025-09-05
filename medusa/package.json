@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "build": "medusa build",
+    "build:admin": "medusa build",
     "seed": "medusa exec ./src/scripts/seed.ts",
     "seed:admin": "medusa exec ./src/scripts/seed-admin-user.ts",
     "seed:fabrics": "medusa exec ./src/scripts/seed-fabrics.ts",

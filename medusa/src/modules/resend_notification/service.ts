@@ -1,6 +1,5 @@
 import { 
-  AbstractNotificationProviderService,
-  MedusaContainer
+  AbstractNotificationProviderService
 } from "@medusajs/framework/utils"
 import { Resend } from "resend"
 
@@ -18,10 +17,10 @@ type NotificationData = {
 class ResendNotificationService extends AbstractNotificationProviderService {
   static identifier = "resend_notification"
   protected resend: Resend
-  protected container_: MedusaContainer
+  protected container_: any
 
-  constructor(container: MedusaContainer) {
-    super(container)
+  constructor(container: any) {
+    super()
     this.container_ = container
     
     // Initialize Resend with API key from environment

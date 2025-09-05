@@ -27,7 +27,7 @@ A sophisticated multi-tenant fabric marketplace built with Next.js 15, Clean Arc
 - **UI**: Radix UI + shadcn/ui + Tailwind CSS
 - **Storage**: Cloudflare R2
 - **Email**: Resend API
-- **Deployment**: Vercel + Railway
+- **Deployment**: Vercel
 
 ## 📦 Quick Start
 

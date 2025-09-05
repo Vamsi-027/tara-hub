@@ -56,7 +56,7 @@ export default async function testAdminUpload({
       const fileService = container.resolve("fileModuleService")
       logger.info("✅ File service is available and configured")
     } catch (error) {
-      logger.warn("⚠️  File service resolution issue:", error.message)
+      logger.warn(`⚠️  File service resolution issue: ${error.message}`)
     }
     
   } catch (error) {

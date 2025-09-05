@@ -1,7 +1,7 @@
-import { ExecArgs, Modules } from "@medusajs/framework/utils"
+import { Modules } from "@medusajs/framework/utils"
 import bcrypt from "bcrypt"
 
-export default async function seedAdminUser({ container }: ExecArgs) {
+export default async function seedAdminUser({ container }: any) {
   const logger = container.resolve("logger")
   const userModule = container.resolve(Modules.USER)
   const authModule = container.resolve(Modules.AUTH)

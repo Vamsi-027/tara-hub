@@ -68,7 +68,7 @@ export default async function cleanupUnusedImages({
         fields: ["id", "images", "thumbnail"],
       })
 
-      for (const product of productImages) {
+      for (const product of productImages.data) {
         if (product.images && Array.isArray(product.images)) {
           for (const imageUrl of product.images) {
             if (typeof imageUrl === 'string' && imageUrl.includes(process.env.S3_PUBLIC_URL!)) {
@@ -96,7 +96,7 @@ export default async function cleanupUnusedImages({
         }
       }
     } catch (error) {
-      logger.warn("Could not scan products table:", error.message)
+      logger.warn(`Could not scan products table: ${error.message}`)
     }
 
     // Check product variants for image references
@@ -104,15 +104,14 @@ export default async function cleanupUnusedImages({
       const variantImages = await query.graph({
         entity: "product_variant",
         fields: ["id", "product_id"],
-        relations: ["product"],
       })
 
       // Variants typically inherit product images, but check for specific variant images
-      for (const variant of variantImages) {
+      for (const variant of variantImages.data) {
         // Add any variant-specific image logic here if needed
       }
     } catch (error) {
-      logger.warn("Could not scan product variants:", error.message)
+      logger.warn(`Could not scan product variants: ${error.message}`)
     }
 
     logger.info(`📊 Found ${imageReferences.length} image references in database`)

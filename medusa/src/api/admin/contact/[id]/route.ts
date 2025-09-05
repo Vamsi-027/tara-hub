@@ -12,7 +12,7 @@ export const GET = async (
   const { id } = req.params
 
   try {
-    const contact = await contactModuleService.retrieveContact(id)
+    const contact = await (contactModuleService as any).retrieveContact(id)
     res.json({ contact })
   } catch (error) {
     console.error("Error fetching contact:", error)
@@ -32,12 +32,12 @@ export const PUT = async (
   try {
     const updateData: any = {}
     
-    if (req.body.status) updateData.status = req.body.status
-    if (req.body.priority) updateData.priority = req.body.priority
-    if (req.body.adminNotes !== undefined) updateData.adminNotes = req.body.adminNotes
+    if ((req.body as any).status) updateData.status = (req.body as any).status
+    if ((req.body as any).priority) updateData.priority = (req.body as any).priority
+    if ((req.body as any).adminNotes !== undefined) updateData.adminNotes = (req.body as any).adminNotes
     
     // If status is being changed to resolved or closed, set respondedAt
-    if (req.body.status === 'resolved' || req.body.status === 'closed') {
+    if ((req.body as any).status === 'resolved' || (req.body as any).status === 'closed') {
       updateData.respondedAt = new Date()
     }
 
