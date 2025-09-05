@@ -1,17 +1,29 @@
-import { loadEnv, defineConfig } from '@medusajs/framework/utils'
+import { loadEnv, defineConfig } from "@medusajs/framework/utils"
+import path from "path"
 
-loadEnv(process.env.NODE_ENV || 'development', process.cwd())
+loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
-module.exports = defineConfig({
+// Worker mode configuration
+const isWorkerMode = process.env.MEDUSA_WORKER_MODE === "worker"
+const isServerMode = process.env.MEDUSA_WORKER_MODE === "server" || !process.env.MEDUSA_WORKER_MODE
+
+export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    redisUrl: process.env.REDIS_URL,
     http: {
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
       authCors: process.env.AUTH_CORS!,
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
-    }
+    },
+  },
+  admin: {
+    disable: isWorkerMode || process.env.DISABLE_MEDUSA_ADMIN === "true",
+    path: "/app",
+    outDir: process.env.MEDUSA_ADMIN_BUILD_PATH || path.resolve(process.cwd(), ".medusa/server/public/admin"),
+    backendUrl: process.env.MEDUSA_BACKEND_URL || process.env.RAILWAY_PUBLIC_DOMAIN || "http://localhost:9000",
   },
   modules: [
     {
@@ -19,7 +31,7 @@ module.exports = defineConfig({
       options: {
         api_key: process.env.RESEND_API_KEY,
         from_email: process.env.RESEND_FROM_EMAIL || "Tara Hub Admin <admin@deepcrm.ai>",
-      }
+      },
     },
     {
       resolve: "@medusajs/auth",
@@ -31,24 +43,23 @@ module.exports = defineConfig({
             options: {
               clientId: process.env.GOOGLE_CLIENT_ID,
               clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-              callbackUrl: process.env.GOOGLE_CALLBACK_URL || "http://localhost:9000/auth/google/callback",
+              callbackUrl:
+                process.env.GOOGLE_CALLBACK_URL ||
+                "http://localhost:9000/auth/google/callback",
               successRedirect: "/app",
               admin: {
                 successRedirect: "/app",
               },
-              scope: ["email", "profile"]
-            }
+              scope: ["email", "profile"],
+            },
           },
-          // Keep emailpass as fallback for initial setup
           {
             resolve: "@medusajs/auth-emailpass",
             id: "emailpass",
-            options: {
-              // This will be used for initial admin setup only
-            }
-          }
-        ]
-      }
+            options: {},
+          },
+        ],
+      },
     },
     {
       resolve: "@medusajs/file",
@@ -65,16 +76,14 @@ module.exports = defineConfig({
               bucket: process.env.S3_BUCKET_NAME,
               endpoint: process.env.S3_ENDPOINT,
               s3ForcePathStyle: true,
-              // Organized folder structure - this will be prefixed to all uploads
               prefix: "store/organized/",
-              // Additional S3 client configuration
               additional_client_config: {
-                forcePathStyle: true
-              }
-            }
-          }
-        ]
-      }
+                forcePathStyle: true,
+              },
+            },
+          },
+        ],
+      },
     },
     {
       resolve: "@medusajs/payment",
@@ -86,10 +95,10 @@ module.exports = defineConfig({
             options: {
               apiKey: process.env.STRIPE_API_KEY,
               webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-            }
-          }
-        ]
-      }
+            },
+          },
+        ],
+      },
     },
     {
       resolve: "@medusajs/notification",
@@ -101,13 +110,11 @@ module.exports = defineConfig({
             options: {
               apiKey: process.env.SENDGRID_API_KEY,
               from: process.env.SENDGRID_FROM,
-            }
-          }
-        ]
-      }
+            },
+          },
+        ],
+      },
     },
-    {
-      resolve: "./modules/contact"
-    }
-  ]
+    { resolve: "./src/modules/contact" },
+  ],
 })

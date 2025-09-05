@@ -40,6 +40,7 @@
     "scripts/test-*.ts",
     "**/*test*.ts",
     "src/api/admin/contacts/**/*",
+    "src/api/admin/contact/**/*",
     "src/api/admin/fabric-orders/**/*",
     "src/api/admin/sync-fabric-orders/**/*",
     "src/api/admin/users/**/*",
