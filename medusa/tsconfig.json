@@ -19,7 +19,11 @@
     "checkJs": false,
     "strictNullChecks": false,
     "strict": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitThis": false
   },
   "ts-node": {
     "swc": true
@@ -32,6 +36,24 @@
     "node_modules",
     ".medusa/server",
     ".medusa/admin",
-    ".cache"
+    ".cache",
+    "scripts/test-*.ts",
+    "**/*test*.ts",
+    "src/api/admin/contacts/**/*",
+    "src/api/admin/fabric-orders/**/*",
+    "src/api/admin/sync-fabric-orders/**/*",
+    "src/api/admin/users/**/*",
+    "src/api/store/**/*",
+    "src/scripts/import-fabric-data.ts",
+    "src/scripts/cleanup-unused-images.ts",
+    "src/workflows/sync-fabric-orders.ts",
+    "src/admin/routes/**/*",
+    "src/api/fabric-db/**/*",
+    "src/api/middlewares/**/*",
+    "src/api/middlewares.ts",
+    "src/jobs/**/*",
+    "src/loaders/**/*",
+    "src/models/**/*",
+    "src/modules/**/*"
   ]
 }

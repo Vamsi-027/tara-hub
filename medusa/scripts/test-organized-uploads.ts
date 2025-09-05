@@ -16,7 +16,7 @@ async function testOrganizedUploads() {
     file_url: process.env.S3_PUBLIC_URL || process.env.S3_ENDPOINT!,
     prefix: "media/"
   })
-  */"
+  */
 
   // Test files with different categories
   const testFiles = [
@@ -106,7 +106,7 @@ async function testProtectedUploads() {
     file_url: process.env.S3_PUBLIC_URL || process.env.S3_ENDPOINT!,
     prefix: "media/"
   })
-  */"
+  */
 
   const protectedFile = {
     filename: "sensitive-document.pdf",
