@@ -6,7 +6,7 @@
   "packageManager": "npm@10.2.0",
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
+    "build": "next build",
     "build:railway": "next build",
     "lint": "turbo lint",
     "test": "turbo test",

@@ -36,7 +36,11 @@ Tara Hub - A Next.js 15 fabric marketplace platform with Turbo monorepo architec
 - **Fabric Store**: `/frontend/experiences/fabric-store/` (port 3006)
   - SMS Auth with Twilio
   - Stripe payment integration
-  - Swatch selection system
+  - Swatch selection system (max 5 items)
+  - Medusa JS SDK integration
+  - Sanity CMS for content
+  - SWR for data fetching
+  - Zod for validation
 - **Store Guide**: `/frontend/experiences/store-guide/` (port 3007)
 - **Sanity Studio**: `/frontend/experiences/sanity-studio/`
 
@@ -53,6 +57,7 @@ npm install
 # Main Admin App
 npm run dev               # Start admin app (port 3000)
 npm run build             # Build with Turbo
+npm run build:railway     # Railway-specific build command
 npm run lint              # Run ESLint across monorepo
 npm run type-check        # TypeScript checking
 npm run format            # Format code with Prettier
@@ -64,31 +69,50 @@ npm run reset             # Clean and reinstall dependencies
 cd medusa && npm run dev  # Start Medusa (port 9000)
 cd medusa && npm run seed:fabrics  # Seed fabric data
 cd medusa && npm run import:fabrics # Import CSV data
+cd medusa && npm run setup:contacts  # Setup contact module
+cd medusa && npm run test:contacts   # Test contact integration
 
 # Experience Apps
 npm run dev:fabric-store  # Start fabric store (port 3006)
 npm run dev:store-guide   # Start store guide (port 3007)
+npm run dev:frontend      # Start all frontend experiences
+npm run dev:backend       # Start all backend services
+npm run dev:admin         # Start admin app (alternative)
+npm run dev:api           # Start API service
+npm run dev:medusa        # Start Medusa (alternative)
 
 # Database Operations (from backend/)
-cd backend && npm run db:push     # Push schema changes
-cd backend && npm run db:migrate  # Run migrations
-cd backend && npm run db:studio   # Open Drizzle Studio GUI
-cd backend && npm run db:seed     # Seed sample data
+npm run db:push           # Push schema changes (from root)
+npm run db:migrate        # Run migrations (from root)
+npm run db:studio         # Open Drizzle Studio GUI (from root)
+npm run db:seed           # Seed sample data (from root)
 
 # Testing
 npm run test              # Run tests with Turbo
-# Note: Main repo uses Turbo test, individual packages may have specific test frameworks
+npm run test:unit         # Run unit tests (backend)
+npm run test:integration  # Run integration tests
+# Medusa-specific tests (from medusa/):
+cd medusa && npm run test:integration:http    # HTTP integration tests
+cd medusa && npm run test:integration:modules # Module tests
+cd medusa && npm run test:unit               # Unit tests
+
+# Building
+npm run build:frontend    # Build frontend packages
+npm run build:backend     # Build backend packages
+npm run build:railway     # Railway deployment build
 
 # Deployment
 npm run deploy            # Deploy all apps
-npm run deploy:prod       # Production deployment
+npm run deploy:prod       # Production deployment (parallel)
 npm run deploy:admin      # Deploy admin only
+npm run deploy:fabric-store    # Deploy fabric store
+npm run deploy:store-guide     # Deploy store guide
+npm run deploy:frontend   # Deploy frontend experiences
+npm run deploy:backend    # Deploy backend services
 
 # Environment Management
 npm run env:manage        # Interactive env var management
-npm run env:validate      # Validate environment
-npm run env:push          # Push to Vercel
-npm run env:pull          # Pull from Vercel
+npm run env:validate      # Validate environment variables
 ```
 
 ## Architecture
@@ -104,17 +128,20 @@ tara-hub/
 │   ├── src/
 │   │   ├── admin/          # Admin UI customizations
 │   │   ├── api/            # API endpoints
-│   │   ├── modules/        # Custom modules
+│   │   ├── modules/        # Custom modules (Contact, Fabric Details, Resend)
 │   │   └── scripts/        # Utility scripts
 │   └── package.json
 ├── frontend/
-│   └── experiences/        # Micro-frontend apps
-│       ├── fabric-store/   # E-commerce (port 3006)
-│       └── store-guide/    # Management (port 3007)
+│   ├── experiences/        # Micro-frontend apps
+│   │   ├── fabric-store/   # E-commerce (port 3006)
+│   │   ├── store-guide/    # Management (port 3007)
+│   │   └── sanity-studio/  # Content management
+│   └── package.json
 ├── backend/                # Clean Architecture service
 │   ├── domain/             # Business logic
 │   ├── application/        # Use cases
-│   └── infrastructure/     # External implementations
+│   ├── infrastructure/     # External implementations
+│   └── fabric-api/         # Fabric-specific API service
 ├── components/             # Shared UI components
 ├── scripts/                # Database and deployment utilities
 ├── docs/                   # Documentation directory
@@ -124,20 +151,23 @@ tara-hub/
 ```
 
 ### Technology Stack
-- **Framework**: Next.js 15 with App Router, React 19
-- **Backend**: MedusaJS v2 (Node.js commerce platform)
-- **Database**: PostgreSQL (Neon) with Drizzle ORM + MikroORM
+- **Framework**: Next.js 15.1.0 with App Router, React 19.1.1
+- **Backend**: MedusaJS v2.10.0 (Node.js commerce platform)
+- **Database**: PostgreSQL (Neon) with Drizzle ORM + MikroORM 6.4.3
 - **Caching**: Vercel KV (Redis)
 - **Storage**: Cloudflare R2 (S3-compatible)
-- **Auth**: JWT-based magic links + Google SSO (in progress)
+- **Auth**: JWT-based magic links + NextAuth 4.24.11 + Google SSO (in progress)
 - **SMS**: Twilio integration (fabric-store)
 - **Payment**: Stripe integration (Medusa + fabric-store)
 - **UI**: Radix UI + shadcn/ui + Tailwind CSS
 - **Email**: Resend API (primary), Sendgrid (secondary)
-- **Formatting**: Prettier
-- **Deployment**: Vercel (frontend)
-- **Build**: Turbo monorepo
-- **Node Requirements**: >=18.0.0 (backend requires >=20 for Medusa)
+- **Formatting**: Prettier 3.0.0
+- **Deployment**: Vercel (frontend), Railway (backend option)
+- **Build**: Turbo 2.5.6 monorepo
+- **Testing**: Vitest 3.2.4, Jest (Medusa), Testing Library
+- **Content**: Sanity CMS (fabric-store)
+- **Node Requirements**: >=18.0.0 (>=20.0.0 for Medusa backend)
+- **Package Manager**: npm 10.2.0
 
 ## Key Configuration Files
 
@@ -287,13 +317,24 @@ Located in `/scripts/`:
 - Module tests: `npm run test:integration:modules`
 - Unit tests: `npm run test:unit`
 
-## Current Development Status
+## Critical Notes for Development
 
-### Active Branch
-- feature/phase1-Abhi
+### Package Manager
+- **Required**: npm 10.2.0 (specified in packageManager field)
+- Use `npm install` from root to maintain workspace dependencies
+
+### Build Considerations
+- **ESLint/TypeScript**: Build errors temporarily ignored (next.config.mjs:8-9)
+- **Webpack**: Jest workers disabled to prevent conflicts
+- **Turbo**: All tasks have environment variable passthrough configured
+
+### Current Development Status
+- **Main Branch**: main
+- **Repository**: https://github.com/varaku1012/tara-hub.git
+- **Recent Work**: Package.json updates, Docker cleanup, Medusa configuration enhancements
 
 ### Work in Progress
 - Google SSO integration for Medusa admin
-- Admin login override components
+- Admin login override components  
 - Inventory management enhancements
 - Public API endpoints for fabric data
