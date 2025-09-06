@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tara Hub Admin</title>
+    
+    <!-- NUCLEAR LOCALHOST OVERRIDE -->
+    <script>
+        // Immediate localhost API call interceptor - runs before any other scripts
+        (function() {
+            'use strict';
+            
+            const PRODUCTION_URL = 'https://medusa-production-e02c.up.railway.app';
+            
+            console.log('[ADMIN OVERRIDE] Emergency localhost interceptor active');
+            
+            // Override fetch immediately
+            if (window.fetch) {
+                const originalFetch = window.fetch;
+                window.fetch = function(url, options) {
+                    if (typeof url === 'string' && url.includes('localhost:9000')) {
+                        const newUrl = url.replace(/https?:\/\/localhost:9000/g, PRODUCTION_URL);
+                        console.log('[ADMIN OVERRIDE] INTERCEPTED:', url, '->', newUrl);
+                        return originalFetch(newUrl, options);
+                    }
+                    return originalFetch(url, options);
+                };
+            }
+            
+            // Set global variables immediately
+            window.__BACKEND_URL__ = PRODUCTION_URL;
+            window.MEDUSA_BACKEND_URL = PRODUCTION_URL;
+            window.MEDUSA_ADMIN_BACKEND_URL = PRODUCTION_URL;
+            
+            console.log('[ADMIN OVERRIDE] Global backend URLs set to:', PRODUCTION_URL);
+        })();
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- Load the runtime override script -->
+    <script src="/admin/runtime-override.js" async></script>
+</body>
+</html>

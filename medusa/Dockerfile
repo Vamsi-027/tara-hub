@@ -47,9 +47,22 @@ RUN echo "🔍 DISABLE_MEDUSA_ADMIN: $DISABLE_MEDUSA_ADMIN"
 RUN echo "MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app" >> .env
 RUN echo "MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app" >> .env
 
-# Build Medusa with proper production admin configuration
-# Note: --deployment flag is implied when MEDUSA_ADMIN_BACKEND_URL is set
-RUN npx medusa build
+# NUCLEAR APPROACH: Force complete rebuild with cache deletion
+RUN rm -rf .medusa node_modules/.cache @medusajs/admin* || true
+RUN rm -rf node_modules/@medusajs/admin/dist || true
+
+# Re-install to ensure clean state
+RUN npm ci --force
+
+# Build with explicit deployment flag and verbose logging
+RUN MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app npx medusa build --verbose
+
+# Double-check: build admin separately with deployment flag
+RUN MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app npx medusa build --admin-only --deployment --verbose
+
+# Copy runtime override script to admin build directory
+RUN mkdir -p .medusa/server/public/admin/
+RUN cp src/admin/runtime-override.js .medusa/server/public/admin/ || true
 
 # Debug: Verify admin build configuration and check for localhost references
 RUN echo "🔍 Verifying admin build configuration..."
