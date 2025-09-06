@@ -24,6 +24,11 @@ COPY . .
 # Build in development mode to ensure admin UI is included
 ENV NODE_ENV=development
 ENV DISABLE_MEDUSA_ADMIN=false
+
+# Set the backend URL explicitly for admin UI build
+# Railway provides RAILWAY_PUBLIC_DOMAIN, but we need to set it explicitly for build
+ENV MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
+
 RUN npx medusa build
 
 # Create the public symlink (critical fix for admin build issue)
