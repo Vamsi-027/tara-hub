@@ -3,7 +3,7 @@
   "regions": ["iad1"],
   "env": {
     "NEXT_PUBLIC_APP_NAME": "Fabric Store",
-    "NEXT_PUBLIC_MEDUSA_BACKEND_URL": "https://medusa-backend-production-3655.up.railway.app"
-  },
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- frontend/experiences/fabric-store packages"
+    "NEXT_PUBLIC_MEDUSA_BACKEND_URL": "https://medusa-backend-production-3655.up.railway.app",
+    "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY": "pk_49ebbbe6498305cd3ec7b42aaedbdebb37145d952652e29238e2a23ab8ce0538"
+  }
 }
