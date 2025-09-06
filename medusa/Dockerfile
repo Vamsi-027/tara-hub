@@ -1,47 +1,42 @@
-# Official Railway-compatible Dockerfile for Medusa v2
-# Based on official docs: https://docs.medusajs.com/resources/deployment/medusa-application/railway
+# Production-ready Dockerfile for Medusa v2 on Railway
+# Based on working solution from commit 011b08c
 
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS base
 
-# Install build dependencies
-RUN apk add --no-cache dumb-init python3 make g++
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs && adduser -S medusa -u 1001
 
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm ci --include=dev
+
+# Install ALL dependencies (Medusa v2 needs dev deps for TypeScript compilation)
+RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build Medusa application (this creates .medusa/server with admin UI)
+# Critical: Build with proper environment sequence for Medusa v2
+# Build in development mode to ensure admin UI is included
 ENV NODE_ENV=development
 ENV DISABLE_MEDUSA_ADMIN=false
 RUN npx medusa build
 
-# Verify build completed successfully
-RUN ls -la .medusa/server && \
-    test -f .medusa/server/package.json || (echo "❌ Server build failed" && exit 1)
+# Create the public symlink (critical fix for admin build issue)
+RUN ln -sf .medusa/server/public/ public
 
-# Install production dependencies in the server directory
-WORKDIR /app/.medusa/server
-RUN npm ci --omit=dev
+# Verify admin build was successful - fail if not found
+RUN ls -la .medusa/server/public/admin/index.html && echo "✅ Admin build successful!" || (echo "❌ Admin build failed!" && exit 1)
 
-# Production runtime image
-FROM node:20-alpine AS runner
+# Set back to production for runtime
+ENV NODE_ENV=production
 
-# Install runtime dependencies
-RUN apk add --no-cache dumb-init
-
-# Create app user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S medusa -u 1001
-
-# Copy built application from builder stage
-COPY --from=builder --chown=medusa:nodejs /app/.medusa/server /app
-
-WORKDIR /app
+# Set proper ownership
+RUN chown -R medusa:nodejs /app
 
 # Switch to non-root user
 USER medusa
@@ -53,8 +48,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Expose port
 EXPOSE 9000
 
-# Use dumb-init for proper signal handling
+# Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start with migration and server startup
+# Start command with database migration
 CMD ["sh", "-c", "npm run predeploy && npm start"]

@@ -1,5 +1,5 @@
-const { loadEnv, defineConfig } = require("@medusajs/framework/utils")
-const path = require("path")
+import { loadEnv, defineConfig } from "@medusajs/framework/utils"
+import path from "path"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
@@ -8,7 +8,7 @@ const isWorkerMode = process.env.MEDUSA_WORKER_MODE === "worker"
 const isServerMode =
   process.env.MEDUSA_WORKER_MODE === "server" || !process.env.MEDUSA_WORKER_MODE
 
-module.exports = defineConfig({
+export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL, // PostgreSQL (Neon/Railway)
     redisUrl: process.env.REDIS_URL,       // Redis (Upstash/Railway)
