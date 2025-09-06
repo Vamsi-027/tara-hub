@@ -14,9 +14,9 @@ export default defineConfig({
     redisUrl: process.env.REDIS_URL,       // Redis (Upstash/Railway)
     workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server",
     http: {
-      storeCors: process.env.STORE_CORS || "http://localhost:3000,http://localhost:3006,http://localhost:3007,http://localhost:8000",
-      adminCors: process.env.ADMIN_CORS || "http://localhost:3000,http://localhost:7001,http://localhost:9000",
-      authCors: process.env.AUTH_CORS || "http://localhost:3000,http://localhost:9000,http://localhost:8000",
+      storeCors: process.env.STORE_CORS || "https://medusa-backend-production-3655.up.railway.app,http://localhost:3000,http://localhost:3006,http://localhost:3007,http://localhost:8000",
+      adminCors: process.env.ADMIN_CORS || "https://medusa-backend-production-3655.up.railway.app,http://localhost:3000,http://localhost:7001,http://localhost:9000",
+      authCors: process.env.AUTH_CORS || "https://medusa-backend-production-3655.up.railway.app,http://localhost:3000,http://localhost:9000,http://localhost:8000",
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
@@ -32,9 +32,9 @@ export default defineConfig({
     backendUrl:
       // Explicit Railway production URL - check for Railway environment first
       process.env.RAILWAY_PROJECT_ID || process.env.RAILWAY_PUBLIC_DOMAIN
-        ? "https://medusa-production-e02c.up.railway.app"
+        ? "https://medusa-backend-production-3655.up.railway.app"
         : process.env.MEDUSA_BACKEND_URL ||
-          "https://medusa-production-e02c.up.railway.app",
+          "https://medusa-backend-production-3655.up.railway.app",
   },
 
   modules: [
@@ -82,7 +82,7 @@ export default defineConfig({
               clientSecret: process.env.GOOGLE_CLIENT_SECRET,
               callbackUrl:
                 process.env.GOOGLE_CALLBACK_URL ||
-                `${process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"}/auth/google/callback`,
+                "https://medusa-backend-production-3655.up.railway.app/auth/google/callback",
               successRedirect: "/app",
               admin: {
                 successRedirect: "/app",

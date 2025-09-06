@@ -5,35 +5,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tara Hub Admin</title>
     
-    <!-- NUCLEAR LOCALHOST OVERRIDE -->
+    <!-- ULTRA-NUCLEAR LOCALHOST OVERRIDE - PRE-BUNDLE INTERCEPTION -->
     <script>
-        // Immediate localhost API call interceptor - runs before any other scripts
+        // CRITICAL: This MUST run before ANY other JavaScript loads
         (function() {
             'use strict';
             
-            const PRODUCTION_URL = 'https://medusa-production-e02c.up.railway.app';
+            const PRODUCTION_URL = 'https://medusa-backend-production-3655.up.railway.app';
             
-            console.log('[ADMIN OVERRIDE] Emergency localhost interceptor active');
+            console.log('[ADMIN OVERRIDE] 🚨 ULTRA-NUCLEAR PRE-BUNDLE INTERCEPTOR ACTIVATING...');
             
-            // Override fetch immediately
+            // INTERCEPT ALL SCRIPT LOADING
+            const originalCreateElement = document.createElement;
+            document.createElement = function(tagName) {
+                const element = originalCreateElement.call(this, tagName);
+                
+                if (tagName.toLowerCase() === 'script') {
+                    const originalSrcSetter = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src').set;
+                    Object.defineProperty(element, 'src', {
+                        set: function(value) {
+                            // Don't modify our override scripts
+                            if (value && !value.includes('runtime-override.js')) {
+                                console.log('[ADMIN OVERRIDE] 📦 SCRIPT LOADING:', value);
+                            }
+                            originalSrcSetter.call(this, value);
+                        },
+                        get: function() {
+                            return Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src').get.call(this);
+                        }
+                    });
+                }
+                
+                return element;
+            };
+            
+            // OVERRIDE ALL POSSIBLE GLOBAL CONTEXTS
+            const contexts = [window, globalThis, self];
+            contexts.forEach(ctx => {
+                if (!ctx) return;
+                
+                // Force all possible backend URL variations
+                const urlKeys = [
+                    '__BACKEND_URL__', 'MEDUSA_BACKEND_URL', 'MEDUSA_ADMIN_BACKEND_URL',
+                    'BACKEND_URL', 'API_BASE_URL', 'BASE_URL', 'REACT_APP_MEDUSA_BACKEND_URL',
+                    'VITE_MEDUSA_BACKEND_URL', 'NEXT_PUBLIC_MEDUSA_BACKEND_URL'
+                ];
+                
+                urlKeys.forEach(key => {
+                    try {
+                        Object.defineProperty(ctx, key, {
+                            value: PRODUCTION_URL,
+                            writable: false,
+                            configurable: false,
+                            enumerable: true
+                        });
+                    } catch (e) {
+                        // Fallback if property already exists
+                        ctx[key] = PRODUCTION_URL;
+                    }
+                });
+            });
+            
+            console.log('[ADMIN OVERRIDE] ⚡ PRE-BUNDLE interceptor ACTIVATED for:', PRODUCTION_URL);
+        })();
+    </script>
+    
+    <!-- NUCLEAR LOCALHOST OVERRIDE - ENHANCED -->
+    <script>
+        // SENIOR DEVOPS SOLUTION: Emergency localhost interceptor - runs IMMEDIATELY
+        (function() {
+            'use strict';
+            
+            const PRODUCTION_URL = 'https://medusa-backend-production-3655.up.railway.app';
+            
+            console.log('[ADMIN OVERRIDE] 🚨 EMERGENCY localhost interceptor v2.0 ACTIVATING...');
+            
+            // IMMEDIATE GLOBAL VARIABLE INJECTION
+            const globals = [
+                '__BACKEND_URL__',
+                'MEDUSA_BACKEND_URL', 
+                'MEDUSA_ADMIN_BACKEND_URL',
+                'BACKEND_URL',
+                'API_BASE_URL',
+                'BASE_URL'
+            ];
+            
+            globals.forEach(key => {
+                window[key] = PRODUCTION_URL;
+                Object.defineProperty(window, key, {
+                    get: () => PRODUCTION_URL,
+                    set: () => PRODUCTION_URL,
+                    configurable: false
+                });
+            });
+            
+            // IMMEDIATE FETCH OVERRIDE
             if (window.fetch) {
                 const originalFetch = window.fetch;
-                window.fetch = function(url, options) {
-                    if (typeof url === 'string' && url.includes('localhost:9000')) {
-                        const newUrl = url.replace(/https?:\/\/localhost:9000/g, PRODUCTION_URL);
-                        console.log('[ADMIN OVERRIDE] INTERCEPTED:', url, '->', newUrl);
-                        return originalFetch(newUrl, options);
+                window.fetch = function(url, options = {}) {
+                    let finalUrl = url;
+                    if (typeof url === 'string' && (url.includes('localhost') || url.includes('127.0.0.1'))) {
+                        finalUrl = url.replace(/https?:\/\/(localhost|127\.0\.0\.1):?9000?/g, PRODUCTION_URL);
+                        console.log('[ADMIN OVERRIDE] 🎯 EMERGENCY FETCH:', url, '->', finalUrl);
                     }
-                    return originalFetch(url, options);
+                    return originalFetch(finalUrl, options);
                 };
             }
             
-            // Set global variables immediately
-            window.__BACKEND_URL__ = PRODUCTION_URL;
-            window.MEDUSA_BACKEND_URL = PRODUCTION_URL;
-            window.MEDUSA_ADMIN_BACKEND_URL = PRODUCTION_URL;
+            // IMMEDIATE XMLHttpRequest OVERRIDE
+            if (window.XMLHttpRequest) {
+                const originalXHROpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function(method, url, ...args) {
+                    let finalUrl = url;
+                    if (typeof url === 'string' && (url.includes('localhost') || url.includes('127.0.0.1'))) {
+                        finalUrl = url.replace(/https?:\/\/(localhost|127\.0\.0\.1):?9000?/g, PRODUCTION_URL);
+                        console.log('[ADMIN OVERRIDE] 🎯 EMERGENCY XHR:', url, '->', finalUrl);
+                    }
+                    return originalXHROpen.call(this, method, finalUrl, ...args);
+                };
+            }
             
-            console.log('[ADMIN OVERRIDE] Global backend URLs set to:', PRODUCTION_URL);
+            // IMMEDIATE CONFIG OBJECT INJECTION
+            window.__MEDUSA_CONFIG__ = {
+                backendUrl: PRODUCTION_URL,
+                baseUrl: PRODUCTION_URL,
+                apiUrl: PRODUCTION_URL
+            };
+            
+            // PREVENT ANY LOCALHOST OVERWRITES
+            const observer = new MutationObserver(() => {
+                globals.forEach(key => {
+                    if (window[key] !== PRODUCTION_URL) {
+                        window[key] = PRODUCTION_URL;
+                    }
+                });
+            });
+            
+            // Start monitoring immediately
+            if (document.body) {
+                observer.observe(document.body, { childList: true, subtree: true });
+            } else {
+                document.addEventListener('DOMContentLoaded', () => {
+                    observer.observe(document.body, { childList: true, subtree: true });
+                });
+            }
+            
+            console.log('[ADMIN OVERRIDE] ⚡ EMERGENCY interceptor ACTIVATED for:', PRODUCTION_URL);
         })();
     </script>
 </head>

@@ -6,7 +6,7 @@
 import { defineConfig } from "@medusajs/admin-sdk"
 
 // Force Railway production URL for admin API calls
-const PRODUCTION_BACKEND_URL = "https://medusa-production-e02c.up.railway.app"
+const PRODUCTION_BACKEND_URL = "https://medusa-backend-production-3655.up.railway.app"
 
 // Set global variables immediately
 if (typeof window !== 'undefined') {
