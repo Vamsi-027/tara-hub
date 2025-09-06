@@ -35,7 +35,7 @@ async function handleGET(request: Request) {
     
     // Option 2: Try Medusa backend - PRIMARY DATA SOURCE
     const medusaBackendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
-    const medusaUrl = new URL(`${medusaBackendUrl}/store/fabrics`)
+    const medusaUrl = new URL(`${medusaBackendUrl}/store/products`)
     medusaUrl.searchParams.set('limit', limit)
     medusaUrl.searchParams.set('offset', offset)
     if (category) medusaUrl.searchParams.set('category', category)
@@ -44,9 +44,11 @@ async function handleGET(request: Request) {
     if (pattern) medusaUrl.searchParams.set('pattern', pattern)
     
     try {
+      console.log('Trying Medusa backend at:', medusaUrl.toString())
       const medusaResponse = await fetch(medusaUrl.toString(), {
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'x-publishable-api-key': process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || 'pk_49ebbbe6498305cd3ec7b42aaedbdebb37145d952652e29238e2a23ab8ce0538'
         }
       })
