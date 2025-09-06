@@ -31,7 +31,7 @@ export default defineConfig({
       path.resolve(process.cwd(), ".medusa/server/public/admin"),
     backendUrl:
       process.env.MEDUSA_BACKEND_URL ||
-      process.env.RAILWAY_PUBLIC_DOMAIN ||
+      (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null) ||
       "http://localhost:9000",
   },
 

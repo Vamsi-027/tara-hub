@@ -32,7 +32,8 @@ const FabricCustomersPage = () => {
     try {
       setRefreshing(true)
       // Fetch from fabric-store API
-      const response = await fetch("http://localhost:3006/api/customers")
+      const fabricStoreUrl = process.env.NEXT_PUBLIC_FABRIC_STORE_URL || "http://localhost:3006"
+      const response = await fetch(`${fabricStoreUrl}/api/customers`)
       const data = await response.json()
       
       setCustomers(data.customers || [])
