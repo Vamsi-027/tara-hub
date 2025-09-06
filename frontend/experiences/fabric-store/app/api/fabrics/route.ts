@@ -34,7 +34,8 @@ async function handleGET(request: Request) {
     }
     
     // Option 2: Try Medusa backend - PRIMARY DATA SOURCE
-    const medusaUrl = new URL('http://localhost:9000/store/fabrics')
+    const medusaBackendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
+    const medusaUrl = new URL(`${medusaBackendUrl}/store/fabrics`)
     medusaUrl.searchParams.set('limit', limit)
     medusaUrl.searchParams.set('offset', offset)
     if (category) medusaUrl.searchParams.set('category', category)

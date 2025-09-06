@@ -15,6 +15,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3007',
   'http://localhost:9000',
   'https://tara-hub.vercel.app',
+  'https://medusa-backend-production-3655.up.railway.app',
   'https://your-domain.com' // Add your production domains
 ]
 
