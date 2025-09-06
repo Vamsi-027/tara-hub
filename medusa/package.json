@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "npx medusa build && ln -sf .medusa/server/public/ public",
-    "build:admin": "npx medusa build --admin-only --deployment",
+    "build:admin": "npx medusa build --admin-only",
     "predeploy": "npx medusa db:migrate",
     "postinstall": "echo 'No admin build needed during postinstall'",
     "seed": "npx medusa exec ./src/scripts/seed.ts",

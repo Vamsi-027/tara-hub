@@ -57,8 +57,8 @@ RUN npm ci --force
 # Build with explicit deployment flag and verbose logging
 RUN MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app npx medusa build --verbose
 
-# Double-check: build admin separately with deployment flag
-RUN MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app npx medusa build --admin-only --deployment --verbose
+# Double-check: build admin separately (no deployment flag in v2)
+RUN MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app npx medusa build --admin-only --verbose
 
 # Copy runtime override script to admin build directory
 RUN mkdir -p .medusa/server/public/admin/
