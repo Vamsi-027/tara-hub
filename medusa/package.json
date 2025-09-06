@@ -13,7 +13,7 @@
     "medusa"
   ],
   "scripts": {
-    "build": "medusa build",
+    "build": "medusa build && ln -sf .medusa/server/public/ public",
     "build:admin": "medusa build",
     "predeploy": "medusa db:migrate",
     "postinstall": "echo 'No admin build needed during postinstall'",

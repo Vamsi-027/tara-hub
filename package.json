@@ -6,7 +6,6 @@
   "packageManager": "npm@10.2.0",
   "scripts": {
   "dev": "turbo dev",
-  "build:railway": "npx turbo run build",  
   "lint": "turbo lint",
   "test": "turbo test",
   "type-check": "turbo type-check",

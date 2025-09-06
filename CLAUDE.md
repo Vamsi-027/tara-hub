@@ -57,7 +57,6 @@ npm install
 # Main Admin App
 npm run dev               # Start admin app (port 3000)
 npm run build             # Build with Turbo
-npm run build:railway     # Railway-specific build command
 npm run lint              # Run ESLint across monorepo
 npm run type-check        # TypeScript checking
 npm run format            # Format code with Prettier
@@ -99,7 +98,6 @@ cd medusa && npm run test:unit               # Unit tests
 # Building
 npm run build:frontend    # Build frontend packages
 npm run build:backend     # Build backend packages
-npm run build:railway     # Railway deployment build
 
 # Deployment
 npm run deploy            # Deploy all apps
@@ -162,7 +160,7 @@ tara-hub/
 - **UI**: Radix UI + shadcn/ui + Tailwind CSS
 - **Email**: Resend API (primary), Sendgrid (secondary)
 - **Formatting**: Prettier 3.0.0
-- **Deployment**: Vercel (frontend), Railway (backend option)
+- **Deployment**: Vercel (frontend), Railway (backend)
 - **Build**: Turbo 2.5.6 monorepo
 - **Testing**: Vitest 3.2.4, Jest (Medusa), Testing Library
 - **Content**: Sanity CMS (fabric-store)

@@ -10,13 +10,13 @@ const isServerMode =
 
 export default defineConfig({
   projectConfig: {
-    databaseUrl: process.env.DATABASE_URL, // Neon PostgreSQL
-    redisUrl: process.env.REDIS_URL,       // Upstash Redis
+    databaseUrl: process.env.DATABASE_URL, // PostgreSQL (Neon/Railway)
+    redisUrl: process.env.REDIS_URL,       // Redis (Upstash/Railway)
     workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server",
     http: {
-      storeCors: process.env.STORE_CORS!,
-      adminCors: process.env.ADMIN_CORS!,
-      authCors: process.env.AUTH_CORS!,
+      storeCors: process.env.STORE_CORS || "http://localhost:3000,http://localhost:3006,http://localhost:3007,http://localhost:8000",
+      adminCors: process.env.ADMIN_CORS || "http://localhost:3000,http://localhost:7001,http://localhost:9000",
+      authCors: process.env.AUTH_CORS || "http://localhost:3000,http://localhost:9000,http://localhost:8000",
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
@@ -24,7 +24,7 @@ export default defineConfig({
 
   // Admin Panel Configuration
   admin: {
-    disable: isWorkerMode, // Disable admin UI in worker mode
+    disable: process.env.DISABLE_MEDUSA_ADMIN === "true", // Disable admin UI based on env var
     path: "/app",
     outDir:
       process.env.MEDUSA_ADMIN_BUILD_PATH ||
