@@ -7,9 +7,8 @@ const GoogleSignInWidget = () => {
   const [showInfo, setShowInfo] = useState(false)
   
   const handleGoogleLogin = () => {
-    // Redirect to our custom Google auth endpoint
-    // This will initiate the OAuth flow with the correct redirect URI
-    window.location.href = "/api/auth/google"
+    // Use Medusa's built-in Google auth endpoint
+    window.location.href = "/auth/google"
   }
 
   return (
