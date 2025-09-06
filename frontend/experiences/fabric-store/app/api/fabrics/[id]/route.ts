@@ -21,6 +21,46 @@ export async function GET(
       
       if (medusaResponse.ok) {
         const data = await medusaResponse.json()
+        
+        // Transform Medusa product to fabric format
+        if (data.product) {
+          const product = data.product
+          const transformedFabric = {
+            id: product.id,
+            name: product.title,
+            sku: product.variants?.[0]?.sku || product.handle,
+            description: product.description,
+            category: product.categories?.[0]?.name || product.type?.value || 'Fabric',
+            collection: product.collection?.title || product.collection_id || null,
+            price: product.variants?.find(v => v.title?.includes('Fabric'))?.calculated_price?.calculated_amount ? 
+                   (product.variants.find(v => v.title?.includes('Fabric')).calculated_price.calculated_amount / 100) : 
+                   125.00,
+            swatch_price: product.variants?.find(v => v.title?.includes('Swatch'))?.calculated_price?.calculated_amount ? 
+                         (product.variants.find(v => v.title?.includes('Swatch')).calculated_price.calculated_amount / 100) : 
+                         5.00,
+            swatch_in_stock: product.variants?.some(v => v.title?.includes('Swatch') && v.inventory_quantity > 0),
+            in_stock: product.variants?.some(v => v.title?.includes('Fabric') && v.inventory_quantity > 0),
+            images: product.images?.map(img => img.url) || [],
+            swatch_image_url: product.thumbnail || product.images?.[0]?.url || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+            color: product.subtitle || 'Natural',
+            color_family: product.subtitle || 'Natural',
+            color_hex: '#8B4513',
+            pattern: 'Solid',
+            usage: 'Indoor',
+            properties: ['Premium Quality'],
+            composition: product.material || '100% Premium Fabric',
+            width: product.width || '54 inches',
+            weight: product.weight || 'Medium',
+            durability: '50,000 double rubs',
+            care_instructions: 'Professional cleaning recommended',
+            variants: product.variants,
+            created_at: product.created_at,
+            updated_at: product.updated_at
+          }
+          
+          return NextResponse.json({ fabric: transformedFabric })
+        }
+        
         return NextResponse.json(data)
       } else {
         console.log('Medusa response not OK:', medusaResponse.status, medusaResponse.statusText)
