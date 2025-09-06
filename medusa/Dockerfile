@@ -26,30 +26,29 @@ COPY . .
 ENV NODE_ENV=development
 ENV DISABLE_MEDUSA_ADMIN=false
 
-# Set ALL possible backend URL environment variables for admin UI build
-# This ensures no localhost references survive in the compiled admin bundle
-ENV MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
-ENV NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
+# CRITICAL: Set the correct Medusa v2 admin backend URL environment variable
+# Based on official docs: MEDUSA_ADMIN_BACKEND_URL is used for production admin builds
 ENV MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app
-ENV REACT_APP_MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
-ENV VITE_MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
+ENV MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
 
-# Railway environment simulation for build
+# Railway environment variables for build context
 ENV RAILWAY_PUBLIC_DOMAIN=medusa-production-e02c.up.railway.app
 ENV RAILWAY_PROJECT_ID=7d4ddac3-5123-4445-98cf-714ad52a324a
 
-# Debug: Print all backend URL environment variables
-RUN echo "🔍 Building admin UI with comprehensive backend URL configuration:"
+# Debug: Print the correct environment variables
+RUN echo "🔍 Building admin UI with official Medusa v2 configuration:"
+RUN echo "🔍 MEDUSA_ADMIN_BACKEND_URL: $MEDUSA_ADMIN_BACKEND_URL"
 RUN echo "🔍 MEDUSA_BACKEND_URL: $MEDUSA_BACKEND_URL"
-RUN echo "🔍 NEXT_PUBLIC_MEDUSA_BACKEND_URL: $NEXT_PUBLIC_MEDUSA_BACKEND_URL"
 RUN echo "🔍 RAILWAY_PUBLIC_DOMAIN: $RAILWAY_PUBLIC_DOMAIN"
 RUN echo "🔍 NODE_ENV: $NODE_ENV"
 RUN echo "🔍 DISABLE_MEDUSA_ADMIN: $DISABLE_MEDUSA_ADMIN"
 
-# Override any .env file values with our production values
+# Override .env file with correct production values
+RUN echo "MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app" >> .env
 RUN echo "MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app" >> .env
-RUN echo "NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app" >> .env
 
+# Build Medusa with proper production admin configuration
+# Note: --deployment flag is implied when MEDUSA_ADMIN_BACKEND_URL is set
 RUN npx medusa build
 
 # Debug: Verify admin build configuration and check for localhost references
