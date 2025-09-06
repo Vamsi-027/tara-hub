@@ -14,26 +14,7 @@ async function handleGET(request: Request) {
     const color_family = searchParams.get('color_family') || ''
     const pattern = searchParams.get('pattern') || ''
     
-    // Try to fetch from fabric API server (port 3010) - REAL DATABASE DATA
-    const fabricApiUrl = new URL('http://localhost:3010/api/fabrics')
-    fabricApiUrl.searchParams.set('limit', limit)
-    fabricApiUrl.searchParams.set('offset', offset)
-    if (category) fabricApiUrl.searchParams.set('category', category)
-    if (collection) fabricApiUrl.searchParams.set('collection', collection)
-    if (color_family) fabricApiUrl.searchParams.set('color_family', color_family)
-    if (pattern) fabricApiUrl.searchParams.set('pattern', pattern)
-    
-    try {
-      const response = await fetch(fabricApiUrl.toString())
-      if (response.ok) {
-        const data = await response.json()
-        return NextResponse.json(data)
-      }
-    } catch (error) {
-      console.log('Fabric API not available, trying fallback...')
-    }
-    
-    // Option 2: Try Medusa backend - PRIMARY DATA SOURCE
+    // Option 1: Try Medusa backend - PRIMARY DATA SOURCE
     const medusaBackendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
     const medusaUrl = new URL(`${medusaBackendUrl}/store/products`)
     medusaUrl.searchParams.set('limit', limit)
@@ -56,9 +37,11 @@ async function handleGET(request: Request) {
       if (medusaResponse.ok) {
         const data = await medusaResponse.json()
         return NextResponse.json(data)
+      } else {
+        console.log('Medusa response not OK:', medusaResponse.status, medusaResponse.statusText)
       }
     } catch (error) {
-      console.log('Medusa API not available, trying fallback...')
+      console.log('Medusa API not available:', error)
     }
     
     // Option 3: Try Sanity CMS for fabric data

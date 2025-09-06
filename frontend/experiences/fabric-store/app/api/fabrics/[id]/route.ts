@@ -7,22 +7,14 @@ export async function GET(
   try {
     const { id: fabricId } = await params
     
-    // Try to fetch from fabric API server (port 3010) - REAL DATABASE DATA
+    // Option 1: Try Medusa backend - PRIMARY DATA SOURCE
+    const medusaBackendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
     try {
-      const response = await fetch(`http://localhost:3010/api/fabrics/${fabricId}`)
-      if (response.ok) {
-        const data = await response.json()
-        return NextResponse.json(data)
-      }
-    } catch (error) {
-      console.log('Fabric API not available, trying fallback...')
-    }
-    
-    // Option 2: Try Medusa backend - PRIMARY DATA SOURCE
-    try {
-      const medusaResponse = await fetch(`http://localhost:9000/store/fabrics/${fabricId}`, {
+      console.log(`Trying Medusa backend at: ${medusaBackendUrl}/store/products/${fabricId}`)
+      const medusaResponse = await fetch(`${medusaBackendUrl}/store/products/${fabricId}`, {
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'x-publishable-api-key': process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || 'pk_49ebbbe6498305cd3ec7b42aaedbdebb37145d952652e29238e2a23ab8ce0538'
         }
       })
@@ -30,9 +22,11 @@ export async function GET(
       if (medusaResponse.ok) {
         const data = await medusaResponse.json()
         return NextResponse.json(data)
+      } else {
+        console.log('Medusa response not OK:', medusaResponse.status, medusaResponse.statusText)
       }
     } catch (error) {
-      console.log('Medusa fabrics endpoint not available, trying fallback...')
+      console.log('Medusa API not available:', error)
     }
     
     // Option 3: Return mock data if both fail
