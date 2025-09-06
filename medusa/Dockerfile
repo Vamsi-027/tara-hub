@@ -26,20 +26,37 @@ COPY . .
 ENV NODE_ENV=development
 ENV DISABLE_MEDUSA_ADMIN=false
 
-# Set the backend URL explicitly for admin UI build
-# Railway provides RAILWAY_PUBLIC_DOMAIN, but we need to set it explicitly for build
+# Set ALL possible backend URL environment variables for admin UI build
+# This ensures no localhost references survive in the compiled admin bundle
 ENV MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
+ENV NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
+ENV MEDUSA_ADMIN_BACKEND_URL=https://medusa-production-e02c.up.railway.app
+ENV REACT_APP_MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
+ENV VITE_MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
 
-# Debug: Print the backend URL being used
-RUN echo "🔍 Building admin UI with MEDUSA_BACKEND_URL: $MEDUSA_BACKEND_URL"
+# Railway environment simulation for build
+ENV RAILWAY_PUBLIC_DOMAIN=medusa-production-e02c.up.railway.app
+ENV RAILWAY_PROJECT_ID=7d4ddac3-5123-4445-98cf-714ad52a324a
+
+# Debug: Print all backend URL environment variables
+RUN echo "🔍 Building admin UI with comprehensive backend URL configuration:"
+RUN echo "🔍 MEDUSA_BACKEND_URL: $MEDUSA_BACKEND_URL"
+RUN echo "🔍 NEXT_PUBLIC_MEDUSA_BACKEND_URL: $NEXT_PUBLIC_MEDUSA_BACKEND_URL"
+RUN echo "🔍 RAILWAY_PUBLIC_DOMAIN: $RAILWAY_PUBLIC_DOMAIN"
 RUN echo "🔍 NODE_ENV: $NODE_ENV"
 RUN echo "🔍 DISABLE_MEDUSA_ADMIN: $DISABLE_MEDUSA_ADMIN"
 
+# Override any .env file values with our production values
+RUN echo "MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app" >> .env
+RUN echo "NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app" >> .env
+
 RUN npx medusa build
 
-# Debug: Verify admin build configuration
+# Debug: Verify admin build configuration and check for localhost references
 RUN echo "🔍 Verifying admin build configuration..."
-RUN find .medusa/server/public/admin -name "*.js" -exec grep -l "localhost" {} \; || echo "✅ No localhost references found in admin build"
+RUN echo "🔍 Final environment check:"
+RUN grep -E "(MEDUSA_BACKEND_URL|RAILWAY)" .env || echo "No backend URL in .env"
+RUN find .medusa/server/public/admin -name "*.js" -exec grep -l "localhost:9000" {} \; && echo "❌ Found localhost references!" || echo "✅ No localhost:9000 references found in admin build"
 
 # Create the public symlink (critical fix for admin build issue)
 RUN ln -sf .medusa/server/public/ public

@@ -34,7 +34,7 @@ export default defineConfig({
       process.env.RAILWAY_PROJECT_ID || process.env.RAILWAY_PUBLIC_DOMAIN
         ? "https://medusa-production-e02c.up.railway.app"
         : process.env.MEDUSA_BACKEND_URL ||
-          "http://localhost:9000",
+          "https://medusa-production-e02c.up.railway.app",
   },
 
   modules: [
