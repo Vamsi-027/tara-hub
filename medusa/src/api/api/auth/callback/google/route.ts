@@ -23,6 +23,8 @@ export async function GET(
   }
 
   try {
+    console.log('[GOOGLE AUTH] Starting token exchange with code:', code?.substring(0, 20) + '...')
+    
     // Exchange code for tokens using the SAME redirect URI that Google expects
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
@@ -33,7 +35,7 @@ export async function GET(
         code,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirect_uri: "http://localhost:9000/api/auth/callback/google", // MUST match exactly what's in Google Console
+        redirect_uri: `${process.env.MEDUSA_BACKEND_URL || 'https://medusa-backend-production-3655.up.railway.app'}/api/auth/callback/google`,
         grant_type: "authorization_code",
       }),
     })
@@ -58,6 +60,7 @@ export async function GET(
     }
 
     const userInfo = await userResponse.json()
+    console.log('[GOOGLE AUTH] User info received:', userInfo.email)
 
     // Check if user email is whitelisted
     if (!ALLOWED_ADMIN_EMAILS.includes(userInfo.email)) {
@@ -107,6 +110,8 @@ export async function GET(
       }
     }
 
+    console.log('[GOOGLE AUTH] Session created successfully for:', userInfo.email)
+    
     // Redirect to admin dashboard
     return res.redirect("/app")
   } catch (error) {
