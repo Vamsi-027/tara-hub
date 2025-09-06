@@ -1,5 +1,6 @@
 # Production-ready Dockerfile for Medusa v2 on Railway
 # Based on working solution from commit 011b08c
+# Fresh build: 2025-09-06-05:20 (cache buster)
 
 FROM node:20-alpine AS base
 
