@@ -23,6 +23,5 @@
     "TWILIO_PHONE_NUMBER": "@twilio_phone_number",
     "RESEND_API_KEY": "@resend_api_key",
     "RESEND_FROM_EMAIL": "Tara Hub Admin <admin@deepcrm.ai>"
-  },
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- experiences/fabric-store packages"
+  }
 }
