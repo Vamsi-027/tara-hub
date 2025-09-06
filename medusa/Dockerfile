@@ -29,7 +29,16 @@ ENV DISABLE_MEDUSA_ADMIN=false
 # Railway provides RAILWAY_PUBLIC_DOMAIN, but we need to set it explicitly for build
 ENV MEDUSA_BACKEND_URL=https://medusa-production-e02c.up.railway.app
 
+# Debug: Print the backend URL being used
+RUN echo "🔍 Building admin UI with MEDUSA_BACKEND_URL: $MEDUSA_BACKEND_URL"
+RUN echo "🔍 NODE_ENV: $NODE_ENV"
+RUN echo "🔍 DISABLE_MEDUSA_ADMIN: $DISABLE_MEDUSA_ADMIN"
+
 RUN npx medusa build
+
+# Debug: Verify admin build configuration
+RUN echo "🔍 Verifying admin build configuration..."
+RUN find .medusa/server/public/admin -name "*.js" -exec grep -l "localhost" {} \; || echo "✅ No localhost references found in admin build"
 
 # Create the public symlink (critical fix for admin build issue)
 RUN ln -sf .medusa/server/public/ public

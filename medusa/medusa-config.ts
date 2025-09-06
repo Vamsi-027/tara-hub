@@ -30,9 +30,11 @@ export default defineConfig({
       process.env.MEDUSA_ADMIN_BUILD_PATH ||
       path.resolve(process.cwd(), ".medusa/server/public/admin"),
     backendUrl:
-      process.env.MEDUSA_BACKEND_URL ||
-      (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null) ||
-      "http://localhost:9000",
+      // Explicit Railway production URL - check for Railway environment first
+      process.env.RAILWAY_PROJECT_ID || process.env.RAILWAY_PUBLIC_DOMAIN
+        ? "https://medusa-production-e02c.up.railway.app"
+        : process.env.MEDUSA_BACKEND_URL ||
+          "http://localhost:9000",
   },
 
   modules: [
