@@ -1,7 +1,6 @@
 "use client"
 
 import { useAuth } from "@/hooks/use-auth"
-import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 
 export default function AdminLayout({
@@ -33,15 +32,13 @@ export default function AdminLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="flex h-screen w-full">
-        <AppSidebar className="border-r" />
-        <main className="flex-1 overflow-auto bg-background">
-          <div className="h-full w-full">
-            {children}
-          </div>
-        </main>
-      </div>
-    </SidebarProvider>
+    <div className="flex h-screen w-full">
+      <AppSidebar className="border-r" />
+      <main className="flex-1 overflow-auto bg-gray-50">
+        <div className="h-full w-full">
+          {children}
+        </div>
+      </main>
+    </div>
   )
 }

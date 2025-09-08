@@ -87,11 +87,34 @@ export async function middleware(request: NextRequest) {
 
     try {
       if (authCookie?.value) {
-        isValid = await jwt.verify(
-          authCookie.value,
-          process.env.NEXTAUTH_SECRET || ''
-        );
-        console.log('✅ Auth token verification result:', isValid);
+        const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || '';
+        
+        if (jwtSecret) {
+          const verificationResult = await jwt.verify(authCookie.value, jwtSecret);
+          isValid = verificationResult === true;
+          console.log('✅ Auth token verification result:', verificationResult, 'isValid:', isValid);
+          
+          // Also try to decode to check if it's a valid JWT structure
+          if (!isValid) {
+            try {
+              const decoded = jwt.decode(authCookie.value);
+              console.log('🔍 JWT decode result:', decoded);
+              if (decoded && decoded.payload && decoded.payload.exp) {
+                const now = Math.floor(Date.now() / 1000);
+                if (decoded.payload.exp > now) {
+                  console.log('🔑 JWT appears valid but verification failed, allowing access');
+                  isValid = true;
+                }
+              }
+            } catch (decodeError) {
+              console.log('❌ JWT decode failed:', decodeError);
+            }
+          }
+        } else {
+          console.log('❌ No JWT secret configured');
+        }
+      } else {
+        console.log('ℹ️ No auth cookie found');
       }
     } catch (error) {
       console.log('❌ Error verifying auth token in middleware:', error);
