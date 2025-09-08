@@ -161,5 +161,8 @@ export default defineConfig({
 
     // Custom Modules
     { resolve: "./src/modules/contact" },
+    { resolve: "./src/modules/materials" },         // Simplified materials module
+    { resolve: "./src/modules/fabric-details" },     // Fabric properties module
+    { resolve: "./src/modules/fabric-products" },    // Configurable fabric products
   ],
 })

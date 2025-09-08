@@ -99,6 +99,54 @@ const cleaningCodes = [
 
 const stockUnits = ['yards', 'meters', 'feet', 'rolls', 'pieces', 'hides']
 
+/**
+ * Sync fabric to Medusa product catalog
+ * Fire-and-forget to avoid blocking the UI
+ */
+async function syncFabricToMedusa(fabricId: string, fabricData: any) {
+  try {
+    const medusaUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
+    
+    // Transform admin fabric data to match what Medusa expects
+    const syncData = {
+      fabric: {
+        id: fabricId,
+        ...fabricData,
+        // Ensure status is in the right format
+        status: fabricData.isActive ? 'active' : 'inactive',
+        // Map camelCase to snake_case for some fields
+        retail_price: fabricData.retailPrice || fabricData.retail_price,
+        wholesale_price: fabricData.wholesalePrice || fabricData.wholesale_price,
+        stock_quantity: fabricData.stockQuantity || fabricData.stock_quantity,
+        available_quantity: fabricData.stockQuantity || fabricData.stock_quantity,
+        fiber_content: fabricData.fiberContent || fabricData.fiber_content,
+      }
+    }
+    
+    const response = await fetch(`${medusaUrl}/admin/fabric-sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add admin auth if needed
+        // 'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify(syncData)
+    })
+    
+    if (response.ok) {
+      const result = await response.json()
+      console.log('✅ Fabric synced to Medusa:', result)
+      // Optionally show a subtle notification
+      // toast.info('Product catalog updated', { duration: 2000 })
+    } else {
+      console.error('Failed to sync to Medusa:', await response.text())
+    }
+  } catch (error) {
+    // Don't show error to user - this is a background sync
+    console.error('Medusa sync error:', error)
+  }
+}
+
 interface EditFabricPageProps {
   params: Promise<{ id: string }>
 }
@@ -457,6 +505,9 @@ export default function EditFabricPage({ params }: EditFabricPageProps) {
         
         setShowSuccess(true)
         toast.success(`Fabric updated successfully! ${Object.keys(updates).length} field(s) modified.`)
+        
+        // Sync to Medusa (fire-and-forget, don't block UI)
+        syncFabricToMedusa(fabricId, { ...fabric, ...updates })
         
         // Reset changed fields after successful update
         setChangedFields(new Set())

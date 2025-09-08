@@ -21,6 +21,8 @@
     "seed:admin": "npx medusa exec ./src/scripts/seed-admin-user.ts",
     "seed:fabrics": "npx medusa exec ./src/scripts/seed-fabrics.ts",
     "import:fabrics": "npx medusa exec ./src/scripts/import-fabric-data.ts",
+    "sync:materials": "npx tsx ./src/scripts/sync-materials.ts",
+    "test:materials": "npx tsx ./src/scripts/test-materials-sync.ts",
     "setup:contacts": "npx medusa exec ./src/scripts/setup-contacts.ts",
     "test:contacts": "npx medusa exec ./src/scripts/test-contact-integration.ts",
     "start": "NODE_ENV=production npx medusa start -H 0.0.0.0",

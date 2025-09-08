@@ -45,7 +45,11 @@
       "Bash(git fetch:*)",
       "Bash(git stash:*)",
       "Bash(git clone:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(find:*)",
+      "Bash(chmod:*)",
+      "Bash(/mnt/c/Users/varak/repos/tara-hub-1/commit-materials.sh:*)",
+      "Bash(git --version)"
     ],
     "deny": [],
     "ask": [],

@@ -99,6 +99,46 @@ const cleaningCodes = [
 
 const stockUnits = ['yards', 'meters', 'feet', 'rolls', 'pieces', 'hides']
 
+/**
+ * Sync fabric to Medusa product catalog
+ * Fire-and-forget to avoid blocking the UI
+ */
+async function syncFabricToMedusa(fabricId: string, fabricData: any) {
+  try {
+    const medusaUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
+    
+    const syncData = {
+      fabric: {
+        id: fabricId,
+        ...fabricData,
+        status: fabricData.isActive ? 'active' : 'inactive',
+        retail_price: fabricData.retailPrice || fabricData.retail_price,
+        wholesale_price: fabricData.wholesalePrice || fabricData.wholesale_price,
+        stock_quantity: fabricData.stockQuantity || fabricData.stock_quantity,
+        available_quantity: fabricData.stockQuantity || fabricData.stock_quantity,
+        fiber_content: fabricData.fiberContent || fabricData.fiber_content,
+      }
+    }
+    
+    const response = await fetch(`${medusaUrl}/admin/fabric-sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(syncData)
+    })
+    
+    if (response.ok) {
+      const result = await response.json()
+      console.log('✅ New fabric synced to Medusa:', result)
+    } else {
+      console.error('Failed to sync to Medusa:', await response.text())
+    }
+  } catch (error) {
+    console.error('Medusa sync error:', error)
+  }
+}
+
 export default function NewFabricPage() {
   const router = useRouter()
   const { create, loading } = useCreateFabric()
@@ -280,8 +320,14 @@ export default function NewFabricPage() {
         customFields: {}
       }
       
-      await create(fabricData)
+      const newFabric = await create(fabricData)
       setShowSuccess(true)
+      
+      // Sync to Medusa (fire-and-forget)
+      if (newFabric?.id) {
+        syncFabricToMedusa(newFabric.id, newFabric)
+      }
+      
       // The useCreateFabric hook handles navigation
       
     } catch (err: any) {
