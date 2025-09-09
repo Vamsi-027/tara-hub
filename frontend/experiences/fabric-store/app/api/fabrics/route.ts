@@ -15,6 +15,12 @@ async function handleGET(request: Request) {
     const color_family = searchParams.get('color_family') || ''
     const pattern = searchParams.get('pattern') || ''
     const search = searchParams.get('search') || ''
+    const usage = searchParams.get('usage') || ''
+    const sort_field = searchParams.get('sort_field') || 'name'
+    const sort_direction = searchParams.get('sort_direction') || 'asc'
+    const min_price = searchParams.get('min_price') || ''
+    const max_price = searchParams.get('max_price') || ''
+    const in_stock = searchParams.get('in_stock') || ''
     
     // Option 1: Try Medusa backend - PRIMARY DATA SOURCE
     const medusaBackendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'https://medusa-backend-production-3655.up.railway.app'
@@ -178,7 +184,7 @@ async function handleGET(request: Request) {
     
     // Option 3: Return mock data if all sources fail
     console.log('📝 Using fallback mock data')
-    const mockFabrics = [
+    let mockFabrics = [
       {
         id: '1',
         name: 'Palisade Fountain',
@@ -203,7 +209,8 @@ async function handleGET(request: Request) {
         care_instructions: 'Professional cleaning recommended',
         in_stock: true,
         swatch_price: 5.00,
-        swatch_in_stock: true
+        swatch_in_stock: true,
+        created_at: '2024-01-15T10:00:00Z'
       },
       {
         id: '2',
@@ -229,7 +236,8 @@ async function handleGET(request: Request) {
         care_instructions: 'Machine washable cold',
         in_stock: true,
         swatch_price: 3.50,
-        swatch_in_stock: true
+        swatch_in_stock: true,
+        created_at: '2024-02-01T14:30:00Z'
       },
       {
         id: '3',
@@ -255,16 +263,182 @@ async function handleGET(request: Request) {
         care_instructions: 'Spot clean with mild soap',
         in_stock: true,
         swatch_price: 4.75,
-        swatch_in_stock: true
+        swatch_in_stock: true,
+        created_at: '2024-01-20T09:15:00Z'
+      },
+      {
+        id: '4',
+        name: 'Emerald Dreams',
+        sku: 'EMR-DRM-001',
+        category: 'Velvet',
+        collection: 'Luxury',
+        price: 180.00,
+        images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400'],
+        swatch_image_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400',
+        status: 'Active',
+        description: 'Luxurious velvet fabric with rich texture',
+        color: 'Green',
+        color_family: 'Green',
+        color_hex: '#22c55e',
+        pattern: 'Solid',
+        usage: 'Indoor',
+        properties: ['Luxury', 'Premium'],
+        composition: '100% Cotton Velvet',
+        width: '54 inches',
+        weight: 'Heavy',
+        durability: '40,000 double rubs',
+        care_instructions: 'Dry clean only',
+        in_stock: true,
+        swatch_price: 6.50,
+        swatch_in_stock: true,
+        created_at: '2024-03-01T16:45:00Z'
+      },
+      {
+        id: '5',
+        name: 'Sunset Canvas',
+        sku: 'SST-CNV-001',
+        category: 'Outdoor',
+        collection: 'Weather Pro',
+        price: 75.00,
+        images: ['https://images.unsplash.com/photo-1604709177225-055f99402ea3?w=400'],
+        swatch_image_url: 'https://images.unsplash.com/photo-1604709177225-055f99402ea3?w=400',
+        status: 'Active',
+        description: 'Weather-resistant outdoor fabric',
+        color: 'Orange',
+        color_family: 'Orange',
+        color_hex: '#fb923c',
+        pattern: 'Striped',
+        usage: 'Outdoor',
+        properties: ['Weather Resistant', 'UV Protection'],
+        composition: '100% Solution Dyed Acrylic',
+        width: '60 inches',
+        weight: 'Medium',
+        durability: '70,000 double rubs',
+        care_instructions: 'Machine washable',
+        in_stock: false,
+        swatch_price: 4.00,
+        swatch_in_stock: true,
+        created_at: '2024-02-15T11:20:00Z'
+      },
+      {
+        id: '6',
+        name: 'Charcoal Classic',
+        sku: 'CHR-CLS-001',
+        category: 'Linen',
+        collection: 'Essential',
+        price: 65.00,
+        images: ['https://images.unsplash.com/photo-1595085092160-654baef2ca6e?w=400'],
+        swatch_image_url: 'https://images.unsplash.com/photo-1595085092160-654baef2ca6e?w=400',
+        status: 'Active',
+        description: 'Classic linen fabric in charcoal grey',
+        color: 'Gray',
+        color_family: 'Gray',
+        color_hex: '#6b7280',
+        pattern: 'Solid',
+        usage: 'Indoor',
+        properties: ['Natural', 'Breathable'],
+        composition: '100% Linen',
+        width: '55 inches',
+        weight: 'Light',
+        durability: '25,000 double rubs',
+        care_instructions: 'Machine washable warm',
+        in_stock: true,
+        swatch_price: 3.00,
+        swatch_in_stock: true,
+        created_at: '2024-01-10T08:30:00Z'
       }
     ]
 
+    // Apply filters to mock data
+    if (search) {
+      const searchLower = search.toLowerCase()
+      mockFabrics = mockFabrics.filter(fabric => 
+        fabric.name.toLowerCase().includes(searchLower) ||
+        fabric.sku.toLowerCase().includes(searchLower) ||
+        fabric.category.toLowerCase().includes(searchLower) ||
+        fabric.color.toLowerCase().includes(searchLower) ||
+        fabric.description.toLowerCase().includes(searchLower)
+      )
+    }
+
+    if (category) {
+      mockFabrics = mockFabrics.filter(fabric => fabric.category === category)
+    }
+
+    if (collection) {
+      mockFabrics = mockFabrics.filter(fabric => fabric.collection === collection)
+    }
+
+    if (color_family) {
+      mockFabrics = mockFabrics.filter(fabric => fabric.color_family === color_family)
+    }
+
+    if (pattern) {
+      mockFabrics = mockFabrics.filter(fabric => fabric.pattern === pattern)
+    }
+
+    if (usage) {
+      mockFabrics = mockFabrics.filter(fabric => fabric.usage === usage)
+    }
+
+    if (in_stock === 'true') {
+      mockFabrics = mockFabrics.filter(fabric => fabric.in_stock === true)
+    } else if (in_stock === 'false') {
+      mockFabrics = mockFabrics.filter(fabric => fabric.in_stock === false)
+    }
+
+    if (min_price) {
+      mockFabrics = mockFabrics.filter(fabric => fabric.price >= parseFloat(min_price))
+    }
+
+    if (max_price) {
+      mockFabrics = mockFabrics.filter(fabric => fabric.price <= parseFloat(max_price))
+    }
+
+    // Apply sorting
+    mockFabrics.sort((a, b) => {
+      let aVal, bVal
+      
+      switch (sort_field) {
+        case 'name':
+          aVal = a.name.toLowerCase()
+          bVal = b.name.toLowerCase()
+          break
+        case 'price':
+          aVal = a.price
+          bVal = b.price
+          break
+        case 'created_at':
+          aVal = new Date(a.created_at).getTime()
+          bVal = new Date(b.created_at).getTime()
+          break
+        case 'category':
+          aVal = a.category.toLowerCase()
+          bVal = b.category.toLowerCase()
+          break
+        default:
+          aVal = a.name.toLowerCase()
+          bVal = b.name.toLowerCase()
+      }
+
+      if (sort_direction === 'desc') {
+        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0
+      } else {
+        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0
+      }
+    })
+
+    // Apply pagination
+    const startIndex = parseInt(offset)
+    const endIndex = startIndex + parseInt(limit)
+    const paginatedFabrics = mockFabrics.slice(startIndex, endIndex)
+
     return NextResponse.json({
-      fabrics: mockFabrics,
-      count: mockFabrics.length,
+      fabrics: paginatedFabrics,
+      count: paginatedFabrics.length,
       totalCount: mockFabrics.length,
       page: parseInt(page),
-      totalPages: 1,
+      totalPages: Math.ceil(mockFabrics.length / parseInt(limit)),
       offset: parseInt(offset),
       limit: parseInt(limit),
       source: 'mock',

@@ -73,6 +73,10 @@ export interface FabricFilters {
   offset?: number
   page?: number
   search?: string
+  sort_field?: 'name' | 'price' | 'created_at' | 'category'
+  sort_direction?: 'asc' | 'desc'
+  min_price?: number
+  max_price?: number
 }
 
 class FabricAPI {

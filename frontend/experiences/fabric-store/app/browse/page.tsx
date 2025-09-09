@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Filter, X, Plus, Check, ShoppingBag, Search, Heart, ShoppingCart, Star, Zap, TrendingUp, DollarSign } from 'lucide-react'
+import { Filter, X, Plus, Check, ShoppingBag, Search, Heart, ShoppingCart, Star, Zap, TrendingUp, DollarSign, ChevronDown, ArrowUpDown } from 'lucide-react'
 import { useFabrics } from '../../hooks/useFabrics'
 import type { Fabric } from '../../lib/fabric-api'
 import { Pagination } from '../../components/Pagination'
@@ -102,9 +102,48 @@ function FilterSidebar({
   onClose: () => void
   fabrics: Fabric[]
 }) {
-  const categories = ['Cotton', 'Linen', 'Velvet', 'Silk', 'Wool', 'Synthetic', 'Outdoor']
-  const patterns = ['Solid', 'Striped', 'Floral', 'Geometric', 'Abstract', 'Textured', 'Plaid', 'Damask']
-  const usage = ['Indoor', 'Outdoor', 'Both']
+  // Generate dynamic filter options with counts from actual data
+  const getCategoryOptions = () => {
+    const categoryCount = new Map<string, number>()
+    fabrics.forEach(fabric => {
+      const category = fabric.category || 'Uncategorized'
+      categoryCount.set(category, (categoryCount.get(category) || 0) + 1)
+    })
+    return Array.from(categoryCount.entries())
+      .sort(([, a], [, b]) => b - a) // Sort by count descending
+      .map(([category, count]) => ({ name: category, count }))
+  }
+
+  const getPatternOptions = () => {
+    const patternCount = new Map<string, number>()
+    fabrics.forEach(fabric => {
+      const pattern = fabric.pattern || 'Unknown'
+      patternCount.set(pattern, (patternCount.get(pattern) || 0) + 1)
+    })
+    return Array.from(patternCount.entries())
+      .sort(([, a], [, b]) => b - a)
+      .map(([pattern, count]) => ({ name: pattern, count }))
+  }
+
+  const getUsageOptions = () => {
+    const usageCount = new Map<string, number>()
+    fabrics.forEach(fabric => {
+      const usage = fabric.usage || 'Unknown'
+      usageCount.set(usage, (usageCount.get(usage) || 0) + 1)
+    })
+    return Array.from(usageCount.entries())
+      .sort(([, a], [, b]) => b - a)
+      .map(([usage, count]) => ({ name: usage, count }))
+  }
+
+  const categoryOptions = getCategoryOptions()
+  const patternOptions = getPatternOptions()
+  const usageOptions = getUsageOptions()
+  
+  // Count active filters
+  const activeFilterCount = Object.values(filters).reduce((count, filterArray) => 
+    count + (Array.isArray(filterArray) ? filterArray.length : 0), 0
+  )
 
   return (
     <>
@@ -125,10 +164,29 @@ function FilterSidebar({
       `}>
         {/* Mobile Header */}
         <div className="flex justify-between items-center mb-6 lg:hidden">
-          <h2 className="text-xl font-bold">Filters</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold">Filters</h2>
+            {activeFilterCount > 0 && (
+              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                {activeFilterCount}
+              </span>
+            )}
+          </div>
           <button onClick={onClose} className="p-2">
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden lg:flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+            {activeFilterCount > 0 && (
+              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                {activeFilterCount}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Color Families */}
@@ -161,17 +219,17 @@ function FilterSidebar({
         <div className="mb-8">
           <h3 className="font-semibold text-gray-900 mb-4">Fabric Type</h3>
           <div className="space-y-2">
-            {categories.map((category) => (
-              <label key={category} className="flex items-center gap-3 cursor-pointer">
+            {categoryOptions.map(({ name: category, count }) => (
+              <label key={category} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
                 <input
                   type="checkbox"
                   checked={filters.category.includes(category)}
                   onChange={() => onFilterChange('category', category)}
                   className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-gray-700">{category}</span>
-                <span className="text-sm text-gray-500">
-                  ({fabrics.filter((f: Fabric) => f.category === category).length})
+                <span className="text-gray-700 flex-1">{category}</span>
+                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {count}
                 </span>
               </label>
             ))}
@@ -182,17 +240,17 @@ function FilterSidebar({
         <div className="mb-8">
           <h3 className="font-semibold text-gray-900 mb-4">Pattern</h3>
           <div className="space-y-2">
-            {patterns.map((pattern) => (
-              <label key={pattern} className="flex items-center gap-3 cursor-pointer">
+            {patternOptions.map(({ name: pattern, count }) => (
+              <label key={pattern} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
                 <input
                   type="checkbox"
                   checked={filters.pattern.includes(pattern)}
                   onChange={() => onFilterChange('pattern', pattern)}
                   className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-gray-700">{pattern}</span>
-                <span className="text-sm text-gray-500">
-                  ({fabrics.filter((f: Fabric) => f.pattern === pattern).length})
+                <span className="text-gray-700 flex-1">{pattern}</span>
+                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {count}
                 </span>
               </label>
             ))}
@@ -203,27 +261,32 @@ function FilterSidebar({
         <div className="mb-8">
           <h3 className="font-semibold text-gray-900 mb-4">Use</h3>
           <div className="space-y-2">
-            {usage.map((use) => (
-              <label key={use} className="flex items-center gap-3 cursor-pointer">
+            {usageOptions.map(({ name: use, count }) => (
+              <label key={use} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
                 <input
                   type="checkbox"
                   checked={filters.usage.includes(use)}
                   onChange={() => onFilterChange('usage', use)}
                   className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-gray-700">{use}</span>
+                <span className="text-gray-700 flex-1">{use}</span>
+                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {count}
+                </span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Clear Filters */}
-        <button
-          onClick={() => onFilterChange('clear', '')}
-          className="w-full py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Clear All Filters
-        </button>
+        {activeFilterCount > 0 && (
+          <button
+            onClick={() => onFilterChange('clear', '')}
+            className="w-full py-3 text-sm text-red-600 hover:text-red-700 border border-red-300 rounded-lg hover:bg-red-50 transition-colors font-medium"
+          >
+            Clear All Filters ({activeFilterCount})
+          </button>
+        )}
       </div>
     </>
   )
@@ -608,60 +671,151 @@ function FabricCard({
   )
 }
 
+// Sort Dropdown Component
+function SortDropdown({ 
+  sortField, 
+  sortDirection, 
+  onSortChange 
+}: {
+  sortField: 'name' | 'price' | 'created_at' | 'category'
+  sortDirection: 'asc' | 'desc'
+  onSortChange: (field: 'name' | 'price' | 'created_at' | 'category', direction: 'asc' | 'desc') => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  
+  const sortOptions = [
+    { field: 'name' as const, direction: 'asc' as const, label: 'Name A-Z' },
+    { field: 'name' as const, direction: 'desc' as const, label: 'Name Z-A' },
+    { field: 'price' as const, direction: 'asc' as const, label: 'Price Low to High' },
+    { field: 'price' as const, direction: 'desc' as const, label: 'Price High to Low' },
+    { field: 'created_at' as const, direction: 'desc' as const, label: 'Newest First' },
+    { field: 'created_at' as const, direction: 'asc' as const, label: 'Oldest First' },
+    { field: 'category' as const, direction: 'asc' as const, label: 'Category A-Z' }
+  ]
+  
+  const currentOption = sortOptions.find(option => 
+    option.field === sortField && option.direction === sortDirection
+  ) || sortOptions[0]
+  
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+      >
+        <ArrowUpDown className="w-4 h-4" />
+        <span>Sort: {currentOption.label}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {isOpen && (
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)}
+          />
+          
+          {/* Dropdown */}
+          <div className="absolute top-full left-0 mt-1 min-w-[200px] bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+            {sortOptions.map((option, index) => (
+              <button
+                key={`${option.field}-${option.direction}`}
+                onClick={() => {
+                  onSortChange(option.field, option.direction)
+                  setIsOpen(false)
+                }}
+                className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-sm first:rounded-t-lg last:rounded-b-lg ${
+                  option.field === sortField && option.direction === sortDirection
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // Enhanced Search component with autocomplete
-function SearchComponent({ onSearch, fabrics }: { onSearch: (term: string) => void, fabrics: Fabric[] }) {
-  const searchParams = useSearchParams()
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
-  const [suggestions, setSuggestions] = useState<string[]>([])
+function SearchComponent({ onSearch, fabrics, value, isSearching }: { onSearch: (term: string) => void, fabrics: Fabric[], value: string, isSearching?: boolean }) {
+  const [suggestions, setSuggestions] = useState<{ text: string, type: string }[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   
-  useEffect(() => {
-    onSearch(searchTerm)
-  }, [searchTerm, onSearch])
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSearch(e.target.value)
+  }
 
-  // Generate search suggestions
+  // Generate search suggestions with categories
   useEffect(() => {
-    if (searchTerm.length > 1 && fabrics.length > 0) {
-      const uniqueSuggestions = new Set<string>()
+    if (value.length > 1 && fabrics.length > 0) {
+      const suggestionMap = new Map<string, { text: string, type: string }>()
+      const searchLower = value.toLowerCase()
       
       fabrics.forEach(fabric => {
         // Add fabric names
-        if (fabric.name.toLowerCase().includes(searchTerm.toLowerCase())) {
-          uniqueSuggestions.add(fabric.name)
+        if (fabric.name.toLowerCase().includes(searchLower) && !suggestionMap.has(fabric.name)) {
+          suggestionMap.set(fabric.name, { text: fabric.name, type: 'Product' })
         }
         
         // Add categories
-        if (fabric.category?.toLowerCase().includes(searchTerm.toLowerCase())) {
-          uniqueSuggestions.add(fabric.category)
+        if (fabric.category?.toLowerCase().includes(searchLower) && !suggestionMap.has(fabric.category)) {
+          suggestionMap.set(fabric.category, { text: fabric.category, type: 'Category' })
         }
         
-        // Add materials
-        if ((fabric as any).material?.toLowerCase().includes(searchTerm.toLowerCase())) {
-          uniqueSuggestions.add((fabric as any).material)
+        // Add colors
+        if (fabric.color?.toLowerCase().includes(searchLower) && !suggestionMap.has(fabric.color)) {
+          suggestionMap.set(fabric.color, { text: fabric.color, type: 'Color' })
         }
         
-        // Add brands
-        if ((fabric as any).brand?.toLowerCase().includes(searchTerm.toLowerCase())) {
-          uniqueSuggestions.add((fabric as any).brand)
+        // Add collections
+        if ((fabric as any).collection?.toLowerCase().includes(searchLower) && !suggestionMap.has((fabric as any).collection)) {
+          suggestionMap.set((fabric as any).collection, { text: (fabric as any).collection, type: 'Collection' })
+        }
+        
+        // Add patterns
+        if (fabric.pattern?.toLowerCase().includes(searchLower) && !suggestionMap.has(fabric.pattern)) {
+          suggestionMap.set(fabric.pattern, { text: fabric.pattern, type: 'Pattern' })
+        }
+        
+        // Add composition keywords
+        if (fabric.composition?.toLowerCase().includes(searchLower)) {
+          const compositions = fabric.composition.split(/[,\s]+/).filter(c => c.toLowerCase().includes(searchLower))
+          compositions.forEach(comp => {
+            if (!suggestionMap.has(comp)) {
+              suggestionMap.set(comp, { text: comp, type: 'Material' })
+            }
+          })
         }
       })
       
-      setSuggestions(Array.from(uniqueSuggestions).slice(0, 5))
+      setSuggestions(Array.from(suggestionMap.values()).slice(0, 8))
       setShowSuggestions(true)
     } else {
       setSuggestions([])
       setShowSuggestions(false)
     }
-  }, [searchTerm, fabrics])
+  }, [value, fabrics])
   
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+      {isSearching ? (
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5">
+          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+      )}
       <input
         type="text"
         placeholder="Search fabrics by name, brand, material, or category..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        value={value}
+        onChange={handleSearchChange}
         onFocus={() => setShowSuggestions(suggestions.length > 0)}
         onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
         className="w-full h-[42px] pl-10 pr-4 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -673,13 +827,16 @@ function SearchComponent({ onSearch, fabrics }: { onSearch: (term: string) => vo
           {suggestions.map((suggestion, index) => (
             <button
               key={index}
-              className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
+              className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center justify-between"
               onMouseDown={() => {
-                setSearchTerm(suggestion)
+                onSearch(suggestion.text)
                 setShowSuggestions(false)
               }}
             >
-              {suggestion}
+              <span className="text-gray-900">{suggestion.text}</span>
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                {suggestion.type}
+              </span>
             </button>
           ))}
         </div>
@@ -692,6 +849,7 @@ function SearchComponent({ onSearch, fabrics }: { onSearch: (term: string) => vo
 export default function BrowsePage() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState<FabricFilters>({
     colorFamily: [],
@@ -704,16 +862,37 @@ export default function BrowsePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 12  // 4 cards x 3 rows
   const [totalPages, setTotalPages] = useState(0)
+  const [isSearching, setIsSearching] = useState(false)
 
+  // Sorting state
+  const [sortField, setSortField] = useState<'name' | 'price' | 'created_at' | 'category'>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  // Debounce search term to avoid too many API calls
+  useEffect(() => {
+    if (searchTerm !== debouncedSearchTerm) {
+      setIsSearching(true) // Show searching indicator
+    }
+    
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setIsSearching(false) // Hide searching indicator
+    }, 700) // Wait 700ms after user stops typing
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   // Use the API hook to fetch fabrics with pagination and search
   const { fabrics, loading, error, count } = useFabrics({
     limit: pageSize,
     page: currentPage,
-    search: searchTerm,
+    search: debouncedSearchTerm, // Use debounced term here
     category: filters.category[0] || undefined,
     color_family: filters.colorFamily[0] || undefined,
-    pattern: filters.pattern[0] || undefined
+    pattern: filters.pattern[0] || undefined,
+    usage: filters.usage[0] || undefined,
+    sort_field: sortField,
+    sort_direction: sortDirection
   })
 
   // Calculate total pages when count changes
@@ -723,10 +902,16 @@ export default function BrowsePage() {
     }
   }, [count])
 
-  // Reset page when filters or search changes
+  // Reset page when filters, search, or sort changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, filters])
+  }, [debouncedSearchTerm, filters, sortField, sortDirection])
+
+  // Handle sort changes
+  const handleSortChange = (field: 'name' | 'price' | 'created_at' | 'category', direction: 'asc' | 'desc') => {
+    setSortField(field)
+    setSortDirection(direction)
+  }
 
   // Handle quick filters
   const handleQuickFilter = (filterData: any) => {
@@ -793,6 +978,8 @@ export default function BrowsePage() {
         pattern: [],
         usage: []
       })
+      setActiveQuickFilter(null)
+      setPriceRange(null)
     } else {
       setFilters(prev => ({
         ...prev,
@@ -803,18 +990,10 @@ export default function BrowsePage() {
     }
   }
 
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-600">Loading fabrics...</p>
-        </div>
-      </div>
-    )
-  }
+  // Count active filters for mobile button
+  const activeFilterCount = Object.values(filters).reduce((count, filterArray) => 
+    count + (Array.isArray(filterArray) ? filterArray.length : 0), 0
+  ) + (activeQuickFilter ? 1 : 0) + (priceRange ? 1 : 0)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -827,15 +1006,25 @@ export default function BrowsePage() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="lg:hidden flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[42px]"
+              className="lg:hidden flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[42px] relative"
             >
               <Filter className="w-4 h-4" />
               <span className="font-medium">Filters</span>
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
             
             <div className="flex-1 max-w-2xl">
               <Suspense fallback={<div className="w-full h-[42px] bg-gray-100 rounded-lg animate-pulse" />}>
-                <SearchComponent onSearch={setSearchTerm} fabrics={fabrics} />
+                <SearchComponent 
+                  onSearch={setSearchTerm} 
+                  fabrics={fabrics} 
+                  value={searchTerm}
+                  isSearching={isSearching}
+                />
               </Suspense>
             </div>
           </div>
@@ -857,16 +1046,20 @@ export default function BrowsePage() {
           {/* Results */}
           <div id="fabric-results" className="flex-1">
             {/* Results header */}
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <p className="text-gray-600">
-                {loading ? 'Loading...' : (
-                  <>
-                    Page {currentPage} of {totalPages} • Showing {filteredFabrics.length} of {count || 0} fabrics
-                    {searchTerm && ` matching "${searchTerm}"`}
-                  </>
-                )}
+                <>
+                  Page {currentPage} of {totalPages} • Showing {filteredFabrics.length} of {count || 0} fabrics
+                  {searchTerm && ` matching "${searchTerm}"`}
+                </>
               </p>
-              {/* Optional: Add sort dropdown here */}
+              
+              {/* Sort Dropdown */}
+              <SortDropdown
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSortChange={handleSortChange}
+              />
             </div>
 
             {/* Quick Filters */}
@@ -875,20 +1068,22 @@ export default function BrowsePage() {
             {/* Fabric Grid */}
             {filteredFabrics.length > 0 ? (
               <>
-                <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${loading ? 'opacity-50' : ''} transition-opacity duration-200`}>
-                  {filteredFabrics.map((fabric: Fabric, index) => (
-                    <div 
-                      key={fabric.id}
-                      className={`transform transition-all duration-300 ${
-                        loading ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
-                      }`}
-                      style={{ 
-                        transitionDelay: `${Math.min(index * 50, 800)}ms` 
-                      }}
-                    >
-                      <FabricCard fabric={fabric} />
+                <div className="relative">
+                  {/* Loading overlay - shows on top of existing content */}
+                  {loading && (
+                    <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                      <div className="bg-white px-4 py-3 rounded-lg shadow-lg border border-gray-200 flex items-center gap-3">
+                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-gray-700 font-medium">Updating results...</span>
+                      </div>
                     </div>
-                  ))}
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredFabrics.map((fabric: Fabric) => (
+                      <FabricCard key={fabric.id} fabric={fabric} />
+                    ))}
+                  </div>
                 </div>
                 
                 {/* Pagination */}
