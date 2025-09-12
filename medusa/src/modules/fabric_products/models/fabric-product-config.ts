@@ -31,10 +31,7 @@ export const FabricProductConfig = model.define("fabric_product_config", {
   display_fabric_details: model.boolean().default(true),
   display_fabric_image: model.boolean().default(true),
   display_composition: model.boolean().default(true),
-  display_specifications: model.boolean().default(false),
-  
-  created_at: model.dateTime().default(() => new Date()),
-  updated_at: model.dateTime().default(() => new Date()),
+  display_specifications: model.boolean().default(false)
 })
 
 /**
@@ -54,9 +51,7 @@ export const OrderFabricSelection = model.define("order_fabric_selection", {
   fabric_metadata: model.json(), // Complete fabric data snapshot
   
   // For multi-selection products
-  selection_index: model.number().default(1),
-  
-  created_at: model.dateTime().default(() => new Date()),
+  selection_index: model.number().default(1)
 })
 
 /**

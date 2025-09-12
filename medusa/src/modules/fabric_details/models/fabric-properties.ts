@@ -31,11 +31,7 @@ export const FabricProperties = model.define("fabric_properties", {
   is_outdoor_safe: model.boolean().default(false),
   
   // Additional Properties Array (JSON field)
-  properties: model.json().nullable(),
-  
-  // Timestamps
-  created_at: model.dateTime().default(() => new Date()),
-  updated_at: model.dateTime().default(() => new Date())
+  properties: model.json().nullable()
 })
 
 export default FabricProperties

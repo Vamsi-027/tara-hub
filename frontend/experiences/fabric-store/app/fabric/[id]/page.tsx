@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -9,6 +9,8 @@ import {
   Heart, 
   Share2, 
   ZoomIn, 
+  ZoomOut,
+  X,
   Minus, 
   Plus, 
   ShoppingCart, 
@@ -17,837 +19,907 @@ import {
   Package,
   Award,
   HelpCircle,
-  Sparkles
+  Sparkles,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  Truck,
+  Shield,
+  Clock,
+  Phone
 } from 'lucide-react'
 import { useFabric, useFabrics } from '../../../hooks/useFabrics'
 import type { Fabric } from '../../../lib/fabric-api'
-import { ProductRecommendations } from '../../../components/ProductRecommendations'
+import Header from '../../../components/header'
 
-// Tooltip Component
-function Tooltip({ children, content }: { children: React.ReactNode, content: string }) {
-  const [isVisible, setIsVisible] = useState(false)
-
-  return (
-    <div className="relative inline-block">
-      <div
-        onMouseEnter={() => setIsVisible(true)}
-        onMouseLeave={() => setIsVisible(false)}
-        className="cursor-help"
-      >
-        {children}
-      </div>
-      {isVisible && (
-        <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap">
-          {content}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-
-// Image Gallery Component
-function ImageGallery({ images, productName }: { images: string[], productName: string }) {
+// Luxury Image Gallery Component
+function LuxuryImageGallery({ images, productName }: { images: string[], productName: string }) {
   const [selectedImage, setSelectedImage] = useState(0)
-  const [isZoomed, setIsZoomed] = useState(false)
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+  const [lightboxZoomed, setLightboxZoomed] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
 
   const imageUrls = images.length > 0 
     ? images 
     : ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800']
 
+  const openLightbox = (index: number) => {
+    setSelectedImage(index)
+    setIsLightboxOpen(true)
+    setLightboxZoomed(false)
+  }
+
+  const closeLightbox = () => {
+    setIsLightboxOpen(false)
+    setLightboxZoomed(false)
+  }
+
+  const nextImage = () => {
+    setSelectedImage((prev) => (prev + 1) % imageUrls.length)
+    setLightboxZoomed(false)
+  }
+
+  const prevImage = () => {
+    setSelectedImage((prev) => (prev - 1 + imageUrls.length) % imageUrls.length)
+    setLightboxZoomed(false)
+  }
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!isLightboxOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'ArrowLeft') prevImage()
+      if (e.key === 'ArrowRight') nextImage()
+      if (e.key === ' ') {
+        e.preventDefault()
+        setLightboxZoomed(!lightboxZoomed)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isLightboxOpen, lightboxZoomed])
+
   return (
-    <div className="space-y-4">
-      {/* Main Image */}
-      <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 group">
-        <Image
-          src={imageUrls[selectedImage]}
-          alt={productName}
-          fill
-          className={`object-cover transition-transform duration-300 ${isZoomed ? 'scale-150' : 'scale-100'}`}
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
-        
-        {/* Zoom Toggle */}
-        <button
-          onClick={() => setIsZoomed(!isZoomed)}
-          className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <ZoomIn className="w-5 h-5 text-gray-700" />
-        </button>
+    <>
+      <div className="space-y-4">
+        {/* Main Image */}
+        <div className="relative aspect-square rounded-2xl overflow-hidden bg-warm-50 group shadow-lg">
+          {imageLoading && (
+            <div className="absolute inset-0 bg-gradient-to-br from-warm-100 to-warm-200 animate-pulse" />
+          )}
+          <Image
+            src={imageUrls[selectedImage]}
+            alt={productName}
+            fill
+            className={`object-cover transition-all duration-500 group-hover:scale-105 ${
+              imageLoading ? 'opacity-0' : 'opacity-100'
+            }`}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            onLoad={() => setImageLoading(false)}
+            priority
+          />
+          
+          {/* Zoom Button */}
+          <button
+            onClick={() => openLightbox(selectedImage)}
+            className="absolute top-4 right-4 w-12 h-12 bg-white/90 backdrop-blur-sm border border-warm-300
+                     rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 
+                     transition-all duration-300 hover:bg-white hover:shadow-lg"
+          >
+            <ZoomIn className="w-5 h-5 text-navy-800" />
+          </button>
+
+          {/* Premium Badge */}
+          <div className="absolute top-4 left-4">
+            <div className="bg-gold-800/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full 
+                           text-sm font-body font-medium flex items-center gap-1 shadow-lg">
+              <Sparkles className="w-3 h-3 fill-current" />
+              Premium Quality
+            </div>
+          </div>
+        </div>
+
+        {/* Thumbnail Gallery */}
+        {imageUrls.length > 1 && (
+          <div className="grid grid-cols-4 gap-3">
+            {imageUrls.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedImage(index)}
+                className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300
+                           hover:shadow-md ${
+                  selectedImage === index 
+                    ? 'border-navy-800 ring-2 ring-navy-800/20 shadow-md' 
+                    : 'border-warm-300 hover:border-gold-800'
+                }`}
+              >
+                <Image
+                  src={image}
+                  alt={`${productName} view ${index + 1}`}
+                  width={120}
+                  height={120}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Thumbnail Gallery */}
-      {imageUrls.length > 1 && (
-        <div className="grid grid-cols-4 gap-2">
-          {imageUrls.map((image, index) => (
-            <button
-              key={index}
-              onClick={() => setSelectedImage(index)}
-              className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                selectedImage === index 
-                  ? 'border-blue-500 ring-2 ring-blue-500/20' 
-                  : 'border-gray-200 hover:border-gray-300'
+      {/* Luxury Lightbox */}
+      {isLightboxOpen && (
+        <div className="fixed inset-0 z-50 bg-navy-900/95 backdrop-blur-sm flex items-center justify-center p-4">
+          {/* Close Button */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-6 right-6 w-12 h-12 bg-white/10 backdrop-blur-sm border border-white/20
+                     rounded-xl flex items-center justify-center text-white hover:bg-white/20 
+                     transition-all duration-300 z-10"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Zoom Toggle */}
+          <button
+            onClick={() => setLightboxZoomed(!lightboxZoomed)}
+            className="absolute top-6 right-20 w-12 h-12 bg-white/10 backdrop-blur-sm border border-white/20
+                     rounded-xl flex items-center justify-center text-white hover:bg-white/20 
+                     transition-all duration-300 z-10"
+          >
+            {lightboxZoomed ? <ZoomOut className="w-6 h-6" /> : <ZoomIn className="w-6 h-6" />}
+          </button>
+
+          {/* Navigation */}
+          {imageUrls.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 backdrop-blur-sm 
+                         border border-white/20 rounded-xl flex items-center justify-center text-white 
+                         hover:bg-white/20 transition-all duration-300"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 backdrop-blur-sm 
+                         border border-white/20 rounded-xl flex items-center justify-center text-white 
+                         hover:bg-white/20 transition-all duration-300"
+              >
+                <ArrowLeft className="w-6 h-6 rotate-180" />
+              </button>
+            </>
+          )}
+
+          {/* Main Image */}
+          <div className="relative max-w-6xl max-h-[90vh] aspect-square">
+            <Image
+              src={imageUrls[selectedImage]}
+              alt={productName}
+              fill
+              className={`object-contain transition-transform duration-300 ${
+                lightboxZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
               }`}
-            >
-              <Image
-                src={image}
-                alt={`${productName} view ${index + 1}`}
-                width={100}
-                height={100}
-                className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
+              sizes="90vw"
+              onClick={() => setLightboxZoomed(!lightboxZoomed)}
+            />
+          </div>
+
+          {/* Image Counter */}
+          {imageUrls.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm 
+                           border border-white/20 rounded-full px-4 py-2 text-white text-sm">
+              {selectedImage + 1} of {imageUrls.length}
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </>
   )
 }
 
-// Product Details Component
-function ProductDetails({ fabric }: { fabric: Fabric }) {
+// Luxury Product Info Component
+function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
   const [quantity, setQuantity] = useState(0.5)
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [selectedVariantType, setSelectedVariantType] = useState<'Swatch' | 'Fabric'>('Fabric')
-  
-  // Reset quantity when switching between Swatch and Fabric
-  const handleVariantTypeChange = (type: 'Swatch' | 'Fabric') => {
-    setSelectedVariantType(type)
-    setQuantity(type === 'Swatch' ? 1 : 0.5)
+  const [isWishlisted, setIsWishlisted] = useState(false)
+  const [selectedVariantType, setSelectedVariantType] = useState<'Swatch' | 'Fabric'>('Swatch')
+  const [addedToCart, setAddedToCart] = useState(false)
+
+  // Essential field extraction
+  const essentialFields = {
+    name: fabric.name || 'Untitled Fabric',
+    price: fabric.price || 99.00,
+    swatchPrice: fabric.swatch_price || 5.00,
+    brand: (fabric as any).brand || 'Custom Fabric Designs',
+    material: (fabric as any).material || (fabric as any).composition || 'Premium Fabric',
+    width: (fabric as any).width || null,
+    category: fabric.category || 'Premium Fabric',
+    colorHex: fabric.color_hex || '#E5E5E5',
+    color: (fabric as any).color || (fabric as any).color_family || null,
+    grade: (fabric as any).grade || null,
+    inStock: fabric.in_stock ?? true,
+    swatchInStock: fabric.swatch_in_stock ?? true
   }
-  const [activeTab, setActiveTab] = useState('details')
+
+  // Check wishlist status
+  useEffect(() => {
+    const wishlist = localStorage.getItem('fabric-wishlist')
+    if (wishlist) {
+      const wishlistItems = JSON.parse(wishlist)
+      setIsWishlisted(wishlistItems.includes(fabric.id))
+    }
+  }, [fabric.id])
+
+  // Reset quantity when switching variants
+  useEffect(() => {
+    setQuantity(selectedVariantType === 'Swatch' ? 1 : 0.5)
+  }, [selectedVariantType])
 
   const handleAddToCart = () => {
     const cartItem = {
-      id: `fabric-${fabric.id}-${selectedVariantType.toLowerCase()}-${Date.now()}`,
+      id: `${selectedVariantType.toLowerCase()}-${fabric.id}-${Date.now()}`,
       variantId: fabric.id,
       productId: fabric.id,
-      title: fabric.name,
-      variant: `${quantity} ${selectedVariantType.toLowerCase()}${quantity !== 1 ? 's' : ''}`,
+      title: essentialFields.name,
+      variant: selectedVariantType === 'Swatch' ? 'Swatch Sample' : `${quantity} yard${quantity !== 1 ? 's' : ''}`,
       price: (selectedVariantType === 'Swatch' 
-        ? (fabric.swatch_price || 5) * 100 * quantity
-        : (fabric.price || 99) * 100 * quantity),
+        ? essentialFields.swatchPrice * 100 * quantity
+        : essentialFields.price * 100 * quantity),
       quantity: quantity,
       thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      type: selectedVariantType === 'Swatch' ? 'swatch' : 'fabric' // Add type to distinguish orders
+      type: selectedVariantType === 'Swatch' ? 'swatch' : 'fabric'
     }
 
-    // Get existing cart items
     const existingCart = localStorage.getItem('fabric-cart')
     const cart = existingCart ? JSON.parse(existingCart) : []
-    
-    // Add new item to cart
     const updatedCart = [...cart, cartItem]
     
-    // Save to localStorage
     localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-    
-    // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
     
     // Show success feedback
-    alert(`Added ${quantity} ${selectedVariantType.toLowerCase()}${quantity !== 1 ? 's' : ''} to cart!`)
+    setAddedToCart(true)
+    setTimeout(() => setAddedToCart(false), 2000)
   }
 
-  const handleAddToWishlist = () => {
-    setIsFavorite(!isFavorite)
-    console.log('Toggle wishlist:', fabric.id, !isFavorite)
-  }
-
-  // Dynamic field filtering function
-  const getRelevantFields = (fabric: Fabric) => {
-    const hasValue = (value: any): boolean => {
-      return value !== null && 
-             value !== undefined && 
-             value !== '' && 
-             value !== 'Standard' &&
-             value !== 'No' &&
-             !(Array.isArray(value) && value.length === 0)
+  const handleWishlistToggle = () => {
+    const wishlist = localStorage.getItem('fabric-wishlist')
+    const wishlistItems = wishlist ? JSON.parse(wishlist) : []
+    
+    if (isWishlisted) {
+      const updatedWishlist = wishlistItems.filter((id: string) => id !== fabric.id)
+      localStorage.setItem('fabric-wishlist', JSON.stringify(updatedWishlist))
+      setIsWishlisted(false)
+    } else {
+      const updatedWishlist = [...wishlistItems, fabric.id]
+      localStorage.setItem('fabric-wishlist', JSON.stringify(updatedWishlist))
+      setIsWishlisted(true)
     }
-
-    const fields = [
-      // Basic Properties
-      { label: 'Material', value: (fabric as any).material || (fabric as any).fiber_content || (fabric as any).composition, category: 'basic' },
-      { label: 'Width', value: (fabric as any).width, category: 'basic' },
-      { label: 'Weight', value: (fabric as any).weight, category: 'basic' },
-      { label: 'Pattern', value: (fabric as any).pattern, category: 'basic' },
-      { label: 'Style', value: (fabric as any).style, category: 'basic' },
-      { label: 'Grade', value: (fabric as any).grade, category: 'basic' },
-      { label: 'Brand', value: (fabric as any).brand, category: 'basic' },
-      { label: 'Collection', value: (fabric as any).collection, category: 'basic' },
-      { label: 'Category', value: fabric.category, category: 'basic' },
-      
-      // Color & Design
-      { label: 'Color Family', value: fabric.color_family, category: 'color' },
-      { label: 'Primary Color', value: (fabric as any).primary_color, category: 'color' },
-      { label: 'Secondary Colors', value: (fabric as any).secondary_colors?.join(', '), category: 'color' },
-      { label: 'Color Hex', value: fabric.color_hex, category: 'color' },
-      
-      // Dimensions & Repeats
-      { label: 'Horizontal Repeat', value: (fabric as any).h_repeat, category: 'dimensions' },
-      { label: 'Vertical Repeat', value: (fabric as any).v_repeat, category: 'dimensions' },
-      
-      // Performance
-      { label: 'Durability', value: (fabric as any).durability, category: 'performance' },
-      { label: 'Martindale Rating', value: (fabric as any).martindale ? `${(fabric as any).martindale} cycles` : null, category: 'performance' },
-      { label: 'Usage', value: (fabric as any).usage || (fabric as any).usage_suitability, category: 'performance' },
-      { label: 'Application Type', value: (fabric as any).types, category: 'performance' },
-      { label: 'Performance Metrics', value: (fabric as any).performance_metrics, category: 'performance' },
-      
-      // Care & Maintenance
-      { label: 'Care Instructions', value: (fabric as any).care_instructions || (fabric as any).cleaning, category: 'care' },
-      { label: 'Cleaning Code', value: (fabric as any).cleaning_code, category: 'care' },
-      { label: 'Machine Washable', value: (fabric as any).washable ? 'Yes' : null, category: 'care' },
-      { label: 'Bleach Safe', value: (fabric as any).bleach_cleanable ? 'Yes' : null, category: 'care' },
-      
-      // Resistance Properties
-      { label: 'Stain Resistant', value: (fabric as any).stain_resistant ? 'Yes' : null, category: 'features' },
-      { label: 'Fade Resistant', value: (fabric as any).fade_resistant ? 'Yes' : null, category: 'features' },
-      
-      // Compliance & Safety
-      { label: 'CA 117 Compliant', value: (fabric as any).ca_117 ? 'Yes' : null, category: 'features' },
-      
-      // Additional Features
-      { label: 'Quick Ship', value: (fabric as any).quick_ship ? 'Available' : null, category: 'features' },
-      { label: 'Closeout', value: (fabric as any).closeout ? 'Yes' : null, category: 'features' },
-      
-      // Business Info
-      { label: 'Supplier', value: (fabric as any).supplier_name, category: 'business' },
-      { label: 'Availability', value: (fabric as any).availability, category: 'business' },
-      { label: 'Stock Unit', value: (fabric as any).stock_unit, category: 'business' },
-      { label: 'Low Stock Threshold', value: (fabric as any).low_stock_threshold, category: 'business' },
-      
-      // Technical Documents
-      { label: 'Technical Documents', value: (fabric as any).technical_documents, category: 'technical' },
-      { label: 'Cleaning PDF', value: (fabric as any).cleaning_pdf, category: 'technical' },
-      
-      // Pricing
-      { label: 'Swatch Price', value: (fabric as any).swatch_price ? `$${(fabric as any).swatch_price}` : null, category: 'pricing' },
-      { label: 'Procurement Cost', value: (fabric as any).procurement_cost ? `$${(fabric as any).procurement_cost}` : null, category: 'pricing' },
-      
-      // Metadata
-      { label: 'SKU', value: fabric.sku, category: 'meta' },
-      { label: 'Is Featured', value: (fabric as any).is_featured ? 'Yes' : null, category: 'meta' },
-      { label: 'Keywords', value: (fabric as any).keywords, category: 'meta' },
-      { label: 'Version', value: (fabric as any).version, category: 'meta' }
-    ]
-
-    return fields.filter(field => hasValue(field.value))
+    
+    window.dispatchEvent(new CustomEvent('wishlist-updated'))
   }
 
-  const relevantFields = getRelevantFields(fabric)
-  
-  // Group specifications by category
-  const groupedSpecs = relevantFields.reduce((acc, spec) => {
-    if (!acc[spec.category]) acc[spec.category] = []
-    acc[spec.category].push(spec)
-    return acc
-  }, {} as Record<string, typeof relevantFields>)
-
-  const tabs = [
-    { id: 'details', label: 'Details & Care', icon: '📋' },
-    { id: 'specifications', label: 'Specifications', icon: '📊' }
-  ]
+  const handleQuantityChange = (delta: number) => {
+    if (selectedVariantType === 'Swatch') {
+      setQuantity(Math.max(1, Math.min(10, quantity + delta)))
+    } else {
+      setQuantity(Math.max(0.5, Math.min(100, Math.round((quantity + delta * 0.5) * 2) / 2)))
+    }
+  }
 
   return (
     <div className="space-y-8">
-      {/* Professional Header */}
+      {/* Brand & Category */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-body font-medium text-gold-800 bg-gold-50 px-3 py-1 rounded-full border border-gold-200">
+            {essentialFields.brand}
+          </span>
+          <span className="text-sm font-body text-warm-600">
+            {essentialFields.category}
+          </span>
+        </div>
+      </div>
+
+      {/* Product Title & Rating */}
       <div className="space-y-4">
-        {/* Brand & Category Badge */}
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            {(fabric as any).brand && (
-              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                {(fabric as any).brand}
-              </span>
-            )}
-            {(fabric as any).collection && (
-              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                {(fabric as any).collection}
-              </span>
-            )}
-            {fabric.category && (
-              <span className="text-gray-500 text-sm">• {fabric.category}</span>
-            )}
+        <h1 className="font-display text-3xl lg:text-4xl font-semibold text-navy-800 leading-tight">
+          {essentialFields.name}
+        </h1>
+        
+        {/* Rating */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star key={star} className="w-5 h-5 fill-gold-800 text-gold-800" />
+            ))}
+            <span className="font-body font-medium text-navy-800 ml-2">4.9</span>
+            <span className="font-body text-warm-600 text-sm">(247 reviews)</span>
           </div>
-          
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleAddToWishlist}
-              className={`p-2 rounded-lg border transition-all ${
-                isFavorite 
-                  ? 'border-red-300 bg-red-50 text-red-600' 
-                  : 'border-gray-300 hover:border-gray-400 text-gray-600'
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-            </button>
-            <button className="p-2 rounded-lg border border-gray-300 hover:border-gray-400 text-gray-600 transition-colors">
-              <Share2 className="w-4 h-4" />
-            </button>
-          </div>
+          {fabric.sku && (
+            <span className="font-body text-sm text-warm-600 font-mono bg-warm-100 px-2 py-1 rounded">
+              {fabric.sku}
+            </span>
+          )}
         </div>
+      </div>
 
-        {/* Product Title */}
-        <div className="space-y-3">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-            {fabric.name}
-          </h1>
-          
-          {/* Rating & Reviews */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              ))}
-              <span className="text-sm font-medium text-gray-700 ml-2">4.8</span>
-              <span className="text-sm text-gray-500">(124 reviews)</span>
+      {/* Description */}
+      {fabric.description && (
+        <div className="bg-warm-50 border border-warm-200 rounded-xl p-6">
+          <p className="font-body text-navy-800 leading-relaxed">
+            {fabric.description}
+          </p>
+        </div>
+      )}
+
+      {/* Key Features */}
+      <div className="grid grid-cols-2 gap-4">
+        {essentialFields.material && (
+          <div className="flex items-center gap-3 p-4 bg-white border border-warm-200 rounded-lg">
+            <div className="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center">
+              <Award className="w-5 h-5 text-navy-800" />
             </div>
-            {fabric.sku && (
-              <span className="text-sm text-gray-500 font-mono">SKU: {fabric.sku}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Product Description */}
-        {fabric.description && (
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-gray-700 leading-relaxed">
-              {fabric.description}
-            </p>
+            <div>
+              <div className="font-body text-sm text-warm-600">Material</div>
+              <div className="font-body font-medium text-navy-800">{essentialFields.material}</div>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* Variant Selection and Price Section */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        {/* Variant Selector */}
-        <div className="mb-4">
-          <label className="text-sm font-medium text-gray-700 mb-2 block">Select Option:</label>
-          <div className="grid grid-cols-2 gap-2">
-            {/* Swatch Option */}
-            <button
-              onClick={() => handleVariantTypeChange('Swatch')}
-              className={`border-2 rounded-lg p-3 transition-all ${
-                selectedVariantType === 'Swatch'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-left">
-                <div className="font-medium text-sm mb-1">Swatch Sample</div>
-                <div className="text-xs text-gray-600 mb-2">{fabric.swatch_size || '4x4 inches'}</div>
-                <div className="text-lg font-bold text-gray-900">
-                  ${(fabric.swatch_price || 5).toFixed(2)}
-                </div>
-                {fabric.swatch_in_stock ? (
-                  <span className="text-xs text-green-600">✓ In Stock</span>
-                ) : (
-                  <span className="text-xs text-red-600">Out of Stock</span>
-                )}
-              </div>
-            </button>
-
-            {/* Fabric Option */}
-            <button
-              onClick={() => handleVariantTypeChange('Fabric')}
-              className={`border-2 rounded-lg p-3 transition-all ${
-                selectedVariantType === 'Fabric'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-left">
-                <div className="font-medium text-sm mb-1">Full Fabric</div>
-                <div className="text-xs text-gray-600 mb-2">Min: {fabric.minimum_order_yards || '1'} yard</div>
-                <div className="text-lg font-bold text-gray-900">
-                  ${(fabric.price || 99).toFixed(2)}<span className="text-xs text-gray-600">/yard</span>
-                </div>
-                {fabric.in_stock ? (
-                  <span className="text-xs text-green-600">✓ In Stock</span>
-                ) : (
-                  <span className="text-xs text-red-600">Out of Stock</span>
-                )}
-              </div>
-            </button>
+        {essentialFields.width && (
+          <div className="flex items-center gap-3 p-4 bg-white border border-warm-200 rounded-lg">
+            <div className="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center">
+              <Package className="w-5 h-5 text-navy-800" />
+            </div>
+            <div>
+              <div className="font-body text-sm text-warm-600">Width</div>
+              <div className="font-body font-medium text-navy-800">{essentialFields.width}</div>
+            </div>
           </div>
-        </div>
-
-        {/* Selected Price Display */}
-        <div className="flex items-center justify-between flex-wrap gap-4 pt-4 border-t border-gray-100">
-          {/* Price */}
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-gray-900">
-              ${selectedVariantType === 'Swatch' 
-                ? (fabric.swatch_price || 5).toFixed(2)
-                : (fabric.price || 99).toFixed(2)}
-            </span>
-            <span className="text-sm text-gray-600">
-              {selectedVariantType === 'Swatch' ? 'per swatch' : `per ${(fabric as any).stock_unit || 'yard'}`}
-            </span>
-          </div>
-
-          {/* Stock Status */}
-          <div className="flex items-center gap-2">
-            {(selectedVariantType === 'Swatch' ? fabric.swatch_in_stock : fabric.in_stock) ? (
-              <>
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-green-700">In Stock</span>
-              </>
-            ) : (
-              <>
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-sm font-medium text-red-700">Out of Stock</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Key Features - Compact */}
-        <div className="flex flex-wrap gap-1 mt-3">
-          {fabric.width && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-              📏 {fabric.width}
-            </span>
-          )}
-          {fabric.usage && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-              🏠 {fabric.usage}
-            </span>
-          )}
-          {(fabric as any).grade && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
-              Grade: {(fabric as any).grade}
-            </span>
-          )}
-          {(fabric as any).quick_ship && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
-              ⚡ Quick Ship
-            </span>
-          )}
-        </div>
-      </div>
-
-
-      {/* Purchase Section */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        {/* Quantity & Total */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">
-              {selectedVariantType === 'Swatch' ? 'Quantity:' : 'Yards:'}
-            </span>
-            <div className="flex items-center border border-gray-300 rounded">
-              <button
-                onClick={() => setQuantity(selectedVariantType === 'Swatch' ? Math.max(1, quantity - 1) : Math.max(0.5, Math.round((quantity - 0.5) * 2) / 2))}
-                className="p-1 hover:bg-gray-100 disabled:opacity-50"
-                disabled={selectedVariantType === 'Swatch' ? quantity <= 1 : quantity <= 0.5}
-              >
-                <Minus className="w-3 h-3" />
-              </button>
-              <input
-                type="number"
-                min={selectedVariantType === 'Swatch' ? "1" : "0.5"}
-                max="100"
-                step={selectedVariantType === 'Swatch' ? "1" : "0.5"}
-                value={quantity}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value) || (selectedVariantType === 'Swatch' ? 1 : 0.5)
-                  const minValue = selectedVariantType === 'Swatch' ? 1 : 0.5
-                  setQuantity(Math.max(minValue, Math.min(100, value)))
-                }}
-                className="px-3 py-1 font-medium text-sm min-w-[50px] text-center border-0 outline-none"
+        )}
+        {essentialFields.color && (
+          <div className="flex items-center gap-3 p-4 bg-white border border-warm-200 rounded-lg">
+            <div className="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center">
+              <div 
+                className="w-5 h-5 rounded-full border-2 border-warm-300" 
+                style={{ backgroundColor: essentialFields.colorHex }}
               />
-              <button
-                onClick={() => setQuantity(selectedVariantType === 'Swatch' ? quantity + 1 : Math.min(100, Math.round((quantity + 0.5) * 2) / 2))}
-                className="p-1 hover:bg-gray-100"
-              >
-                <Plus className="w-3 h-3" />
-              </button>
             </div>
-          </div>
-          
-          <div className="text-right">
-            <div className="text-xs text-gray-500 mb-1">Total:</div>
-            <div className="text-lg font-bold text-gray-900">
-              ${(selectedVariantType === 'Swatch' 
-                ? (fabric.swatch_price || 5) * quantity
-                : (fabric.price || 99) * quantity
-              ).toFixed(2)}
+            <div>
+              <div className="font-body text-sm text-warm-600">Color</div>
+              <div className="font-body font-medium text-navy-800">{essentialFields.color}</div>
             </div>
-          </div>
-        </div>
-
-        {/* Variant Info */}
-        {selectedVariantType === 'Fabric' && fabric.minimum_order_yards && parseInt(fabric.minimum_order_yards) > 1 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-3">
-            <p className="text-xs text-yellow-800">
-              Minimum order: {fabric.minimum_order_yards} yards
-            </p>
           </div>
         )}
+        {essentialFields.grade && (
+          <div className="flex items-center gap-3 p-4 bg-white border border-warm-200 rounded-lg">
+            <div className="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center">
+              <Star className="w-5 h-5 text-navy-800" />
+            </div>
+            <div>
+              <div className="font-body text-sm text-warm-600">Grade</div>
+              <div className="font-body font-medium text-navy-800">Grade {essentialFields.grade}</div>
+            </div>
+          </div>
+        )}
+      </div>
 
-        {/* Actions */}
-        <div className="space-y-2">
+      {/* Variant Selection */}
+      <div className="bg-white border border-warm-200 rounded-xl p-6 space-y-6">
+        <h3 className="font-display text-lg font-medium text-navy-800">Select Option</h3>
+        
+        <div className="grid grid-cols-2 gap-4">
+          {/* Swatch Option */}
           <button
-            onClick={handleAddToCart}
-            className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            onClick={() => setSelectedVariantType('Swatch')}
+            className={`p-4 border-2 rounded-xl transition-all duration-300 text-left ${
+              selectedVariantType === 'Swatch'
+                ? 'border-navy-800 bg-navy-50 shadow-md'
+                : 'border-warm-300 hover:border-gold-800 hover:shadow-sm'
+            }`}
           >
-            <ShoppingCart className="w-4 h-4" />
-            Add {selectedVariantType} to Cart
+            <div className="space-y-2">
+              <div className="font-body font-medium text-navy-800">Swatch Sample</div>
+              <div className="font-body text-sm text-warm-600">4" × 4" sample</div>
+              <div className="font-display text-xl font-semibold text-navy-800">
+                ${essentialFields.swatchPrice.toFixed(2)}
+              </div>
+              <div className={`text-sm font-body font-medium ${
+                essentialFields.swatchInStock ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {essentialFields.swatchInStock ? '✓ In Stock' : '✗ Out of Stock'}
+              </div>
+            </div>
           </button>
 
-          <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-1">
-            <Info className="w-3 h-3" />
-            Request Quote
+          {/* Fabric Option */}
+          <button
+            onClick={() => setSelectedVariantType('Fabric')}
+            className={`p-4 border-2 rounded-xl transition-all duration-300 text-left ${
+              selectedVariantType === 'Fabric'
+                ? 'border-navy-800 bg-navy-50 shadow-md'
+                : 'border-warm-300 hover:border-gold-800 hover:shadow-sm'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="font-body font-medium text-navy-800">Full Fabric</div>
+              <div className="font-body text-sm text-warm-600">Minimum 0.5 yards</div>
+              <div className="font-display text-xl font-semibold text-navy-800">
+                ${essentialFields.price.toFixed(2)}
+                <span className="text-sm font-body text-warm-600 font-normal">/yard</span>
+              </div>
+              <div className={`text-sm font-body font-medium ${
+                essentialFields.inStock ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {essentialFields.inStock ? '✓ In Stock' : '✗ Out of Stock'}
+              </div>
+            </div>
           </button>
+        </div>
+
+        {/* Quantity & Total */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <label className="font-body font-medium text-navy-800">
+                {selectedVariantType === 'Swatch' ? 'Quantity' : 'Yards'}
+              </label>
+              <div className="flex items-center border-2 border-warm-300 rounded-lg">
+                <button
+                  onClick={() => handleQuantityChange(-1)}
+                  className="p-3 hover:bg-warm-50 transition-colors border-r border-warm-300
+                           disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={selectedVariantType === 'Swatch' ? quantity <= 1 : quantity <= 0.5}
+                >
+                  <Minus className="w-4 h-4 text-navy-800" />
+                </button>
+                <input
+                  type="number"
+                  min={selectedVariantType === 'Swatch' ? "1" : "0.5"}
+                  max={selectedVariantType === 'Swatch' ? "10" : "100"}
+                  step={selectedVariantType === 'Swatch' ? "1" : "0.5"}
+                  value={quantity}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || (selectedVariantType === 'Swatch' ? 1 : 0.5)
+                    const minValue = selectedVariantType === 'Swatch' ? 1 : 0.5
+                    const maxValue = selectedVariantType === 'Swatch' ? 10 : 100
+                    setQuantity(Math.max(minValue, Math.min(maxValue, value)))
+                  }}
+                  className="px-4 py-3 font-body font-medium text-navy-800 text-center border-0 outline-none 
+                           focus:bg-warm-50 transition-colors min-w-[80px]"
+                />
+                <button
+                  onClick={() => handleQuantityChange(1)}
+                  className="p-3 hover:bg-warm-50 transition-colors border-l border-warm-300"
+                >
+                  <Plus className="w-4 h-4 text-navy-800" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="text-right">
+              <div className="font-body text-sm text-warm-600 mb-1">Total Price</div>
+              <div className="font-display text-3xl font-semibold text-navy-800">
+                ${(selectedVariantType === 'Swatch' 
+                  ? essentialFields.swatchPrice * quantity
+                  : essentialFields.price * quantity
+                ).toFixed(2)}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Actions */}
+      <div className="space-y-4">
+        <button
+          onClick={handleAddToCart}
+          disabled={selectedVariantType === 'Swatch' ? !essentialFields.swatchInStock : !essentialFields.inStock}
+          className={`w-full py-4 px-6 rounded-xl font-body font-semibold text-lg transition-all duration-300
+                     flex items-center justify-center gap-3 shadow-lg hover:shadow-xl 
+                     disabled:opacity-50 disabled:cursor-not-allowed ${
+            addedToCart
+              ? 'bg-green-600 text-white'
+              : 'bg-navy-800 text-white hover:bg-navy-700 hover:-translate-y-0.5'
+          }`}
+        >
+          <ShoppingCart className="w-5 h-5" />
+          {addedToCart ? 'Added to Cart!' : `Add ${selectedVariantType} to Cart`}
+        </button>
 
-      {/* Tabbed Content */}
-      <div className="space-y-6 border-t border-gray-200 pt-8">
-        {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
-              }`}
-            >
-              <span>{tab.icon}</span>
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          ))}
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={handleWishlistToggle}
+            className={`py-3 px-4 rounded-xl font-body font-medium transition-all duration-300
+                       flex items-center justify-center gap-2 border-2 ${
+              isWishlisted
+                ? 'border-red-300 bg-red-50 text-red-600'
+                : 'border-warm-300 text-navy-800 hover:border-gold-800 hover:bg-gold-50'
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+            {isWishlisted ? 'Wishlisted' : 'Add to Wishlist'}
+          </button>
+
+          <button className="py-3 px-4 rounded-xl font-body font-medium transition-all duration-300
+                           flex items-center justify-center gap-2 border-2 border-warm-300 text-navy-800 
+                           hover:border-gold-800 hover:bg-gold-50">
+            <Share2 className="w-4 h-4" />
+            Share
+          </button>
         </div>
 
-        {/* Tab Content */}
-        <div className="min-h-[300px]">
-          {/* Details & Care Tab */}
-          {activeTab === 'details' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Essential Details */}
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  <Info className="w-5 h-5 text-blue-600" />
-                  Essential Details
-                </h3>
-                
-                <div className="space-y-4">
-                  {/* Key Specifications */}
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    {relevantFields.slice(0, 6).map((field, index) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-600">{field.label}</span>
-                        <span className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                          {field.label === 'Color Hex' && field.value ? (
-                            <>
-                              <div 
-                                className="w-4 h-4 rounded-full border border-gray-300"
-                                style={{ backgroundColor: field.value }}
-                              ></div>
-                              <span className="font-mono">{field.value}</span>
-                            </>
-                          ) : (
-                            field.value
-                          )}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Product Description */}
-                  {fabric.description && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Description</h4>
-                      <p className="text-gray-700 leading-relaxed">{fabric.description}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Care Instructions */}
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-green-600" />
-                  Care & Maintenance
-                </h3>
-                
-                <div className="space-y-4">
-                  {/* Care Instructions */}
-                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                    <h4 className="font-semibold text-green-800 mb-2">Care Instructions</h4>
-                    <p className="text-green-700 text-sm">
-                      {(fabric as any).care_instructions || (fabric as any).cleaning || 'Professional cleaning recommended for best results.'}
-                    </p>
-                  </div>
-
-                  {/* Care Properties */}
-                  {groupedSpecs.care && groupedSpecs.care.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-gray-900">Care Properties</h4>
-                      {groupedSpecs.care
-                        .filter(spec => spec.label !== 'Care Instructions') // Filter out duplicate care instructions
-                        .map((spec, index) => (
-                        <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                          <span className="text-sm font-medium text-gray-600">{spec.label}</span>
-                          <span className="text-sm font-semibold text-green-700 bg-green-100 px-2 py-1 rounded">
-                            {spec.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Performance Features */}
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-gray-900">Performance Features</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {fabric.properties?.map((prop, index) => (
-                        <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                          {prop}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+        {/* Trust Badges */}
+        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-warm-200">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Shield className="w-6 h-6 text-green-600" />
             </div>
-          )}
-
-          {/* Specifications Tab - Clean Professional Design */}
-          {activeTab === 'specifications' && Object.keys(groupedSpecs).length > 0 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Technical Specifications</h3>
-              
-              {/* Essential Specifications - Clean List Format */}
-              <div className="space-y-6">
-                {Object.entries(groupedSpecs).map(([category, specs]) => {
-                  if (category === 'care' || category === 'meta' || category === 'technical') return null
-                  
-                  const categoryNames = {
-                    basic: 'Material & Construction',
-                    color: 'Color & Design',
-                    dimensions: 'Dimensions',
-                    performance: 'Performance',
-                    features: 'Features',
-                    business: 'Availability',
-                    pricing: 'Pricing'
-                  }
-                  
-                  return (
-                    <div key={category} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                      <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-                        <h4 className="font-semibold text-gray-900">{categoryNames[category as keyof typeof categoryNames] || category}</h4>
-                      </div>
-                      <div className="px-6 py-4">
-                        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                          {specs.map((spec, index) => (
-                            <div key={index} className="flex justify-between items-center">
-                              <dt className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                                {spec.label}
-                                {spec.label === 'Grade' && (
-                                  <Tooltip content="Quality grade indicating suitability for different applications">
-                                    <HelpCircle className="w-3 h-3 text-gray-400 hover:text-gray-600" />
-                                  </Tooltip>
-                                )}
-                              </dt>
-                              <dd className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                                {spec.label === 'Color Hex' && spec.value ? (
-                                  <>
-                                    <div 
-                                      className="w-4 h-4 rounded-full border border-gray-300"
-                                      style={{ backgroundColor: spec.value }}
-                                    ></div>
-                                    <span className="font-mono">{spec.value}</span>
-                                  </>
-                                ) : (
-                                  spec.value
-                                )}
-                              </dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Key Features Summary */}
-              {(fabric.width || fabric.usage || fabric.category) && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Key Features</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {fabric.width && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-gray-700 border border-gray-300">
-                        📏 {fabric.width}
-                      </span>
-                    )}
-                    {fabric.usage && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-gray-700 border border-gray-300">
-                        🏠 {fabric.usage}
-                      </span>
-                    )}
-                    {fabric.category && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-gray-700 border border-gray-300">
-                        🏷️ {fabric.category}
-                      </span>
-                    )}
-                    {fabric.pattern && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-gray-700 border border-gray-300">
-                        🎨 {fabric.pattern}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
+            <div className="font-body text-xs text-warm-600">Quality Guaranteed</div>
+          </div>
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Truck className="w-6 h-6 text-blue-600" />
             </div>
-          )}
-
+            <div className="font-body text-xs text-warm-600">Free Shipping $150+</div>
+          </div>
+          <div className="text-center">
+            <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Phone className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="font-body text-xs text-warm-600">Expert Support</div>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-// Related Products Component
-function RelatedProducts({ currentFabric }: { currentFabric: Fabric }) {
+// Luxury Product Tabs Component
+function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
+  const [activeTab, setActiveTab] = useState('details')
+
+  // Get relevant specifications
+  const getSpecifications = () => {
+    const specs = [
+      { label: 'Material', value: (fabric as any).material || (fabric as any).composition },
+      { label: 'Width', value: (fabric as any).width },
+      { label: 'Weight', value: (fabric as any).weight },
+      { label: 'Pattern', value: (fabric as any).pattern },
+      { label: 'Style', value: (fabric as any).style },
+      { label: 'Grade', value: (fabric as any).grade },
+      { label: 'Usage', value: fabric.usage },
+      { label: 'Color Family', value: fabric.color_family },
+      { label: 'Durability', value: (fabric as any).durability },
+      { label: 'Care Instructions', value: (fabric as any).care_instructions || (fabric as any).cleaning }
+    ].filter(spec => spec.value && spec.value !== '' && spec.value !== 'Standard')
+
+    return specs
+  }
+
+  const specifications = getSpecifications()
+
+  const tabs = [
+    { id: 'details', label: 'Details', icon: Info },
+    { id: 'specifications', label: 'Specifications', icon: Package },
+    { id: 'care', label: 'Care & Maintenance', icon: Sparkles },
+    { id: 'reviews', label: 'Reviews (247)', icon: Star }
+  ]
+
+  return (
+    <div className="bg-white border border-warm-200 rounded-2xl overflow-hidden">
+      {/* Tab Navigation */}
+      <div className="flex border-b border-warm-200">
+        {tabs.map((tab) => {
+          const Icon = tab.icon
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-body font-medium 
+                         transition-all duration-300 ${
+                activeTab === tab.id
+                  ? 'bg-navy-800 text-white'
+                  : 'text-navy-800 hover:bg-warm-50'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Tab Content */}
+      <div className="p-8">
+        {/* Details Tab */}
+        {activeTab === 'details' && (
+          <div className="space-y-6">
+            <h3 className="font-display text-2xl font-semibold text-navy-800">Product Details</h3>
+            
+            {fabric.description && (
+              <div className="prose prose-navy max-w-none">
+                <p className="font-body text-navy-800 leading-relaxed text-lg">
+                  {fabric.description}
+                </p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-body font-semibold text-navy-800">Key Features</h4>
+                <ul className="space-y-2">
+                  {specifications.slice(0, 5).map((spec, index) => (
+                    <li key={index} className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-gold-800 rounded-full" />
+                      <span className="font-body text-navy-800">
+                        <strong>{spec.label}:</strong> {spec.value}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="bg-warm-50 rounded-xl p-6">
+                <h4 className="font-body font-semibold text-navy-800 mb-4">Why Choose This Fabric?</h4>
+                <ul className="space-y-2 font-body text-navy-800">
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-gold-800" />
+                    Premium quality materials
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-green-600" />
+                    Quality guaranteed
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-blue-600" />
+                    Industry-leading durability
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Specifications Tab */}
+        {activeTab === 'specifications' && (
+          <div className="space-y-6">
+            <h3 className="font-display text-2xl font-semibold text-navy-800">Technical Specifications</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {specifications.map((spec, index) => (
+                <div key={index} className="flex items-center justify-between py-3 border-b border-warm-200 last:border-b-0">
+                  <span className="font-body font-medium text-warm-600">{spec.label}</span>
+                  <span className="font-body font-semibold text-navy-800">{spec.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Care Tab */}
+        {activeTab === 'care' && (
+          <div className="space-y-6">
+            <h3 className="font-display text-2xl font-semibold text-navy-800">Care & Maintenance</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h4 className="font-body font-semibold text-navy-800">Care Instructions</h4>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                  <p className="font-body text-green-800 leading-relaxed">
+                    {(fabric as any).care_instructions || (fabric as any).cleaning || 
+                     'Professional cleaning recommended. Avoid direct sunlight for extended periods. Handle with care to maintain fabric integrity.'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h4 className="font-body font-semibold text-navy-800">Maintenance Tips</h4>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                      <span className="text-blue-600 text-xs font-bold">1</span>
+                    </div>
+                    <span className="font-body text-navy-800">Regular vacuuming to remove dust and debris</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                      <span className="text-blue-600 text-xs font-bold">2</span>
+                    </div>
+                    <span className="font-body text-navy-800">Rotate cushions regularly for even wear</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                      <span className="text-blue-600 text-xs font-bold">3</span>
+                    </div>
+                    <span className="font-body text-navy-800">Address spills immediately with appropriate methods</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-2xl font-semibold text-navy-800">Customer Reviews</h3>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-gold-800 text-gold-800" />
+                  ))}
+                </div>
+                <span className="font-body font-semibold text-navy-800">4.9 out of 5</span>
+              </div>
+            </div>
+
+            {/* Sample Reviews */}
+            <div className="space-y-6">
+              {[
+                {
+                  name: 'Sarah M.',
+                  rating: 5,
+                  date: 'March 2024',
+                  review: 'Absolutely beautiful fabric! The quality exceeded my expectations and the color is exactly as shown. Perfect for my living room renovation.'
+                },
+                {
+                  name: 'Michael R.',
+                  rating: 5,
+                  date: 'February 2024',
+                  review: 'Outstanding durability and texture. We\'ve had it for 6 months now and it still looks brand new despite daily use.'
+                },
+                {
+                  name: 'Jennifer L.',
+                  rating: 4,
+                  date: 'January 2024',
+                  review: 'Great fabric, though delivery took a bit longer than expected. The quality makes up for it though!'
+                }
+              ].map((review, index) => (
+                <div key={index} className="bg-warm-50 border border-warm-200 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-navy-800 rounded-full flex items-center justify-center text-white font-body font-bold">
+                        {review.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-body font-medium text-navy-800">{review.name}</div>
+                        <div className="font-body text-sm text-warm-600">{review.date}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className={`w-4 h-4 ${
+                          star <= review.rating ? 'fill-gold-800 text-gold-800' : 'text-warm-300'
+                        }`} />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="font-body text-navy-800 leading-relaxed">{review.review}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <button className="bg-navy-800 text-white px-8 py-3 rounded-xl font-body font-medium 
+                               hover:bg-navy-700 transition-colors">
+                Load More Reviews
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Luxury Recommendations Component
+function LuxuryRecommendations({ currentFabric }: { currentFabric: Fabric }) {
   const router = useRouter()
-  
-  // Fetch related fabrics from the same category or collection
   const { fabrics: relatedFabrics, loading } = useFabrics({
     limit: 8,
     page: 1,
-    category: currentFabric.category || undefined,
-    collection: currentFabric.collection || undefined
+    category: currentFabric.category || undefined
   })
 
-  // Filter out the current fabric and limit to 4 items
   const filteredRelated = relatedFabrics
     .filter(fabric => fabric.id !== currentFabric.id)
     .slice(0, 4)
 
-  if (loading || filteredRelated.length === 0) {
-    return null
-  }
+  if (loading || filteredRelated.length === 0) return null
 
   return (
-    <div className="mt-16 border-t border-gray-200 pt-16">
+    <div className="mt-16 pt-16 border-t border-warm-200">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Related Fabrics</h2>
+        <h2 className="font-display text-3xl font-semibold text-navy-800">You May Also Like</h2>
         <Link
           href="/browse"
-          className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+          className="font-body font-medium text-navy-800 hover:text-gold-800 transition-colors 
+                   flex items-center gap-2"
         >
           View All
           <ArrowLeft className="w-4 h-4 rotate-180" />
         </Link>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredRelated.map((fabric) => (
-          <div
-            key={fabric.id}
-            onClick={() => router.push(`/fabric/${fabric.id}`)}
-            className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group"
-          >
-            {/* Image */}
-            <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-              <Image
-                src={(fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'}
-                alt={fabric.name}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 768px) 50vw, 25vw"
-              />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {filteredRelated.map((fabric) => {
+          const essentialFields = {
+            name: fabric.name || 'Untitled Fabric',
+            price: fabric.price || 99.00,
+            image: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+            brand: (fabric as any).brand || 'Custom Fabric Designs'
+          }
+
+          return (
+            <div
+              key={fabric.id}
+              onClick={() => router.push(`/fabric/${fabric.id}`)}
+              className="group bg-white rounded-xl border border-warm-200 shadow-sm hover:shadow-xl 
+                       hover:border-gold-800/30 transition-all duration-500 cursor-pointer overflow-hidden
+                       hover:-translate-y-1"
+            >
+              <div className="relative aspect-square overflow-hidden bg-warm-50">
+                <Image
+                  src={essentialFields.image}
+                  alt={essentialFields.name}
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+                {fabric.in_stock && (
+                  <div className="absolute top-3 left-3">
+                    <span className="bg-green-600/90 backdrop-blur-sm text-white px-2 py-1 rounded-full 
+                                   text-xs font-body font-medium">
+                      In Stock
+                    </span>
+                  </div>
+                )}
+              </div>
               
-              {/* Stock Badge */}
-              {fabric.in_stock && (
-                <div className="absolute top-2 left-2">
-                  <span className="px-2 py-1 bg-green-600/90 backdrop-blur-sm text-white text-[10px] font-semibold rounded uppercase tracking-wide">
-                    In Stock
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            {/* Content */}
-            <div className="p-4">
-              {(fabric as any).brand && (
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                  {(fabric as any).brand}
+              <div className="p-5">
+                <p className="font-body text-xs font-medium text-warm-600 uppercase tracking-wide mb-2">
+                  {essentialFields.brand}
                 </p>
-              )}
-              <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
-                {fabric.name}
-              </h3>
-              <div className="flex items-baseline gap-2">
-                <span className="text-lg font-bold text-gray-900">
-                  ${(fabric.price || 99).toFixed(2)}
-                </span>
-                <span className="text-xs text-gray-500">
-                  per {(fabric as any).stock_unit || 'yard'}
-                </span>
+                <h3 className="font-display font-medium text-navy-800 mb-3 line-clamp-2 group-hover:text-navy-900">
+                  {essentialFields.name}
+                </h3>
+                <div className="flex items-center justify-between">
+                  <div className="font-display text-xl font-semibold text-navy-800">
+                    ${essentialFields.price.toFixed(2)}
+                  </div>
+                  <div className="font-body text-sm text-warm-600">per yard</div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
 }
 
-// Main Fabric Details Page
-export default function FabricDetailsPage() {
+// Main Product Detail Page Component
+export default function LuxuryProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const fabricId = params.id as string
-  const [cartCount, setCartCount] = useState(0)
 
   const { fabric, loading, error } = useFabric(fabricId)
-  
-  // Fetch all fabrics for recommendations
-  const { fabrics: allFabrics } = useFabrics({ limit: 100 })
-
-  // Update cart count
-  const updateCartCount = () => {
-    const cart = localStorage.getItem('fabric-cart')
-    if (cart) {
-      const items = JSON.parse(cart)
-      // Count the number of distinct items/orders, not total quantity
-      setCartCount(items.length)
-    } else {
-      setCartCount(0)
-    }
-  }
-
-  // Listen for cart updates
-  useEffect(() => {
-    updateCartCount()
-    
-    const handleCartUpdate = () => updateCartCount()
-    window.addEventListener('cart-updated', handleCartUpdate)
-    window.addEventListener('storage', handleCartUpdate)
-
-    return () => {
-      window.removeEventListener('cart-updated', handleCartUpdate)
-      window.removeEventListener('storage', handleCartUpdate)
-    }
-  }, [])
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-600">Loading fabric details...</p>
+      <div className="min-h-screen bg-warm-50">
+        <Header />
+        <div className="pt-24 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 border-3 border-navy-800 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="font-body text-navy-800">Loading fabric details...</p>
+          </div>
         </div>
       </div>
     )
@@ -855,15 +927,23 @@ export default function FabricDetailsPage() {
 
   if (error || !fabric) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Failed to load fabric details</p>
-          <button
-            onClick={() => router.push('/browse')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Back to Browse
-          </button>
+      <div className="min-h-screen bg-warm-50">
+        <Header />
+        <div className="pt-24 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto">
+              <X className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="font-display text-2xl font-semibold text-navy-800">Fabric Not Found</h2>
+            <p className="font-body text-warm-600">The fabric you're looking for doesn't exist or has been removed.</p>
+            <button
+              onClick={() => router.push('/browse')}
+              className="bg-navy-800 text-white px-6 py-3 rounded-xl font-body font-medium 
+                       hover:bg-navy-700 transition-colors"
+            >
+              Browse All Fabrics
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -876,56 +956,83 @@ export default function FabricDetailsPage() {
       : []
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header - Mobile Optimized */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link
-              href="/browse"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors min-h-[40px] px-3 py-2 rounded-lg hover:bg-gray-50"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="hidden sm:inline">Back to Browse</span>
-              <span className="sm:hidden">Back</span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/cart"
-                className="w-10 h-10 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center relative"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-            </div>
+    <div className="min-h-screen bg-warm-50">
+      <Header />
+      
+      {/* Breadcrumb */}
+      <div className="bg-white border-b border-warm-200 pt-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-2 font-body text-sm text-warm-600">
+            <Link href="/" className="hover:text-navy-800 transition-colors">Home</Link>
+            <span>/</span>
+            <Link href="/browse" className="hover:text-navy-800 transition-colors">Browse</Link>
+            <span>/</span>
+            <span className="text-navy-800 font-medium">{fabric.name}</span>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content - Improved Visual Hierarchy */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Primary Product Section */}
-        <section className="mb-12">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-            {/* Product Images - 2 columns */}
-            <div className="lg:col-span-2">
-              <ImageGallery images={images} productName={fabric.name} />
-            </div>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Product Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+          {/* Images */}
+          <div className="space-y-6">
+            <LuxuryImageGallery images={images} productName={fabric.name} />
+          </div>
 
-            {/* Product Details - 3 columns */}
-            <div className="lg:col-span-3">
-              <ProductDetails fabric={fabric} />
+          {/* Product Info */}
+          <div className="space-y-8">
+            <LuxuryProductInfo fabric={fabric} />
+          </div>
+        </div>
+
+        {/* Product Tabs */}
+        <LuxuryProductTabs fabric={fabric} />
+
+        {/* Recommendations */}
+        <LuxuryRecommendations currentFabric={fabric} />
+      </main>
+
+      {/* Sticky Mobile CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-warm-200 p-4 shadow-xl z-30">
+        <div className="flex items-center gap-4">
+          <div className="flex-1 text-center">
+            <div className="font-body text-sm text-warm-600">Starting at</div>
+            <div className="font-display text-lg font-semibold text-navy-800">
+              ${(fabric.swatch_price || 5).toFixed(2)}
             </div>
           </div>
-        </section>
+          <button
+            onClick={() => {
+              // Add swatch to cart logic
+              const cartItem = {
+                id: `swatch-${fabric.id}-${Date.now()}`,
+                variantId: fabric.id,
+                productId: fabric.id,
+                title: fabric.name,
+                variant: 'Swatch Sample',
+                price: (fabric.swatch_price || 5) * 100,
+                quantity: 1,
+                thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+                type: 'swatch'
+              }
 
-        {/* Product Recommendations Section */}
-        <ProductRecommendations currentFabric={fabric} allFabrics={allFabrics} />
-      </main>
+              const existingCart = localStorage.getItem('fabric-cart')
+              const cart = existingCart ? JSON.parse(existingCart) : []
+              const updatedCart = [...cart, cartItem]
+              
+              localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
+              window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+            }}
+            className="flex-1 bg-navy-800 text-white py-3 px-6 rounded-xl font-body font-semibold
+                     hover:bg-navy-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            Add Swatch
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

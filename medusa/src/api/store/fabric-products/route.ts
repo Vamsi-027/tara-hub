@@ -1,5 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import FabricProductModuleService from "../../../modules/fabric-products/service"
+import FabricProductModuleService from "../../../modules/fabric_products/service"
 
 /**
  * Store API endpoints for fabric product interactions

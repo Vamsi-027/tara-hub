@@ -1,14 +1,33 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Playfair_Display, Source_Sans_3 } from 'next/font/google'
 import './globals.css'
 import AuthSessionProvider from '@/components/providers/session-provider'
 
-const inter = Inter({ subsets: ['latin'] })
+// Luxury font configurations
+const playfairDisplay = Playfair_Display({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-display',
+  weight: ['400', '500', '600', '700']
+})
+
+const sourceSans3 = Source_Sans_3({ 
+  subsets: ['latin'], 
+  display: 'swap',
+  variable: '--font-body',
+  weight: ['300', '400', '600']
+})
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-ui',
+  display: 'swap'
+})
 
 export const metadata: Metadata = {
-  title: 'Custom Design Fabrics - Premium Fabric Samples',
-  description: 'Order free fabric samples from our curated collection of premium fabrics. Perfect for interior designers and home decorators.',
-  keywords: 'fabric samples, upholstery fabric, designer fabric, free swatches, interior design',
+  title: 'Custom Fabric Designs - Premium Fabric Collections',
+  description: 'Discover exquisite fabric collections from our curated selection of premium textiles. Perfect for discerning interior designers and premium home projects.',
+  keywords: 'custom fabric designs, premium fabrics, premium textiles, designer fabrics, fabric samples, upholstery, interior design, home decor, fabric swatches',
 }
 
 export default function RootLayout({
@@ -17,8 +36,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className} suppressHydrationWarning>
+    <html lang="en" className={`${playfairDisplay.variable} ${sourceSans3.variable} ${inter.variable}`}>
+      <body className="font-body antialiased" suppressHydrationWarning>
         <AuthSessionProvider>
           {children}
         </AuthSessionProvider>

@@ -1,7 +1,7 @@
 import { ExecArgs } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
-import FabricProductModuleService, { FabricProductType } from "../src/modules/fabric-products/service"
+import FabricProductModuleService, { FabricProductType } from "../src/modules/fabric_products/service"
 
 /**
  * Setup script to create example products for fabric selection types

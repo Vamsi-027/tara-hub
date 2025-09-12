@@ -116,11 +116,11 @@ async function handleLocalSubmission(body: ContactFormData) {
 
         // Send email notification to admin
         await resend.emails.send({
-          from: 'Tara Hub Fabric Store <noreply@deepcrm.ai>',
+          from: 'Custom Fabric Designs Store <noreply@deepcrm.ai>',
           to: process.env.ADMIN_EMAIL || 'admin@deepcrm.ai',
           subject: `[FABRIC STORE] New Contact: ${body.subject}`,
           html: `
-            <h2>New Contact Form Submission from Fabric Store</h2>
+            <h2>New Contact Form Submission from Custom Fabric Designs</h2>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p><strong>Name:</strong> ${body.name}</p>
               <p><strong>Email:</strong> ${body.email}</p>
@@ -140,9 +140,9 @@ async function handleLocalSubmission(body: ContactFormData) {
 
         // Send confirmation email to user
         await resend.emails.send({
-          from: 'Tara Hub <noreply@deepcrm.ai>',
+          from: 'Custom Fabric Designs <noreply@deepcrm.ai>',
           to: body.email,
-          subject: 'We received your fabric inquiry - Tara Hub',
+          subject: 'We received your fabric inquiry - Custom Fabric Designs',
           html: `
             <h2>Thank you for your fabric inquiry!</h2>
             <p>Dear ${body.name},</p>
@@ -154,7 +154,7 @@ async function handleLocalSubmission(body: ContactFormData) {
             </div>
             <p>Our fabric experts will review your inquiry and provide detailed information about our collection.</p>
             <p>If you need immediate assistance, please call us at +1 (555) 123-4567.</p>
-            <p>Best regards,<br>The Tara Hub Fabric Team</p>
+            <p>Best regards,<br>The Custom Fabric Designs Team</p>
           `
         })
 

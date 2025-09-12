@@ -18,8 +18,6 @@ const Contact = model.define("contact", {
   source: model.text().default("fabric_store"), // Track source of submission
   admin_notes: model.text().nullable(), // Internal notes for admin use
   responded_at: model.dateTime().nullable(),
-  created_at: model.dateTime().default("now"),
-  updated_at: model.dateTime().default("now"),
   deleted_at: model.dateTime().nullable()
 })
 

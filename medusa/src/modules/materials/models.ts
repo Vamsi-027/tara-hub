@@ -9,8 +9,5 @@ export const Material = model.define("material", {
   
   name: model.text(),
   
-  properties: model.json().default({}),
-  
-  created_at: model.dateTime().default(() => new Date()),
-  updated_at: model.dateTime().default(() => new Date())
+  properties: model.json().default({})
 })

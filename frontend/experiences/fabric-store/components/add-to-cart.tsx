@@ -72,16 +72,16 @@ export default function AddToCart({ product }: AddToCartProps) {
 
   return (
     <div className="space-y-4">
-      {/* Variant Selection */}
+      {/* Enhanced Variant Selection */}
       {product.variants.length > 1 && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-charcoal-700 mb-3">
             Select Option
           </label>
           <select
             value={selectedVariant}
             onChange={(e) => setSelectedVariant(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-black focus:border-transparent"
+            className="input-luxury w-full"
           >
             {product.variants.map((variant) => (
               <option key={variant.id} value={variant.id}>
@@ -92,15 +92,17 @@ export default function AddToCart({ product }: AddToCartProps) {
         </div>
       )}
 
-      {/* Quantity Selection */}
+      {/* Enhanced Quantity Selection */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-charcoal-700 mb-3">
           Quantity
         </label>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
           <button
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="px-3 py-1 border rounded hover:bg-gray-50"
+            className="w-10 h-10 bg-pearl-50 border border-pearl-300 rounded-lg 
+                       hover:bg-champagne-300 transition-colors duration-300 
+                       flex items-center justify-center font-medium text-charcoal-700"
           >
             -
           </button>
@@ -109,43 +111,55 @@ export default function AddToCart({ product }: AddToCartProps) {
             min="1"
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-20 text-center px-2 py-1 border rounded"
+            className="input-luxury w-20 text-center"
           />
           <button
             onClick={() => setQuantity(quantity + 1)}
-            className="px-3 py-1 border rounded hover:bg-gray-50"
+            className="w-10 h-10 bg-pearl-50 border border-pearl-300 rounded-lg 
+                       hover:bg-champagne-300 transition-colors duration-300 
+                       flex items-center justify-center font-medium text-charcoal-700"
           >
             +
           </button>
         </div>
       </div>
 
-      {/* Price Display */}
-      <div className="text-2xl font-bold">
-        ${((price * quantity) / 100).toFixed(2)}
+      {/* Enhanced Price Display */}
+      <div className="border-t border-pearl-300 pt-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm text-charcoal-500">Total Price:</span>
+          <span className="font-display text-3xl font-semibold text-charcoal-800">
+            ${((price * quantity) / 100).toFixed(2)}
+          </span>
+        </div>
+        <p className="text-xs text-charcoal-500">
+          Per yard: ${(price / 100).toFixed(2)} × {quantity} {quantity === 1 ? 'yard' : 'yards'}
+        </p>
       </div>
 
-      {/* Add to Cart Button */}
+      {/* Enhanced Add to Cart Button */}
       <button
         onClick={handleAddToCart}
         disabled={!selectedVariant}
-        className={`w-full py-3 px-4 rounded-md font-medium transition flex items-center justify-center space-x-2 ${
+        className={`btn-primary w-full transition-all duration-300 ${
           added 
-            ? 'bg-green-600 text-white' 
-            : 'bg-black text-white hover:bg-gray-800'
-        } disabled:opacity-50 disabled:cursor-not-allowed`}
+            ? 'bg-forest-500 hover:bg-forest-500 transform-none shadow-luxury-lg' 
+            : ''
+        } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
       >
-        {added ? (
-          <>
-            <Check className="h-5 w-5" />
-            <span>Added to Cart!</span>
-          </>
-        ) : (
-          <>
-            <ShoppingCart className="h-5 w-5" />
-            <span>Add to Cart</span>
-          </>
-        )}
+        <div className="flex items-center justify-center space-x-2">
+          {added ? (
+            <>
+              <Check className="h-5 w-5" />
+              <span>Added to Cart!</span>
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-5 w-5" />
+              <span>Add to Cart</span>
+            </>
+          )}
+        </div>
       </button>
     </div>
   )

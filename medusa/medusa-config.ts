@@ -29,12 +29,7 @@ export default defineConfig({
     outDir:
       process.env.MEDUSA_ADMIN_BUILD_PATH ||
       path.resolve(process.cwd(), ".medusa/server/public/admin"),
-    backendUrl:
-      // Explicit Railway production URL - check for Railway environment first
-      process.env.RAILWAY_PROJECT_ID || process.env.RAILWAY_PUBLIC_DOMAIN
-        ? "https://medusa-backend-production-3655.up.railway.app"
-        : process.env.MEDUSA_BACKEND_URL ||
-          "https://medusa-backend-production-3655.up.railway.app",
+    backendUrl: "https://medusa-backend-production-3655.up.railway.app",
   },
 
   modules: [
@@ -162,7 +157,7 @@ export default defineConfig({
     // Custom Modules
     { resolve: "./src/modules/contact" },
     { resolve: "./src/modules/materials" },         // Simplified materials module
-    { resolve: "./src/modules/fabric-details" },     // Fabric properties module
-    { resolve: "./src/modules/fabric-products" },    // Configurable fabric products
+    { resolve: "./src/modules/fabric_details" },     // Fabric properties module
+    { resolve: "./src/modules/fabric_products" },    // Configurable fabric products
   ],
 })
