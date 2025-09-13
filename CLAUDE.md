@@ -60,7 +60,7 @@ tara-hub/
 
 ### Quick Start
 ```bash
-# Install dependencies
+# Install dependencies (from root - uses npm workspaces)
 npm install
 
 # Start main admin app (port 3000)
@@ -76,6 +76,11 @@ npm run dev:store-guide     # Port 3007
 # Or navigate to each app directory
 cd frontend/experiences/fabric-store && npm run dev
 cd frontend/experiences/store-guide && npm run dev
+
+# Start all services in parallel (requires multiple terminals)
+npm run dev                  # Terminal 1: Main admin
+cd medusa && npm run dev     # Terminal 2: Medusa backend
+npm run dev:fabric-store     # Terminal 3: Fabric store
 ```
 
 ### Complete Command Reference
@@ -184,16 +189,18 @@ NEXT_PUBLIC_ENABLE_DEBUG=true
 ### Available Test Commands
 ```bash
 # Main repository (uses Turbo)
-npm run test
+npm run test              # Run all tests via Turbo
+npm run test:unit         # Unit tests across workspace
+npm run test:integration  # Integration tests
 
 # Medusa specific
 cd medusa && npm run test:integration:http    # HTTP integration tests
-cd medusa && npm run test:integration:modules # Module tests
+cd medusa && npm run test:integration:modules # Module tests  
 cd medusa && npm run test:unit               # Unit tests
 
-# Backend
-npm run test:unit         # Unit tests
-npm run test:integration  # Integration tests
+# Experience apps (when configured)
+cd frontend/experiences/fabric-store && npm run test
+cd frontend/experiences/store-guide && npm run test
 ```
 
 ## Build Configuration
@@ -266,10 +273,14 @@ The codebase is currently undergoing module reorganization:
 - **Materials module**: Enhanced with new models and sync capabilities
 - Several old module files have been deleted and are being replaced with updated implementations
 
-### Git Status Context
-- Main branch has modified files in medusa configuration and scripts
-- New modules are being developed in `medusa/src/modules/fabric_details/` and `medusa/src/modules/fabric_products/`
-- Railway deployment files added for production deployment
+### Active Development Areas
+- **Fabric Store Experience**: Modern filter system implementation in browse page
+  - Enhanced filtering with categories, colors, patterns, price ranges
+  - Sort functionality and search improvements
+  - Mobile-responsive filter drawer
+  - Active filter badges display
+- **Component Updates**: New filter components in `frontend/experiences/fabric-store/components/filters/`
+- **UI Enhancements**: Tailwind configuration updates for improved styling
 
 ## Development Notes
 
@@ -286,6 +297,9 @@ The codebase is currently undergoing module reorganization:
 - **Medusa admin build**: Use `npm run build:admin` if admin UI doesn't load
 - **Environment variables**: Copy `.env.example` to `.env.local` and fill required values
 - **Experience app dependencies**: Each experience app has its own node_modules and package.json
+- **Webpack issues**: Next.js config has Jest worker fallback disabled to prevent build conflicts
+- **TypeScript errors**: Build errors temporarily ignored (see next.config.mjs) - fix before production
+- **Twilio build errors**: Fabric-store webpack externals configured for xmlbuilder compatibility
 
 ## Utility Scripts
 
@@ -295,8 +309,25 @@ Located in `/scripts/`:
 - `sync-env-to-vercel.js` - Push env vars to Vercel
 - `check-db-tables.js` - Database schema inspection
 
+## Code Quality & Standards
+
+### Linting and Formatting
+```bash
+npm run lint              # Run ESLint across monorepo
+npm run format            # Format with Prettier
+npm run format:check      # Check formatting without changes
+npm run type-check        # TypeScript type checking
+```
+
+### Git Workflow
+- Main branch: `main`
+- Feature branches: `feature/[feature-name]`
+- Commit messages: Descriptive with scope prefix (e.g., "feat(fabric-store): add filter system")
+- Pre-deployment: Run `npm run lint` and `npm run type-check`
+
 ## Repository Information
 
 - **GitHub URL**: https://github.com/Vamsi-027/tara-hub.git
 - **Production URL**: https://tara-hub.vercel.app
 - **Main Branch**: main
+- **Package Manager**: npm 10.2.0 (enforced via packageManager field)

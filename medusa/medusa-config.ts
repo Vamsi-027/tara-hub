@@ -11,7 +11,7 @@ const isServerMode =
 export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL, // PostgreSQL (Neon/Railway)
-    redisUrl: process.env.REDIS_URL,       // Redis (Upstash/Railway)
+    // redisUrl: process.env.REDIS_URL,    // Redis disabled - using in-memory
     workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server",
     http: {
       storeCors: process.env.STORE_CORS || "https://medusa-backend-production-3655.up.railway.app,http://localhost:3000,http://localhost:3006,http://localhost:3007,http://localhost:8000",
@@ -29,11 +29,13 @@ export default defineConfig({
     outDir:
       process.env.MEDUSA_ADMIN_BUILD_PATH ||
       path.resolve(process.cwd(), ".medusa/server/public/admin"),
-    backendUrl: "https://medusa-backend-production-3655.up.railway.app",
+    backendUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:9000",
   },
 
   modules: [
-    // Redis Modules for Production
+    // Redis Modules - Commented out due to Upstash limit
+    // Uncomment when Redis is available
+    /*
     {
       resolve: "@medusajs/medusa/cache-redis",
       options: {
@@ -54,6 +56,7 @@ export default defineConfig({
         },
       },
     },
+    */
 
     // Resend Notification Module
     {

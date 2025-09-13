@@ -1,14 +1,22 @@
 import { defineRouteConfig } from "@medusajs/admin-sdk"
-import { Container, Heading, Button, Input, Label, Textarea, Select, Switch, Badge, Tabs, Text, toast, Toaster } from "@medusajs/ui"
-import { useState } from "react"
+import { Container, Heading, Button, Input, Label, Textarea, Select, Switch, Badge, Tabs, Text, toast, Toaster, Command } from "@medusajs/ui"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
-import { Plus, XMarkMini, ArrowLeft } from "@medusajs/icons"
+import { Plus, XMarkMini, ArrowLeft, MagnifyingGlassMini } from "@medusajs/icons"
 import { createProductWorkflow } from "@medusajs/medusa/core-flows"
 
 const CreateFabricProduct = () => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("basic")
+  
+  // SKU Selection states
+  const [showSkuSelector, setShowSkuSelector] = useState(false)
+  const [selectedSku, setSelectedSku] = useState<string | null>(null)
+  const [skuSearch, setSkuSearch] = useState("")
+  const [availableFabrics, setAvailableFabrics] = useState<any[]>([])
+  const [searchingFabrics, setSearchingFabrics] = useState(false)
+  const [fabricDetails, setFabricDetails] = useState<any>(null)
   
   // Basic product data
   const [productData, setProductData] = useState({
@@ -82,6 +90,145 @@ const CreateFabricProduct = () => {
     swatch: 5,
     fabric: 99
   })
+
+  // Search for fabrics from neondb
+  const searchFabrics = useCallback(async (query: string) => {
+    if (!query || query.length < 2) {
+      setAvailableFabrics([])
+      return
+    }
+
+    setSearchingFabrics(true)
+    try {
+      const response = await fetch(`/admin/fabrics?q=${encodeURIComponent(query)}&limit=10`)
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableFabrics(data.fabrics || [])
+      }
+    } catch (error) {
+      console.error('Error searching fabrics:', error)
+      toast.error("Failed to search fabrics")
+    } finally {
+      setSearchingFabrics(false)
+    }
+  }, [])
+
+  // Fetch fabric details by SKU
+  const fetchFabricDetails = useCallback(async (sku: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/admin/fabrics/${encodeURIComponent(sku)}`)
+      if (response.ok) {
+        const data = await response.json()
+        const fabric = data.fabric
+        
+        // Auto-populate form fields with fabric data
+        setProductData(prev => ({
+          ...prev,
+          title: fabric.title,
+          handle: fabric.handle,
+          description: fabric.description,
+          status: fabric.status,
+          thumbnail: fabric.thumbnail,
+          images: fabric.images || [],
+          options: fabric.options || prev.options
+        }))
+        
+        // Set metadata from fabric
+        setMetadata(fabric.metadata || {})
+        
+        // Set pricing
+        if (fabric.prices) {
+          setVariantPrices({
+            swatch: fabric.prices.swatch?.amount || 5,
+            fabric: fabric.prices.yard?.amount || 99
+          })
+        }
+        
+        // Store fabric details for reference
+        setFabricDetails(fabric)
+        
+        toast.success(`Loaded fabric: ${fabric.title}`)
+        setShowSkuSelector(false)
+      } else {
+        toast.error("Failed to fetch fabric details")
+      }
+    } catch (error) {
+      console.error('Error fetching fabric:', error)
+      toast.error("Failed to load fabric details")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Handle SKU selection
+  const handleSkuSelect = (sku: string) => {
+    setSelectedSku(sku)
+    fetchFabricDetails(sku)
+  }
+
+  // Clear fabric selection
+  const clearFabricSelection = () => {
+    setSelectedSku(null)
+    setFabricDetails(null)
+    setProductData({
+      title: "",
+      handle: "",
+      description: "",
+      status: "draft" as "draft" | "published",
+      thumbnail: "",
+      images: [],
+      options: [
+        {
+          title: "Type",
+          values: ["Swatch", "Fabric"]
+        }
+      ],
+      variants: []
+    })
+    setMetadata({
+      brand: "",
+      category: "",
+      collection: "",
+      pattern: "",
+      style: "",
+      grade: "",
+      color: "",
+      color_family: "",
+      color_hex: "#000000",
+      composition: "",
+      width: "",
+      weight: "",
+      h_repeat: "",
+      v_repeat: "",
+      usage: "Indoor",
+      durability: "",
+      martindale: "",
+      care_instructions: "",
+      cleaning_code: "",
+      stain_resistant: false,
+      fade_resistant: false,
+      washable: false,
+      bleach_cleanable: false,
+      ca_117: false,
+      quick_ship: false,
+      is_featured: false,
+      supplier_name: "",
+      stock_unit: "yard",
+      minimum_order_yards: "1",
+      swatch_size: "4x4 inches",
+      swatch_price: 5,
+      properties: []
+    })
+  }
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchFabrics(skuSearch)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [skuSearch, searchFabrics])
 
   const updateField = (field: string, value: any) => {
     setMetadata(prev => ({
@@ -244,6 +391,99 @@ const CreateFabricProduct = () => {
           >
             {isLoading ? 'Creating...' : 'Create Product'}
           </Button>
+        </div>
+      </div>
+
+      {/* SKU Selection Section */}
+      <div className="px-8 py-6">
+        <div className="mb-6 p-4 bg-ui-bg-subtle rounded-lg border border-ui-border-base">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <Label className="text-base font-medium">Import from Fabric Database</Label>
+              <Text className="text-sm text-ui-fg-subtle mt-1">
+                Select a fabric SKU to auto-populate product details
+              </Text>
+            </div>
+            {selectedSku && (
+              <Button
+                variant="secondary"
+                size="small"
+                onClick={clearFabricSelection}
+              >
+                <XMarkMini className="mr-1" />
+                Clear Selection
+              </Button>
+            )}
+          </div>
+          
+          {selectedSku ? (
+            <div className="flex items-center gap-2">
+              <Badge color="green" className="px-3 py-1">
+                SKU: {selectedSku}
+              </Badge>
+              {fabricDetails && (
+                <Text className="text-sm text-ui-fg-subtle">
+                  {fabricDetails.title}
+                </Text>
+              )}
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    placeholder="Search by SKU or fabric name..."
+                    value={skuSearch}
+                    onChange={(e) => setSkuSearch(e.target.value)}
+                    className="pr-10"
+                  />
+                  <MagnifyingGlassMini className="absolute right-3 top-1/2 -translate-y-1/2 text-ui-fg-subtle" />
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowSkuSelector(!showSkuSelector)}
+                >
+                  Browse Fabrics
+                </Button>
+              </div>
+              
+              {/* Search Results Dropdown */}
+              {skuSearch && availableFabrics.length > 0 && (
+                <div className="absolute z-10 w-full mt-2 bg-white rounded-lg shadow-lg border border-ui-border-base max-h-60 overflow-y-auto">
+                  {searchingFabrics ? (
+                    <div className="p-4 text-center text-ui-fg-subtle">
+                      Searching...
+                    </div>
+                  ) : (
+                    availableFabrics.map((fabric) => (
+                      <button
+                        key={fabric.id}
+                        onClick={() => handleSkuSelect(fabric.sku)}
+                        className="w-full px-4 py-3 text-left hover:bg-ui-bg-subtle transition-colors border-b border-ui-border-base last:border-b-0"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Text className="font-medium">{fabric.sku}</Text>
+                            <Text className="text-sm text-ui-fg-subtle">
+                              {fabric.name}
+                            </Text>
+                          </div>
+                          <div className="text-right">
+                            <Text className="text-sm text-ui-fg-subtle">
+                              {fabric.category}
+                            </Text>
+                            <Text className="text-sm font-medium">
+                              ${fabric.price}
+                            </Text>
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
