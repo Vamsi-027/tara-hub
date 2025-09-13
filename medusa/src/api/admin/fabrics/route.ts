@@ -1,6 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Client } from "pg"
-import { authenticate } from "@medusajs/framework/http"
 
 /**
  * GET /admin/fabrics
@@ -13,12 +12,13 @@ import { authenticate } from "@medusajs/framework/http"
  * - limit: Max results (default 20, max 100)
  * - offset: Pagination offset
  */
-export const GET = [
-  authenticate("user", ["session", "bearer"]),
-  async (
-    req: MedusaRequest,
-    res: MedusaResponse
-  ) => {
+export const GET = async (
+  req: MedusaRequest,
+  res: MedusaResponse
+) => {
+  // Get CDN prefix from environment
+  const CDN_PREFIX = process.env.FABRIC_CDN_PREFIX || 'https://cdn.deepcrm.ai'
+  
   const { q, limit = '20', offset = '0' } = req.query as Record<string, string>
   
   const limitNum = Math.min(parseInt(limit) || 20, 100)
@@ -27,21 +27,29 @@ export const GET = [
   let client: Client | null = null
 
   try {
-    // Connect to database
-    const connectionString = process.env.DATABASE_URL
+    // Connect directly to neondb database where fabrics table exists
+    // Using the DATABASE_URL from env but replacing medusa with neondb database
+    const baseUrl = process.env.DATABASE_URL
     
-    if (!connectionString) {
+    if (!baseUrl) {
       return res.status(500).json({
         error: "Database connection not configured"
       })
     }
 
-    const sslConnectionString = connectionString.includes('sslmode=') 
-      ? connectionString 
-      : connectionString + (connectionString.includes('?') ? '&' : '?') + 'sslmode=require'
+    // Parse and reconstruct the connection string to use neondb database
+    const urlParts = baseUrl.match(/^(postgres:\/\/[^/]+\/)([^?]+)(.*)$/)
+    if (!urlParts) {
+      return res.status(500).json({
+        error: "Invalid database URL format"
+      })
+    }
 
+    // Construct connection string for neondb database
+    const connectionString = `${urlParts[1]}neondb${urlParts[3] || ''}${urlParts[3]?.includes('sslmode=') ? '' : (urlParts[3] ? '&' : '?') + 'sslmode=require'}`
+    
     client = new Client({
-      connectionString: sslConnectionString
+      connectionString: connectionString
     })
 
     await client.connect()
@@ -59,10 +67,12 @@ export const GET = [
           name,
           category,
           collection,
-          thumbnail_url,
-          retail_price,
-          stock_quantity,
-          status
+          images,
+          cdn_urls,
+          yardage_price,
+          swatch_price,
+          is_active,
+          availability
         FROM fabrics 
         WHERE 
           LOWER(sku) LIKE LOWER($1) OR 
@@ -82,7 +92,7 @@ export const GET = [
       const startTerm = `${q.trim()}%`
       params = [searchTerm, exactTerm, startTerm, limitNum, offsetNum]
     } else {
-      // List all fabrics
+      // List all active fabrics
       query = `
         SELECT 
           id,
@@ -90,12 +100,14 @@ export const GET = [
           name,
           category,
           collection,
-          thumbnail_url,
-          retail_price,
-          stock_quantity,
-          status
+          images,
+          cdn_urls,
+          yardage_price,
+          swatch_price,
+          is_active,
+          availability
         FROM fabrics 
-        WHERE status = 'active'
+        WHERE is_active = true
         ORDER BY name ASC
         LIMIT $1 OFFSET $2
       `
@@ -121,7 +133,7 @@ export const GET = [
       countQuery = `
         SELECT COUNT(*) as total
         FROM fabrics 
-        WHERE status = 'active'
+        WHERE is_active = true
       `
       countParams = []
     }
@@ -130,20 +142,37 @@ export const GET = [
     const total = parseInt(countResult.rows[0]?.total || '0')
 
     // Format response
-    const fabrics = result.rows.map(fabric => ({
-      id: fabric.id,
-      sku: fabric.sku,
-      name: fabric.name,
-      category: fabric.category,
-      collection: fabric.collection,
-      thumbnail: fabric.thumbnail_url,
-      price: fabric.retail_price,
-      stock: fabric.stock_quantity,
-      status: fabric.status,
-      // Display label for dropdown
-      label: `${fabric.sku} - ${fabric.name}`,
-      value: fabric.sku
-    }))
+    const fabrics = result.rows.map(fabric => {
+      // Extract thumbnail from images or cdn_urls
+      let thumbnail = null
+      if (fabric.cdn_urls?.images?.length > 0) {
+        // Use the key field which contains the actual image path
+        const firstImagePath = fabric.cdn_urls.images[0].key || fabric.cdn_urls.images[0].url
+        thumbnail = firstImagePath.startsWith('http')
+          ? firstImagePath
+          : `${CDN_PREFIX}/${firstImagePath}`
+      } else if (fabric.images?.length > 0) {
+        // Add CDN prefix to image URLs
+        const firstImage = fabric.images[0]
+        thumbnail = firstImage.startsWith('http') ? firstImage : `${CDN_PREFIX}/${firstImage}`
+      }
+      
+      return {
+        id: fabric.id,
+        sku: fabric.sku,
+        name: fabric.name,
+        category: fabric.category,
+        collection: fabric.collection,
+        thumbnail: thumbnail,
+        price: fabric.yardage_price,
+        swatchPrice: fabric.swatch_price,
+        isActive: fabric.is_active,
+        availability: fabric.availability,
+        // Display label for dropdown
+        label: `${fabric.sku} - ${fabric.name}`,
+        value: fabric.sku
+      }
+    })
 
     return res.json({
       success: true,
@@ -167,4 +196,4 @@ export const GET = [
       await client.end()
     }
   }
-]
+}

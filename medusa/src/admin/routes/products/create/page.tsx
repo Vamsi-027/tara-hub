@@ -134,8 +134,12 @@ const CreateFabricProduct = () => {
           options: fabric.options || prev.options
         }))
         
-        // Set metadata from fabric
-        setMetadata(fabric.metadata || {})
+        // Set metadata from fabric while preserving properties array
+        setMetadata(prev => ({
+          ...prev,
+          ...(fabric.metadata || {}),
+          properties: fabric.metadata?.properties || prev.properties || []
+        }))
         
         // Set pricing
         if (fabric.prices) {
@@ -246,13 +250,13 @@ const CreateFabricProduct = () => {
 
   const addProperty = () => {
     if (newProperty.trim()) {
-      updateField('properties', [...metadata.properties, newProperty.trim()])
+      updateField('properties', [...(metadata.properties || []), newProperty.trim()])
       setNewProperty("")
     }
   }
 
   const removeProperty = (index: number) => {
-    updateField('properties', metadata.properties.filter((_: any, i: number) => i !== index))
+    updateField('properties', (metadata.properties || []).filter((_: any, i: number) => i !== index))
   }
 
   const addImage = () => {
@@ -885,7 +889,7 @@ const CreateFabricProduct = () => {
                   <Plus />
                 </Button>
               </div>
-              {metadata.properties.length > 0 && (
+              {metadata.properties && metadata.properties.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {metadata.properties.map((prop: string, index: number) => (
                     <Badge key={index} size="large" className="flex items-center gap-1">

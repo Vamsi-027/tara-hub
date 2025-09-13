@@ -1,6 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Client } from "pg"
-import { authenticate } from "@medusajs/framework/http"
 
 /**
  * GET /admin/fabrics/:sku
@@ -8,12 +7,13 @@ import { authenticate } from "@medusajs/framework/http"
  * Fetch fabric details from neondb by SKU
  * Returns fabric data mapped to Medusa product format
  */
-export const GET = [
-  authenticate("user", ["session", "bearer"]),
-  async (
-    req: MedusaRequest,
-    res: MedusaResponse
-  ) => {
+export const GET = async (
+  req: MedusaRequest,
+  res: MedusaResponse
+) => {
+  // Get CDN prefix from environment
+  const CDN_PREFIX = process.env.FABRIC_CDN_PREFIX || 'https://cdn.deepcrm.ai'
+  
   const { sku } = req.params
 
   if (!sku) {
@@ -25,77 +25,87 @@ export const GET = [
   let client: Client | null = null
 
   try {
-    // Connect to neondb (same database, fabrics table)
-    const connectionString = process.env.DATABASE_URL
+    // Connect directly to neondb database where fabrics table exists
+    // Using the DATABASE_URL from env but replacing medusa with neondb database
+    const baseUrl = process.env.DATABASE_URL
     
-    if (!connectionString) {
+    if (!baseUrl) {
       return res.status(500).json({
         error: "Database connection not configured"
       })
     }
 
-    // Add SSL mode if not present
-    const sslConnectionString = connectionString.includes('sslmode=') 
-      ? connectionString 
-      : connectionString + (connectionString.includes('?') ? '&' : '?') + 'sslmode=require'
+    // Parse and reconstruct the connection string to use neondb database
+    const urlParts = baseUrl.match(/^(postgres:\/\/[^/]+\/)([^?]+)(.*)$/)
+    if (!urlParts) {
+      return res.status(500).json({
+        error: "Invalid database URL format"
+      })
+    }
 
+    // Construct connection string for neondb database
+    const connectionString = `${urlParts[1]}neondb${urlParts[3] || ''}${urlParts[3]?.includes('sslmode=') ? '' : (urlParts[3] ? '&' : '?') + 'sslmode=require'}`
+    
     client = new Client({
-      connectionString: sslConnectionString
+      connectionString: connectionString
     })
 
     await client.connect()
 
-    // Query fabrics table by SKU
+    // Query fabrics table by SKU with actual column names
     const query = `
       SELECT 
         id,
         sku,
         name,
         description,
-        retail_price,
-        wholesale_price,
-        cost_price,
         yardage_price,
         swatch_price,
-        thumbnail_url,
-        main_image_url,
+        procurement_cost,
         images,
+        cdn_urls,
         width,
-        weight,
-        thickness,
         fiber_content,
         pattern,
         collection,
-        manufacturer,
-        supplier,
+        brand,
+        supplier_name,
+        supplier_id,
         category,
-        type,
+        types,
         style,
-        color,
+        colors,
+        primary_color,
+        secondary_colors,
         color_family,
-        usage,
-        durability_rating,
+        usage_suitability,
+        performance_metrics,
         martindale,
-        wyzenbeek,
         stain_resistant,
         fade_resistant,
-        water_resistant,
-        pet_friendly,
-        outdoor_safe,
-        contract_grade,
-        fire_retardant,
-        greenguard_certified,
-        oeko_tex_certified,
-        certifications,
-        care_instructions,
-        stock_quantity,
-        available_quantity,
-        minimum_order_quantity,
-        lead_time_days,
+        ca_117,
+        bleach_cleanable,
+        washable,
+        cleaning,
+        cleaning_code,
+        cleaning_pdf,
         stock_unit,
-        status,
-        tags,
-        metadata
+        low_stock_threshold,
+        is_active,
+        is_featured,
+        availability,
+        grade,
+        closeout,
+        quick_ship,
+        h_repeat,
+        v_repeat,
+        keywords,
+        meta_title,
+        meta_description,
+        specifications,
+        custom_fields,
+        additional_features,
+        technical_documents
       FROM fabrics 
       WHERE sku = $1
       LIMIT 1
@@ -111,25 +121,54 @@ export const GET = [
 
     const fabric = result.rows[0]
 
+    // Extract images from cdn_urls or images field
+    let images = []
+    let thumbnail = null
+    
+    if (fabric.cdn_urls?.images?.length > 0) {
+      // Process cdn_urls.images - these have 'key' field with the actual image path
+      images = fabric.cdn_urls.images.map((img: any) => {
+        // Use the key field which contains the actual image path
+        const imagePath = img.key || img.url
+        const imageUrl = imagePath.startsWith('http') 
+          ? imagePath 
+          : `${CDN_PREFIX}/${imagePath}`
+        return { url: imageUrl }
+      })
+      
+      const firstImagePath = fabric.cdn_urls.images[0].key || fabric.cdn_urls.images[0].url
+      thumbnail = firstImagePath.startsWith('http')
+        ? firstImagePath
+        : `${CDN_PREFIX}/${firstImagePath}`
+    } else if (fabric.images?.length > 0) {
+      // Add CDN prefix to image URLs if they're not already full URLs
+      images = fabric.images.map((url: string) => ({
+        url: url.startsWith('http') ? url : `${CDN_PREFIX}/${url}`
+      }))
+      thumbnail = fabric.images[0].startsWith('http') 
+        ? fabric.images[0] 
+        : `${CDN_PREFIX}/${fabric.images[0]}`
+    }
+
     // Transform fabric data to Medusa product format
     const productData = {
       // Basic product info
       title: fabric.name,
       handle: fabric.sku.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       description: fabric.description || '',
-      status: fabric.status === 'active' ? 'published' : 'draft',
-      thumbnail: fabric.thumbnail_url,
-      images: fabric.images || [fabric.main_image_url].filter(Boolean),
+      status: fabric.is_active ? 'published' : 'draft',
+      thumbnail: thumbnail,
+      images: images,
       
       // Categories and organization
       collection: fabric.collection,
-      type: fabric.type,
-      tags: fabric.tags || [],
+      type: fabric.types,
+      tags: fabric.keywords ? fabric.keywords.split(',').map((t: string) => t.trim()) : [],
       
       // Pricing for variants
       prices: {
         yard: {
-          amount: parseFloat(fabric.yardage_price || fabric.retail_price || '0'),
+          amount: parseFloat(fabric.yardage_price || '0'),
           currency_code: 'USD'
         },
         swatch: {
@@ -140,10 +179,9 @@ export const GET = [
       
       // Inventory
       inventory: {
-        quantity: parseInt(fabric.stock_quantity || '0'),
-        available: parseInt(fabric.available_quantity || '0'),
-        min_order: parseInt(fabric.minimum_order_quantity || '1'),
-        stock_unit: fabric.stock_unit || 'yards'
+        stock_unit: fabric.stock_unit || 'yards',
+        low_stock_threshold: fabric.low_stock_threshold,
+        availability: fabric.availability
       },
       
       // All fabric metadata
@@ -151,52 +189,61 @@ export const GET = [
         // Basic Info
         fabric_id: fabric.id,
         sku: fabric.sku,
-        brand: fabric.manufacturer,
-        supplier: fabric.supplier,
+        brand: fabric.brand,
+        supplier_name: fabric.supplier_name,
+        supplier_id: fabric.supplier_id,
         category: fabric.category,
         pattern: fabric.pattern,
         style: fabric.style,
         
         // Colors
-        color: fabric.color,
+        colors: fabric.colors,
+        primary_color: fabric.primary_color,
+        secondary_colors: fabric.secondary_colors,
         color_family: fabric.color_family,
         
         // Physical Properties
         composition: fabric.fiber_content,
         width: fabric.width,
-        weight: fabric.weight,
-        thickness: fabric.thickness,
+        h_repeat: fabric.h_repeat,
+        v_repeat: fabric.v_repeat,
         
         // Usage & Performance
-        usage: fabric.usage,
-        durability_rating: fabric.durability_rating,
+        usage_suitability: fabric.usage_suitability,
+        performance_metrics: fabric.performance_metrics,
         martindale: fabric.martindale,
-        wyzenbeek: fabric.wyzenbeek,
         
         // Features (boolean flags)
         stain_resistant: fabric.stain_resistant,
         fade_resistant: fabric.fade_resistant,
-        water_resistant: fabric.water_resistant,
-        pet_friendly: fabric.pet_friendly,
-        outdoor_safe: fabric.outdoor_safe,
-        contract_grade: fabric.contract_grade,
-        fire_retardant: fabric.fire_retardant,
+        ca_117: fabric.ca_117,
+        bleach_cleanable: fabric.bleach_cleanable,
+        washable: fabric.washable,
+        quick_ship: fabric.quick_ship,
+        closeout: fabric.closeout,
+        is_featured: fabric.is_featured,
         
-        // Certifications
-        greenguard_certified: fabric.greenguard_certified,
-        oeko_tex_certified: fabric.oeko_tex_certified,
-        certifications: fabric.certifications,
-        
-        // Care & Lead Time
-        care_instructions: fabric.care_instructions,
-        lead_time_days: fabric.lead_time_days,
+        // Cleaning & Care
+        cleaning: fabric.cleaning,
+        cleaning_code: fabric.cleaning_code,
+        cleaning_pdf: fabric.cleaning_pdf,
         
         // Pricing
-        wholesale_price: fabric.wholesale_price,
-        cost_price: fabric.cost_price,
+        procurement_cost: fabric.procurement_cost,
         
-        // Additional metadata
-        ...(fabric.metadata || {})
+        // Grade & Availability
+        grade: fabric.grade,
+        availability: fabric.availability,
+        
+        // SEO
+        meta_title: fabric.meta_title,
+        meta_description: fabric.meta_description,
+        
+        // Additional data
+        specifications: fabric.specifications || {},
+        custom_fields: fabric.custom_fields || {},
+        additional_features: fabric.additional_features || {},
+        technical_documents: fabric.technical_documents || {}
       },
       
       // Suggested product options
@@ -227,4 +274,4 @@ export const GET = [
       await client.end()
     }
   }
-]
+}
