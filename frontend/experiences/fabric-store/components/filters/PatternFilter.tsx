@@ -56,7 +56,7 @@ export const PatternFilter: React.FC = () => {
             </div>
             
             <div className="flex-1 flex items-center justify-between">
-              <span className={`font-body text-sm transition-colors duration-200
+              <span className={`font-sans text-sm transition-colors duration-200
                              ${isChecked ? 'text-navy-800 font-medium' : 'text-navy-700'}`}>
                 {pattern.label}
               </span>

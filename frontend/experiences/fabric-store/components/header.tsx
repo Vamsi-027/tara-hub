@@ -89,7 +89,7 @@ export default function Header() {
                                transition-colors duration-300">
                   Custom Fabric Designs
                 </span>
-                <span className="font-body text-xs text-charcoal-500 uppercase tracking-wider leading-none">
+                <span className="font-sans text-xs text-charcoal-500 uppercase tracking-wider leading-none">
                   Premium Fabrics
                 </span>
               </div>
@@ -100,7 +100,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
               href="/" 
-              className="font-body font-medium text-charcoal-700 hover:text-burgundy-600 
+              className="font-sans font-medium text-charcoal-700 hover:text-burgundy-600 
                          transition-colors duration-300 relative group"
             >
               Home
@@ -109,7 +109,7 @@ export default function Header() {
             </Link>
             <Link 
               href="/browse" 
-              className="font-body font-medium text-charcoal-700 hover:text-burgundy-600 
+              className="font-sans font-medium text-charcoal-700 hover:text-burgundy-600 
                          transition-colors duration-300 relative group"
             >
               Browse Fabrics
@@ -118,7 +118,7 @@ export default function Header() {
             </Link>
             <Link 
               href="/contact" 
-              className="font-body font-medium text-charcoal-700 hover:text-burgundy-600 
+              className="font-sans font-medium text-charcoal-700 hover:text-burgundy-600 
                          transition-colors duration-300 relative group"
             >
               Contact

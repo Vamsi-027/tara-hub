@@ -1,27 +1,15 @@
 import type { Metadata } from 'next'
-import { Inter, Playfair_Display, Source_Sans_3 } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import AuthSessionProvider from '@/components/providers/session-provider'
 
-// Luxury font configurations
-const playfairDisplay = Playfair_Display({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-display',
-  weight: ['400', '500', '600', '700']
-})
-
-const sourceSans3 = Source_Sans_3({ 
-  subsets: ['latin'], 
-  display: 'swap',
-  variable: '--font-body',
-  weight: ['300', '400', '600']
-})
-
+// Optimized font configuration - using only Inter for better performance
 const inter = Inter({ 
   subsets: ['latin'],
-  variable: '--font-ui',
-  display: 'swap'
+  display: 'swap',
+  variable: '--font-inter',
+  preload: true,
+  weight: ['300', '400', '500', '600', '700']
 })
 
 export const metadata: Metadata = {
@@ -36,8 +24,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${playfairDisplay.variable} ${sourceSans3.variable} ${inter.variable}`}>
-      <body className="font-body antialiased" suppressHydrationWarning>
+    <html lang="en" className={inter.variable}>
+      <body className="font-inter antialiased" suppressHydrationWarning>
         <AuthSessionProvider>
           {children}
         </AuthSessionProvider>

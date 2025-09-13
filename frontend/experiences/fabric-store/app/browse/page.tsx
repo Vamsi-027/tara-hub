@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, Suspense } from 'react'
-import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { Grid3X3, List } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FiltersSidebar, ActiveFiltersChips, useFilters, type FilterState } from '@/components/FiltersSidebar'
@@ -182,24 +182,25 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
 
   if (viewMode === 'list') {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         onClick={handleCardClick}
-        className="bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-6 cursor-pointer"
+        className="bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-6 cursor-pointer animate-fade-in-up"
       >
         <div className="flex gap-6">
-          <div className="w-32 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100">
+          <div className="w-32 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 relative">
             {imageLoading && (
               <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
             )}
-            <img
+            <Image
               src={essentialFields.image}
               alt={essentialFields.name}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${
+              fill
+              sizes="128px"
+              className={`object-cover transition-opacity duration-300 ${
                 imageLoading ? 'opacity-0' : 'opacity-100'
               }`}
               onLoad={() => setImageLoading(false)}
+              loading="lazy"
             />
           </div>
           
@@ -245,28 +246,29 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       onClick={handleCardClick}
-      className="group bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+      className="group bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer animate-fade-in-up"
     >
       <div className="aspect-square overflow-hidden bg-gray-100 relative">
         {imageLoading && (
           <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
         )}
-        <img
+        <Image
           src={essentialFields.image}
           alt={essentialFields.name}
-          className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className={`object-cover transition-all duration-300 group-hover:scale-105 ${
             imageLoading ? 'opacity-0' : 'opacity-100'
           }`}
           onLoad={() => setImageLoading(false)}
+          loading="lazy"
         />
         
         {essentialFields.price > 150 && (
@@ -341,7 +343,7 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -358,11 +360,7 @@ const BrowsePage: React.FC = () => {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
+          <div className="text-center mb-12 animate-fade-in-up">
             <div className="flex items-center justify-center gap-2 mb-4">
               <span className="text-yellow-400 font-medium uppercase tracking-wide text-sm">
                 Curated Collection
@@ -375,7 +373,7 @@ const BrowsePage: React.FC = () => {
               Explore our meticulously curated selection of premium textiles, 
               each piece chosen for its exceptional quality and timeless elegance.
             </p>
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -451,11 +449,7 @@ const BrowsePage: React.FC = () => {
                 ))}
               </div>
             ) : error ? (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-16 bg-white rounded-2xl border border-gray-200"
-              >
+              <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 animate-fade-in-up">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
                   <Grid3X3 className="w-8 h-8 text-red-500" />
                 </div>
@@ -466,7 +460,7 @@ const BrowsePage: React.FC = () => {
                 <Button onClick={() => window.location.reload()} variant="outline">
                   Retry
                 </Button>
-              </motion.div>
+              </div>
             ) : fabrics.length > 0 ? (
               <>
                 <div className={`${
@@ -475,14 +469,9 @@ const BrowsePage: React.FC = () => {
                     : 'space-y-6'
                 }`}>
                   {fabrics.map((fabric: Fabric, index) => (
-                    <motion.div
-                      key={fabric.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
+                    <div key={fabric.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                       <FabricCard fabric={fabric} viewMode={viewMode} />
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
                 
@@ -501,11 +490,7 @@ const BrowsePage: React.FC = () => {
                 )}
               </>
             ) : (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-16 bg-white rounded-2xl border border-gray-200"
-              >
+              <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 animate-fade-in-up">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                   <Grid3X3 className="w-8 h-8 text-gray-400" />
                 </div>
@@ -524,7 +509,7 @@ const BrowsePage: React.FC = () => {
                 >
                   Clear all filters
                 </Button>
-              </motion.div>
+              </div>
             )}
           </div>
         </div>

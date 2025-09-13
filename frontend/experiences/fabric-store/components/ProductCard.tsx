@@ -140,7 +140,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <div>
                   <p className="text-2xl font-display font-semibold text-charcoal-800">
                     ${product.pricePerYard.toFixed(2)}
-                    <span className="text-sm text-charcoal-500 font-body font-normal ml-1">
+                    <span className="text-sm text-charcoal-500 font-sans font-normal ml-1">
                       /yard
                     </span>
                   </p>

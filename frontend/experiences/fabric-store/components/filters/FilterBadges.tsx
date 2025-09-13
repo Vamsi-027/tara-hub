@@ -175,7 +175,7 @@ export const FilterBadges: React.FC = () => {
       {/* Header with clear all */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-body font-medium text-navy-700">Active Filters</h3>
+          <h3 className="font-sans font-medium text-navy-700">Active Filters</h3>
           <span className="px-2 py-0.5 bg-navy-800 text-white text-xs rounded-full font-medium">
             {badges.length}
           </span>

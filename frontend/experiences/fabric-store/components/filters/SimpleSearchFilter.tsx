@@ -34,7 +34,7 @@ export const SimpleSearchFilter: React.FC<SimpleSearchFilterProps> = ({ onSearch
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search fabrics by name, SKU, or description..."
           className="w-full h-12 pl-10 pr-10 bg-white border-2 border-warm-300 rounded-xl
-                    font-body placeholder:text-warm-500 text-navy-800
+                    font-sans placeholder:text-warm-500 text-navy-800
                     focus:border-navy-800 focus:ring-0 focus:outline-none
                     hover:border-gold-800 transition-colors duration-200"
         />

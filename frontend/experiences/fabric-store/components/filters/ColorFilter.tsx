@@ -79,7 +79,7 @@ export const ColorFilter: React.FC = () => {
                   key={colorFamily.name}
                   onClick={() => toggleArrayFilter('color_family', colorFamily.name)}
                   className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border
-                             font-body text-sm transition-all duration-200 hover:scale-105
+                             font-sans text-sm transition-all duration-200 hover:scale-105
                              ${isSelected
                                ? 'bg-navy-800 text-white border-navy-800'
                                : 'bg-white text-navy-700 border-warm-300 hover:border-gold-800'

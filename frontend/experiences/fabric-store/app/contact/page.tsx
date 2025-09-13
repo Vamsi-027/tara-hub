@@ -71,7 +71,7 @@ function LuxuryInput({
         onChange={onChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className={`w-full h-14 px-4 pt-6 pb-2 bg-white border-2 rounded-xl font-body
+        className={`w-full h-14 px-4 pt-6 pb-2 bg-white border-2 rounded-xl font-sans
                    transition-all duration-300 outline-none peer
                    ${error 
                      ? 'border-red-300 focus:border-red-500 bg-red-50/30' 
@@ -84,7 +84,7 @@ function LuxuryInput({
       />
       <label
         htmlFor={id}
-        className={`absolute left-4 font-body font-medium transition-all duration-300 pointer-events-none
+        className={`absolute left-4 font-sans font-medium transition-all duration-300 pointer-events-none
                    ${isFocused || hasValue 
                      ? 'top-2 text-xs text-warm-600' 
                      : 'top-1/2 -translate-y-1/2 text-base text-warm-500'
@@ -144,7 +144,7 @@ function LuxuryTextarea({
         onBlur={() => setIsFocused(false)}
         rows={rows}
         maxLength={maxLength}
-        className={`w-full px-4 pt-8 pb-4 bg-white border-2 rounded-xl font-body resize-none
+        className={`w-full px-4 pt-8 pb-4 bg-white border-2 rounded-xl font-sans resize-none
                    transition-all duration-300 outline-none
                    ${error 
                      ? 'border-red-300 focus:border-red-500 bg-red-50/30' 
@@ -156,7 +156,7 @@ function LuxuryTextarea({
       />
       <label
         htmlFor={id}
-        className={`absolute left-4 font-body font-medium transition-all duration-300 pointer-events-none
+        className={`absolute left-4 font-sans font-medium transition-all duration-300 pointer-events-none
                    ${isFocused || hasValue 
                      ? 'top-2 text-xs text-warm-600' 
                      : 'top-6 text-base text-warm-500'
@@ -219,7 +219,7 @@ function LuxurySelect({
         onChange={onChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className={`w-full h-14 px-4 pt-6 pb-2 bg-white border-2 rounded-xl font-body
+        className={`w-full h-14 px-4 pt-6 pb-2 bg-white border-2 rounded-xl font-sans
                    transition-all duration-300 outline-none appearance-none cursor-pointer
                    ${error 
                      ? 'border-red-300 focus:border-red-500 bg-red-50/30' 
@@ -237,7 +237,7 @@ function LuxurySelect({
       </select>
       <label
         htmlFor={id}
-        className={`absolute left-4 font-body font-medium transition-all duration-300 pointer-events-none
+        className={`absolute left-4 font-sans font-medium transition-all duration-300 pointer-events-none
                    ${isFocused || hasValue 
                      ? 'top-2 text-xs text-warm-600' 
                      : 'top-1/2 -translate-y-1/2 text-base text-warm-500'
@@ -292,7 +292,7 @@ function LuxuryInfoCard({
         </div>
         <div className="flex-1">
           <h3 className="font-display text-lg font-medium text-navy-800 mb-2">{title}</h3>
-          <div className="space-y-1 font-body text-warm-700">
+          <div className="space-y-1 font-sans text-warm-700">
             {children}
           </div>
         </div>
@@ -455,14 +455,14 @@ export default function LuxuryContactPage() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Sparkles className="w-6 h-6 text-gold-800" />
-              <span className="text-gold-800 font-body font-medium uppercase tracking-wide text-sm">
+              <span className="text-gold-800 font-sans font-medium uppercase tracking-wide text-sm">
                 Expert Consultation
               </span>
             </div>
             <h1 className="font-display text-4xl md:text-6xl font-semibold mb-4 tracking-tight">
               Get in Touch
             </h1>
-            <p className="text-xl text-navy-100 max-w-2xl mx-auto font-body leading-relaxed">
+            <p className="text-xl text-navy-100 max-w-2xl mx-auto font-sans leading-relaxed">
               Our fabric specialists are here to help you find the perfect textiles 
               for your design vision. Let's create something extraordinary together.
             </p>
@@ -479,7 +479,7 @@ export default function LuxuryContactPage() {
               <h2 className="font-display text-2xl font-semibold text-navy-800 mb-6">
                 Let's Connect
               </h2>
-              <p className="font-body text-warm-700 leading-relaxed">
+              <p className="font-sans text-warm-700 leading-relaxed">
                 Whether you're an interior designer, architect, or fabric enthusiast, 
                 we're here to provide personalized guidance and exceptional service.
               </p>
@@ -520,7 +520,7 @@ export default function LuxuryContactPage() {
                   Our Commitment
                 </h3>
               </div>
-              <ul className="space-y-2 font-body text-navy-700">
+              <ul className="space-y-2 font-sans text-navy-700">
                 <li className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-gold-800 rounded-full" />
                   Personalized fabric recommendations
@@ -548,7 +548,7 @@ export default function LuxuryContactPage() {
                 <h2 className="font-display text-2xl font-semibold text-navy-800 mb-2">
                   Send Us a Message
                 </h2>
-                <p className="font-body text-warm-600">
+                <p className="font-sans text-warm-600">
                   Tell us about your project and we'll help you find the perfect fabrics.
                 </p>
               </div>
@@ -559,10 +559,10 @@ export default function LuxuryContactPage() {
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-body font-semibold text-green-800 mb-1">
+                      <h3 className="font-sans font-semibold text-green-800 mb-1">
                         Message Sent Successfully!
                       </h3>
-                      <p className="font-body text-green-700 text-sm leading-relaxed">
+                      <p className="font-sans text-green-700 text-sm leading-relaxed">
                         {statusMessage}
                       </p>
                     </div>
@@ -575,10 +575,10 @@ export default function LuxuryContactPage() {
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-6 h-6 text-red-600 mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-body font-semibold text-red-800 mb-1">
+                      <h3 className="font-sans font-semibold text-red-800 mb-1">
                         Unable to Send Message
                       </h3>
-                      <p className="font-body text-red-700 text-sm leading-relaxed">
+                      <p className="font-sans text-red-700 text-sm leading-relaxed">
                         {statusMessage}
                       </p>
                     </div>
@@ -659,7 +659,7 @@ export default function LuxuryContactPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`w-full h-14 rounded-xl font-body font-semibold text-lg
+                    className={`w-full h-14 rounded-xl font-sans font-semibold text-lg
                                transition-all duration-300 flex items-center justify-center gap-3
                                shadow-lg hover:shadow-xl disabled:cursor-not-allowed
                                ${isSubmitting
@@ -691,7 +691,7 @@ export default function LuxuryContactPage() {
             <h2 className="font-display text-3xl font-semibold text-navy-800 mb-4">
               Why Designers Choose Us
             </h2>
-            <p className="font-body text-warm-700 max-w-2xl mx-auto">
+            <p className="font-sans text-warm-700 max-w-2xl mx-auto">
               Join thousands of satisfied designers who trust us for their fabric needs.
             </p>
           </div>
@@ -705,7 +705,7 @@ export default function LuxuryContactPage() {
               <h3 className="font-display text-xl font-medium text-navy-800 mb-2">
                 Expert Support
               </h3>
-              <p className="font-body text-warm-700">
+              <p className="font-sans text-warm-700">
                 Dedicated fabric specialists with 15+ years of design experience 
                 provide personalized recommendations.
               </p>
@@ -713,7 +713,7 @@ export default function LuxuryContactPage() {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star key={star} className="w-4 h-4 fill-gold-800 text-gold-800" />
                 ))}
-                <span className="font-body text-sm text-warm-600 ml-2">4.9/5 from 2,400+ reviews</span>
+                <span className="font-sans text-sm text-warm-600 ml-2">4.9/5 from 2,400+ reviews</span>
               </div>
             </div>
 
@@ -725,12 +725,12 @@ export default function LuxuryContactPage() {
               <h3 className="font-display text-xl font-medium text-navy-800 mb-2">
                 Premium Quality
               </h3>
-              <p className="font-body text-warm-700">
+              <p className="font-sans text-warm-700">
                 Curated collection of premium fabrics from renowned mills worldwide, 
                 each piece inspected for exceptional quality.
               </p>
               <div className="mt-3">
-                <span className="bg-gold-100 text-gold-800 px-3 py-1 rounded-full font-body text-sm font-medium">
+                <span className="bg-gold-100 text-gold-800 px-3 py-1 rounded-full font-sans text-sm font-medium">
                   Quality Guaranteed
                 </span>
               </div>
@@ -744,12 +744,12 @@ export default function LuxuryContactPage() {
               <h3 className="font-display text-xl font-medium text-navy-800 mb-2">
                 Rapid Response
               </h3>
-              <p className="font-body text-warm-700">
+              <p className="font-sans text-warm-700">
                 Quick turnaround on samples and inquiries. Most emails answered 
                 within 4 hours during business days.
               </p>
               <div className="mt-3">
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-body text-sm font-medium">
+                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-sans text-sm font-medium">
                   24hr Response Promise
                 </span>
               </div>

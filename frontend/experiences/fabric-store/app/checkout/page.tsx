@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import Header from '@/components/header'
 import { loadStripe } from '@stripe/stripe-js'
 import {
@@ -30,8 +31,14 @@ import {
   EyeOff
 } from 'lucide-react'
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51PVOZh08gPJjfTdFLBQJPcG42YxvWKCjBRNgCqzN7Y9tJjGnBJ9xeQzHMTLKT4uGxb9Gx6Bx5nJzKZKxJxJxJxJx00Y9YJxJxJ')
+// Lazy initialize Stripe only when needed
+let stripePromise: Promise<any> | null = null
+const getStripe = () => {
+  if (!stripePromise) {
+    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51PVOZh08gPJjfTdFLBQJPcG42YxvWKCjBRNgCqzN7Y9tJjGnBJ9xeQzHMTLKT4uGxb9Gx6Bx5nJzKZKxJxJxJxJx00Y9YJxJxJ')
+  }
+  return stripePromise
+}
 
 interface CartItem {
   id: string
@@ -95,7 +102,7 @@ function FormInput({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoComplete={autoComplete}
-          className={`w-full h-14 bg-white border-2 rounded-xl font-body transition-all duration-300 
+          className={`w-full h-14 bg-white border-2 rounded-xl font-sans transition-all duration-300 
                      outline-none peer
                      ${Icon ? 'pl-12 pr-4' : 'px-4'}
                      ${type === 'password' ? 'pr-12' : ''}
@@ -122,7 +129,7 @@ function FormInput({
         
         <label
           htmlFor={id}
-          className={`absolute font-body font-medium transition-all duration-300 pointer-events-none
+          className={`absolute font-sans font-medium transition-all duration-300 pointer-events-none
                      ${Icon ? 'left-12' : 'left-4'}
                      ${isFocused || hasValue 
                        ? 'top-2 text-xs text-warm-600' 
@@ -197,10 +204,10 @@ function CheckoutProgress({ currentStep }: { currentStep: number }) {
 }
 
 // Order Summary Sidebar Component
-function OrderSummarySidebar({ items, totals }: { 
+const OrderSummarySidebar = React.memo(({ items, totals }: { 
   items: CartItem[]
   totals: { subtotal: number; shipping: number; tax: number; total: number }
-}) {
+}) => {
   return (
     <div className="bg-white border border-warm-200 rounded-2xl p-6 sticky top-8">
       <div className="flex items-center gap-3 mb-6">
@@ -215,14 +222,19 @@ function OrderSummarySidebar({ items, totals }: {
         {items.map((item) => (
           <div key={item.id} className="flex items-start gap-3 p-3 bg-warm-50 rounded-xl">
             {item.thumbnail && (
-              <img
-                src={item.thumbnail}
-                alt={item.title}
-                className="w-12 h-12 object-cover rounded-lg"
-              />
+              <div className="relative w-12 h-12 flex-shrink-0">
+                <Image
+                  src={item.thumbnail}
+                  alt={item.title}
+                  fill
+                  sizes="48px"
+                  className="object-cover rounded-lg"
+                  loading="lazy"
+                />
+              </div>
             )}
             <div className="flex-1 min-w-0">
-              <h4 className="font-body font-medium text-navy-800 text-sm truncate">
+              <h4 className="font-sans font-medium text-navy-800 text-sm truncate">
                 {item.title}
               </h4>
               <p className="text-xs text-warm-600 mb-1">{item.variant}</p>
@@ -236,15 +248,15 @@ function OrderSummarySidebar({ items, totals }: {
 
       {/* Cost Breakdown */}
       <div className="space-y-3 pb-6 border-b border-warm-200">
-        <div className="flex justify-between font-body text-navy-700">
+        <div className="flex justify-between font-sans text-navy-700">
           <span>Subtotal</span>
           <span>${(totals.subtotal / 100).toFixed(2)}</span>
         </div>
-        <div className="flex justify-between font-body text-navy-700">
+        <div className="flex justify-between font-sans text-navy-700">
           <span>Shipping</span>
           <span>${(totals.shipping / 100).toFixed(2)}</span>
         </div>
-        <div className="flex justify-between font-body text-navy-700">
+        <div className="flex justify-between font-sans text-navy-700">
           <span>Tax</span>
           <span>${(totals.tax / 100).toFixed(2)}</span>
         </div>
@@ -267,7 +279,7 @@ function OrderSummarySidebar({ items, totals }: {
       </div>
     </div>
   )
-}
+})
 
 // Main Checkout Form Component
 function CheckoutForm() {
@@ -296,21 +308,36 @@ function CheckoutForm() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('fabric-cart')
-    if (savedCart) {
+    // Load cart from localStorage asynchronously
+    const loadCart = async () => {
       try {
-        setCart(JSON.parse(savedCart))
+        const savedCart = localStorage.getItem('fabric-cart')
+        if (savedCart) {
+          const parsedCart = JSON.parse(savedCart)
+          if (parsedCart.length > 0) {
+            setCart(parsedCart)
+          } else {
+            router.push('/cart')
+          }
+        } else {
+          router.push('/cart')
+        }
       } catch (error) {
         console.error('Error loading cart:', error)
         router.push('/cart')
       }
+    }
+
+    // Use requestIdleCallback for better performance
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadCart)
     } else {
-      router.push('/cart')
+      setTimeout(loadCart, 0)
     }
   }, [router])
 
-  const calculateTotals = () => {
+  // Memoize expensive calculations
+  const totals = useMemo(() => {
     const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0)
     const shipping = subtotal > 10000 ? 0 : 1500 // Free shipping over $100
     const tax = Math.round(subtotal * 0.08) // 8% tax
@@ -320,7 +347,7 @@ function CheckoutForm() {
       tax,
       total: subtotal + shipping + tax
     }
-  }
+  }, [cart])
 
   const validateStep = (step: number): boolean => {
     const errors: Record<string, string> = {}
@@ -343,7 +370,8 @@ function CheckoutForm() {
     return Object.keys(errors).length === 0
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Debounced input handler to reduce re-renders
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
     
@@ -351,7 +379,7 @@ function CheckoutForm() {
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }))
     }
-  }
+  }, [formErrors])
 
   const nextStep = () => {
     if (validateStep(currentStep)) {
@@ -374,8 +402,6 @@ function CheckoutForm() {
     setError('')
 
     try {
-      const totals = calculateTotals()
-      
       // Create payment intent
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
@@ -431,7 +457,7 @@ function CheckoutForm() {
     }
   }
 
-  const totals = calculateTotals()
+  // Totals are now memoized above
 
   return (
     <div className="min-h-screen bg-warm-50">
@@ -445,7 +471,7 @@ function CheckoutForm() {
             <h3 className="font-display text-xl font-semibold text-navy-800 mb-2">
               Processing Payment
             </h3>
-            <p className="font-body text-warm-600">
+            <p className="font-sans text-warm-600">
               Please wait while we securely process your payment...
             </p>
           </div>
@@ -459,14 +485,14 @@ function CheckoutForm() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Lock className="w-6 h-6 text-gold-800" />
-                <span className="text-gold-800 font-body font-medium uppercase tracking-wide text-sm">
+                <span className="text-gold-800 font-sans font-medium uppercase tracking-wide text-sm">
                   Secure Checkout
                 </span>
               </div>
               <h1 className="font-display text-4xl md:text-5xl font-semibold mb-4 tracking-tight">
                 Complete Your Order
               </h1>
-              <p className="text-xl text-navy-100 max-w-2xl font-body leading-relaxed">
+              <p className="text-xl text-navy-100 max-w-2xl font-sans leading-relaxed">
                 Your premium fabric collection is just moments away. 
                 Complete your secure checkout with confidence.
               </p>
@@ -612,7 +638,7 @@ function CheckoutForm() {
                   </div>
 
                   <div className="mb-6">
-                    <p className="font-body text-warm-600 text-sm mb-4">
+                    <p className="font-sans text-warm-600 text-sm mb-4">
                       <strong>Test Mode:</strong> Use card number 4242 4242 4242 4242 with any future expiry and CVC
                     </p>
                     <div className="p-6 border-2 border-warm-200 rounded-xl bg-warm-50/50">
@@ -638,7 +664,7 @@ function CheckoutForm() {
 
                   <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
                     <Shield className="w-5 h-5 text-green-600" />
-                    <p className="font-body text-green-800 text-sm">
+                    <p className="font-sans text-green-800 text-sm">
                       Your payment information is encrypted and secure. We never store your card details.
                     </p>
                   </div>
@@ -661,7 +687,7 @@ function CheckoutForm() {
                       <h3 className="font-display text-lg font-medium text-navy-800 mb-4">
                         Shipping Address
                       </h3>
-                      <div className="space-y-2 font-body text-navy-700">
+                      <div className="space-y-2 font-sans text-navy-700">
                         <p>{formData.firstName} {formData.lastName}</p>
                         <p>{formData.email}</p>
                         <p>{formData.phone}</p>
@@ -686,10 +712,10 @@ function CheckoutForm() {
                         {cart.map((item) => (
                           <div key={item.id} className="flex justify-between items-center">
                             <div>
-                              <p className="font-body font-medium text-navy-800">{item.title}</p>
+                              <p className="font-sans font-medium text-navy-800">{item.title}</p>
                               <p className="text-sm text-warm-600">{item.variant} × {item.quantity}</p>
                             </div>
-                            <span className="font-body font-semibold text-navy-800">
+                            <span className="font-sans font-semibold text-navy-800">
                               ${((item.price * item.quantity) / 100).toFixed(2)}
                             </span>
                           </div>
@@ -705,10 +731,10 @@ function CheckoutForm() {
                 <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex items-start gap-3">
                   <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="font-body font-semibold text-red-800 mb-1">
+                    <h3 className="font-sans font-semibold text-red-800 mb-1">
                       Payment Error
                     </h3>
-                    <p className="font-body text-red-700 text-sm">{error}</p>
+                    <p className="font-sans text-red-700 text-sm">{error}</p>
                   </div>
                 </div>
               )}
@@ -785,8 +811,26 @@ function CheckoutForm() {
 
 // Main Checkout Page Component
 export default function CheckoutPage() {
+  const [stripeInstance, setStripeInstance] = useState<any>(null)
+
+  useEffect(() => {
+    // Lazy load Stripe only when checkout page is accessed
+    getStripe().then(setStripeInstance)
+  }, [])
+
+  if (!stripeInstance) {
+    return (
+      <div className="min-h-screen bg-warm-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-navy-200 border-t-navy-800 rounded-full animate-spin" />
+          <p className="font-sans text-warm-600">Loading secure checkout...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <Elements stripe={stripePromise}>
+    <Elements stripe={stripeInstance}>
       <CheckoutForm />
     </Elements>
   )

@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { Grid3X3, List } from 'lucide-react'
 import { FiltersSidebar, ActiveFiltersChips, useFilters, type FilterState } from './FiltersSidebar'
 import { Button } from '@/components/ui/button'
@@ -105,11 +104,7 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
   
   if (viewMode === 'list') {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-6"
-      >
+      <div className="bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-6 animate-fade-in-up">
         <div className="flex gap-6">
           <div className="w-32 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100">
             {imageLoading && (
@@ -168,16 +163,12 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="group bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 overflow-hidden"
-    >
+    <div className="group bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 overflow-hidden animate-fade-in-up">
       <div className="aspect-square overflow-hidden bg-gray-100 relative">
         {imageLoading && (
           <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
@@ -259,7 +250,7 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -335,11 +326,7 @@ export const ModernBrowsePage: React.FC = () => {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
+          <div className="text-center mb-12 animate-fade-in-up">
             <div className="flex items-center justify-center gap-2 mb-4">
               <span className="text-yellow-400 font-medium uppercase tracking-wide text-sm">
                 Curated Collection
@@ -352,7 +339,7 @@ export const ModernBrowsePage: React.FC = () => {
               Explore our meticulously curated selection of premium textiles, 
               each piece chosen for its exceptional quality and timeless elegance.
             </p>
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -411,22 +398,13 @@ export const ModernBrowsePage: React.FC = () => {
                   : 'space-y-6'
               }`}>
                 {filteredFabrics.map((fabric, index) => (
-                  <motion.div
-                    key={fabric.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
+                  <div key={fabric.id} className="animate-fade-in-up" style={{animationDelay: `${index * 100}ms`}}>
                     <FabricCard fabric={fabric} viewMode={viewMode} />
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-16 bg-white rounded-2xl border border-gray-200"
-              >
+              <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 animate-fade-in-up">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                   <Grid3X3 className="w-8 h-8 text-gray-400" />
                 </div>
@@ -445,7 +423,7 @@ export const ModernBrowsePage: React.FC = () => {
                 >
                   Clear all filters
                 </Button>
-              </motion.div>
+              </div>
             )}
           </div>
         </div>

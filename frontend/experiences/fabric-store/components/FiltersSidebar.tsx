@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { 
   X, 
   Search, 
@@ -170,13 +169,11 @@ const FilterContent: React.FC<{
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-3 pb-4"
+              <div 
+                                className="space-y-3 pb-4"
               >
                 {FILTER_DATA.categories.map((category) => (
-                  <motion.div
+                  <div
                     key={category.id}
                     whileHover={{ x: 2 }}
                     className="flex items-center space-x-3"
@@ -196,9 +193,9 @@ const FilterContent: React.FC<{
                         {category.count}
                       </span>
                     </label>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -217,13 +214,11 @@ const FilterContent: React.FC<{
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-3 pb-4"
+              <div 
+                                className="space-y-3 pb-4"
               >
                 {FILTER_DATA.colors.map((color) => (
-                  <motion.div
+                  <div
                     key={color.id}
                     whileHover={{ x: 2 }}
                     className="flex items-center space-x-3"
@@ -249,9 +244,9 @@ const FilterContent: React.FC<{
                         {color.count}
                       </span>
                     </label>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -270,13 +265,11 @@ const FilterContent: React.FC<{
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-3 pb-4"
+              <div 
+                                className="space-y-3 pb-4"
               >
                 {FILTER_DATA.materials.map((material) => (
-                  <motion.div
+                  <div
                     key={material.id}
                     whileHover={{ x: 2 }}
                     className="flex items-center space-x-3"
@@ -296,9 +289,9 @@ const FilterContent: React.FC<{
                         {material.count}
                       </span>
                     </label>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -317,13 +310,11 @@ const FilterContent: React.FC<{
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-3 pb-4"
+              <div 
+                                className="space-y-3 pb-4"
               >
                 {FILTER_DATA.patterns.map((pattern) => (
-                  <motion.div
+                  <div
                     key={pattern.id}
                     whileHover={{ x: 2 }}
                     className="flex items-center space-x-3"
@@ -343,9 +334,9 @@ const FilterContent: React.FC<{
                         {pattern.count}
                       </span>
                     </label>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -364,10 +355,8 @@ const FilterContent: React.FC<{
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="pb-4 space-y-4"
+              <div 
+                                className="pb-4 space-y-4"
               >
                 <div className="px-2">
                   <Slider
@@ -403,7 +392,7 @@ const FilterContent: React.FC<{
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -422,10 +411,8 @@ const FilterContent: React.FC<{
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-3 pb-4"
+              <div 
+                                className="space-y-3 pb-4"
               >
                 {[
                   { id: 'in-stock', label: 'In Stock', count: 156 },
@@ -433,7 +420,7 @@ const FilterContent: React.FC<{
                   { id: 'made-to-order', label: 'Made to Order', count: 89 },
                   { id: 'swatch-available', label: 'Swatch Available', count: 201 }
                 ].map((item) => (
-                  <motion.div
+                  <div
                     key={item.id}
                     whileHover={{ x: 2 }}
                     className="flex items-center space-x-3"
@@ -453,9 +440,9 @@ const FilterContent: React.FC<{
                         {item.count}
                       </span>
                     </label>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -537,7 +524,7 @@ export const ActiveFiltersChips: React.FC<{
   if (activeFilters.length === 0) return null
 
   return (
-    <motion.div 
+    <div 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       className="mb-6"
@@ -557,12 +544,9 @@ export const ActiveFiltersChips: React.FC<{
       </div>
       <div className="flex flex-wrap gap-2">
         {activeFilters.map((filter, index) => (
-          <motion.div
+          <div
             key={`${filter.type}-${filter.value || index}`}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            whileHover={{ scale: 1.05 }}
+                        whileHover={{ scale: 1.05 }}
           >
             <Badge 
               variant="secondary" 
@@ -572,10 +556,10 @@ export const ActiveFiltersChips: React.FC<{
               <span className="mr-1 text-xs">{filter.label}</span>
               <X className="w-3 h-3 ml-1 hover:bg-blue-200 rounded-full p-0.5" />
             </Badge>
-          </motion.div>
+          </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   )
 }
 

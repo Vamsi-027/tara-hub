@@ -46,7 +46,7 @@ export const StockFilter: React.FC = () => {
         
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className={`font-body text-sm transition-colors duration-200
+            <span className={`font-sans text-sm transition-colors duration-200
                            ${filters.in_stock === true ? 'text-navy-800 font-medium' : 'text-navy-700'}`}>
               In Stock Only
             </span>
@@ -89,7 +89,7 @@ export const StockFilter: React.FC = () => {
         
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className={`font-body text-sm transition-colors duration-200
+            <span className={`font-sans text-sm transition-colors duration-200
                            ${filters.swatch_available === true ? 'text-navy-800 font-medium' : 'text-navy-700'}`}>
               Swatch Available
             </span>

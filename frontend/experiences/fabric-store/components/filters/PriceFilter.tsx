@@ -59,7 +59,7 @@ export const PriceFilter: React.FC = () => {
       {/* Price Range Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-body font-medium text-navy-700">Swatch Price Range</span>
+          <span className="font-sans font-medium text-navy-700">Swatch Price Range</span>
           {isFiltered && (
             <div className="w-2 h-2 bg-navy-800 rounded-full" />
           )}
@@ -174,7 +174,7 @@ export const PriceFilter: React.FC = () => {
                 updateFilter('swatch_price_min', value)
               }}
               className="w-full h-9 pl-6 pr-3 bg-white border border-warm-300 rounded-lg
-                        font-body text-sm text-navy-800
+                        font-sans text-sm text-navy-800
                         focus:border-navy-800 focus:ring-0 focus:outline-none
                         hover:border-gold-800 transition-colors duration-200"
             />
@@ -198,7 +198,7 @@ export const PriceFilter: React.FC = () => {
                 updateFilter('swatch_price_max', value)
               }}
               className="w-full h-9 pl-6 pr-3 bg-white border border-warm-300 rounded-lg
-                        font-body text-sm text-navy-800
+                        font-sans text-sm text-navy-800
                         focus:border-navy-800 focus:ring-0 focus:outline-none
                         hover:border-gold-800 transition-colors duration-200"
             />

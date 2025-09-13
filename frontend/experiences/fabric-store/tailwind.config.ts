@@ -10,10 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        'display': ['Playfair Display', 'serif'], // Luxury headings
-        'body': ['Source Sans 3', 'system-ui', 'sans-serif'], // Body text
-        'ui': ['Inter', 'system-ui', 'sans-serif'], // UI elements
-        sans: ['Source Sans 3', 'system-ui', 'sans-serif'], // Default override
+        'inter': ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        'sans': ['var(--font-inter)', 'system-ui', 'sans-serif'], // Default
       },
       fontSize: {
         'display-xl': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],

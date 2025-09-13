@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import Header from '@/components/header'
 import { 
   ShoppingBag, 
@@ -30,7 +31,7 @@ interface CartItem {
 }
 
 // Cart Item Card Component
-function CartItemCard({ 
+const CartItemCard = React.memo(({ 
   item, 
   onUpdateQuantity, 
   onRemove 
@@ -38,16 +39,24 @@ function CartItemCard({
   item: CartItem
   onUpdateQuantity: (id: string, quantity: number) => void
   onRemove: (id: string) => void
-}) {
+}) => {
   const [isRemoving, setIsRemoving] = useState(false)
 
-  const handleRemove = async () => {
+  const handleRemove = useCallback(async () => {
     setIsRemoving(true)
     // Add slight delay for smooth animation
     setTimeout(() => {
       onRemove(item.id)
     }, 200)
-  }
+  }, [item.id, onRemove])
+
+  const handleQuantityChange = useCallback((newQuantity: number) => {
+    onUpdateQuantity(item.id, newQuantity)
+  }, [item.id, onUpdateQuantity])
+
+  const itemTotal = useMemo(() => {
+    return ((item.price * item.quantity) / 100).toFixed(2)
+  }, [item.price, item.quantity])
 
   return (
     <div className={`group bg-white border border-warm-200 rounded-2xl p-6 shadow-sm
@@ -55,15 +64,18 @@ function CartItemCard({
                     ${isRemoving ? 'opacity-50 scale-95' : 'hover:-translate-y-0.5'}`}>
       <div className="flex items-start gap-6">
         {/* Product Image */}
-        <div className="relative flex-shrink-0">
+        <div className="relative flex-shrink-0 w-24 h-24 md:w-32 md:h-32">
           {item.thumbnail ? (
-            <img
+            <Image
               src={item.thumbnail}
               alt={item.title}
-              className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-xl shadow-sm"
+              fill
+              sizes="(max-width: 768px) 96px, 128px"
+              className="object-cover rounded-xl shadow-sm"
+              loading="lazy"
             />
           ) : (
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-warm-100 rounded-xl flex items-center justify-center">
+            <div className="w-full h-full bg-warm-100 rounded-xl flex items-center justify-center">
               <Heart className="w-8 h-8 text-warm-400" />
             </div>
           )}
@@ -84,7 +96,7 @@ function CartItemCard({
           <h3 className="font-display text-xl font-medium text-navy-800 mb-1 truncate">
             {item.title}
           </h3>
-          <p className="font-body text-warm-600 mb-3">
+          <p className="font-sans text-warm-600 mb-3">
             {item.variant}
           </p>
           
@@ -94,8 +106,8 @@ function CartItemCard({
               ${(item.price / 100).toFixed(2)}
             </span>
             {item.quantity > 1 && (
-              <span className="font-body text-warm-500">
-                × {item.quantity} = ${((item.price * item.quantity) / 100).toFixed(2)}
+              <span className="font-sans text-warm-500">
+                × {item.quantity} = ${itemTotal}
               </span>
             )}
           </div>
@@ -118,23 +130,23 @@ function CartItemCard({
           {/* Quantity Selector */}
           {item.type === 'swatch' ? (
             <div className="bg-gold-50 border border-gold-200 rounded-xl px-4 py-2">
-              <span className="font-body text-gold-800 font-medium">Sample</span>
+              <span className="font-sans text-gold-800 font-medium">Sample</span>
             </div>
           ) : (
             <div className="flex items-center bg-warm-50 border border-warm-200 rounded-xl">
               <button
-                onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                onClick={() => handleQuantityChange(item.quantity - 1)}
                 className="p-2 text-navy-600 hover:text-navy-800 hover:bg-warm-100 rounded-l-xl
                           transition-colors duration-200 disabled:opacity-50"
                 disabled={item.quantity <= 1}
               >
                 <Minus className="w-4 h-4" />
               </button>
-              <span className="w-12 text-center font-body font-medium text-navy-800">
+              <span className="w-12 text-center font-sans font-medium text-navy-800">
                 {item.quantity}
               </span>
               <button
-                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                onClick={() => handleQuantityChange(item.quantity + 1)}
                 className="p-2 text-navy-600 hover:text-navy-800 hover:bg-warm-100 rounded-r-xl
                           transition-colors duration-200"
               >
@@ -157,24 +169,24 @@ function CartItemCard({
       </div>
     </div>
   )
-}
+})
 
 // Cart Summary Component
-function CartSummary({ 
+const CartSummary = React.memo(({ 
   items, 
   onCheckout 
 }: { 
   items: CartItem[]
   onCheckout: () => void
-}) {
-  const calculateSubtotal = () => {
-    return items.reduce((total, item) => total + (item.price * item.quantity), 0)
-  }
-
-  const subtotal = calculateSubtotal()
-  const shipping = subtotal > 10000 ? 0 : 1500 // Free shipping over $100
-  const tax = Math.round(subtotal * 0.08) // 8% tax estimate
-  const total = subtotal + shipping + tax
+}) => {
+  const { subtotal, shipping, tax, total } = useMemo(() => {
+    const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0)
+    const shipping = subtotal > 10000 ? 0 : 1500 // Free shipping over $100
+    const tax = Math.round(subtotal * 0.08) // 8% tax estimate
+    const total = subtotal + shipping + tax
+    
+    return { subtotal, shipping, tax, total }
+  }, [items])
 
   return (
     <div className="bg-white border border-warm-200 rounded-2xl p-8 shadow-sm sticky top-8">
@@ -187,7 +199,7 @@ function CartSummary({
 
       {/* Items Count */}
       <div className="flex items-center justify-between mb-6 pb-6 border-b border-warm-200">
-        <span className="font-body text-warm-700">
+        <span className="font-sans text-warm-700">
           {items.length} {items.length === 1 ? 'item' : 'items'} in cart
         </span>
         <div className="flex items-center gap-1 text-sm text-green-600">
@@ -198,12 +210,12 @@ function CartSummary({
 
       {/* Cost Breakdown */}
       <div className="space-y-4 mb-6">
-        <div className="flex justify-between font-body text-navy-700">
+        <div className="flex justify-between font-sans text-navy-700">
           <span>Subtotal</span>
           <span className="font-medium">${(subtotal / 100).toFixed(2)}</span>
         </div>
         
-        <div className="flex justify-between font-body text-navy-700">
+        <div className="flex justify-between font-sans text-navy-700">
           <span>Shipping</span>
           {shipping === 0 ? (
             <div className="flex items-center gap-2">
@@ -215,7 +227,7 @@ function CartSummary({
           )}
         </div>
         
-        <div className="flex justify-between font-body text-navy-700">
+        <div className="flex justify-between font-sans text-navy-700">
           <span>Est. Tax</span>
           <span className="font-medium">${(tax / 100).toFixed(2)}</span>
         </div>
@@ -242,7 +254,7 @@ function CartSummary({
       {/* Checkout Button */}
       <button
         onClick={onCheckout}
-        className="w-full h-14 bg-navy-800 text-white font-body font-semibold text-lg
+        className="w-full h-14 bg-navy-800 text-white font-sans font-semibold text-lg
                   rounded-xl hover:bg-navy-700 hover:-translate-y-0.5 hover:shadow-lg
                   transition-all duration-300 flex items-center justify-center gap-3
                   mb-4 group"
@@ -254,7 +266,7 @@ function CartSummary({
       {/* Continue Shopping */}
       <Link
         href="/browse"
-        className="block w-full text-center py-3 font-body text-navy-600 
+        className="block w-full text-center py-3 font-sans text-navy-600 
                   hover:text-gold-800 transition-colors duration-200"
       >
         Continue Shopping
@@ -277,7 +289,7 @@ function CartSummary({
       </div>
     </div>
   )
-}
+})
 
 // Empty Cart State Component
 function EmptyCart() {
@@ -297,7 +309,7 @@ function EmptyCart() {
         <h2 className="font-display text-3xl font-semibold text-navy-800 mb-4">
           Your Cart is Empty
         </h2>
-        <p className="font-body text-warm-600 text-lg leading-relaxed mb-8">
+        <p className="font-sans text-warm-600 text-lg leading-relaxed mb-8">
           Discover our exquisite collection of premium fabrics and start creating 
           something extraordinary for your next design project.
         </p>
@@ -306,7 +318,7 @@ function EmptyCart() {
         <Link
           href="/browse"
           className="inline-flex items-center gap-3 bg-navy-800 text-white px-8 py-4 
-                    rounded-xl font-body font-semibold text-lg hover:bg-navy-700 
+                    rounded-xl font-sans font-semibold text-lg hover:bg-navy-700 
                     hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
         >
           <Eye className="w-5 h-5" />
@@ -316,14 +328,14 @@ function EmptyCart() {
 
         {/* Popular Categories */}
         <div className="mt-12 pt-8 border-t border-warm-200">
-          <p className="font-body text-warm-600 text-sm mb-4">Popular Categories</p>
+          <p className="font-sans text-warm-600 text-sm mb-4">Popular Categories</p>
           <div className="flex flex-wrap gap-3 justify-center">
             {['Silk', 'Velvet', 'Cotton', 'Linen'].map((category) => (
               <Link
                 key={category}
                 href={`/browse?category=${category.toLowerCase()}`}
                 className="px-4 py-2 bg-white border border-warm-200 rounded-full
-                          font-body text-sm text-navy-700 hover:border-gold-800
+                          font-sans text-sm text-navy-700 hover:border-gold-800
                           hover:text-gold-800 transition-colors duration-200"
               >
                 {category}
@@ -341,41 +353,68 @@ export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Load cart from localStorage on mount
   useEffect(() => {
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('fabric-cart')
-    if (savedCart) {
+    const loadCart = () => {
       try {
-        setCart(JSON.parse(savedCart))
+        const savedCart = localStorage.getItem('fabric-cart')
+        if (savedCart) {
+          const parsedCart = JSON.parse(savedCart)
+          setCart(parsedCart)
+        }
       } catch (error) {
         console.error('Error loading cart:', error)
         localStorage.removeItem('fabric-cart')
+      } finally {
+        setLoading(false)
       }
     }
-    setLoading(false)
+
+    // Use requestIdleCallback for better performance if available
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadCart)
+      } else {
+        setTimeout(loadCart, 0)
+      }
+    }
   }, [])
 
-  const updateQuantity = (id: string, newQuantity: number) => {
+  // Memoize cart update function to prevent re-renders
+  const updateCartInStorage = useCallback((updatedCart: CartItem[]) => {
+    try {
+      localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
+    } catch (error) {
+      console.error('Error saving cart:', error)
+    }
+  }, [])
+
+  const updateQuantity = useCallback((id: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeItem(id)
       return
     }
-    const updatedCart = cart.map(item =>
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    )
-    setCart(updatedCart)
-    localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-  }
+    
+    setCart(prevCart => {
+      const updatedCart = prevCart.map(item =>
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      )
+      updateCartInStorage(updatedCart)
+      return updatedCart
+    })
+  }, [updateCartInStorage])
 
-  const removeItem = (id: string) => {
-    const updatedCart = cart.filter(item => item.id !== id)
-    setCart(updatedCart)
-    localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-  }
+  const removeItem = useCallback((id: string) => {
+    setCart(prevCart => {
+      const updatedCart = prevCart.filter(item => item.id !== id)
+      updateCartInStorage(updatedCart)
+      return updatedCart
+    })
+  }, [updateCartInStorage])
 
-  const handleCheckout = () => {
+  const handleCheckout = useCallback(() => {
     window.location.href = '/checkout'
-  }
+  }, [])
 
   // Loading State
   if (loading) {
@@ -383,7 +422,7 @@ export default function CartPage() {
       <div className="min-h-screen bg-warm-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-navy-200 border-t-navy-800 rounded-full animate-spin" />
-          <p className="font-body text-warm-600">Loading your cart...</p>
+          <p className="font-sans text-warm-600">Loading your cart...</p>
         </div>
       </div>
     )
@@ -410,14 +449,14 @@ export default function CartPage() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <ShoppingCart className="w-6 h-6 text-gold-800" />
-              <span className="text-gold-800 font-body font-medium uppercase tracking-wide text-sm">
+              <span className="text-gold-800 font-sans font-medium uppercase tracking-wide text-sm">
                 Shopping Cart
               </span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-semibold mb-4 tracking-tight">
               Your Cart
             </h1>
-            <p className="text-xl text-navy-100 max-w-2xl mx-auto font-body leading-relaxed">
+            <p className="text-xl text-navy-100 max-w-2xl mx-auto font-sans leading-relaxed">
               Review your selections before checkout. Each fabric has been carefully 
               curated for exceptional quality and design excellence.
             </p>
@@ -436,7 +475,7 @@ export default function CartPage() {
               </h2>
               <Link
                 href="/browse"
-                className="font-body text-navy-600 hover:text-gold-800 transition-colors
+                className="font-sans text-navy-600 hover:text-gold-800 transition-colors
                           flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />

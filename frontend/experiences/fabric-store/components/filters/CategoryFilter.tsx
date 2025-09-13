@@ -34,7 +34,7 @@ export const CategoryFilter: React.FC = () => {
     <div className="space-y-4">
       {/* Category Dropdown */}
       <div>
-        <label className="block font-body font-medium text-navy-700 mb-2">
+        <label className="block font-sans font-medium text-navy-700 mb-2">
           Category
         </label>
         <div className="relative">
@@ -42,7 +42,7 @@ export const CategoryFilter: React.FC = () => {
             value={filters.category || 'All Categories'}
             onChange={(e) => updateFilter('category', e.target.value === 'All Categories' ? '' : e.target.value)}
             className="w-full h-11 pl-4 pr-10 bg-white border-2 border-warm-300 rounded-xl
-                      font-body text-navy-800 appearance-none cursor-pointer
+                      font-sans text-navy-800 appearance-none cursor-pointer
                       focus:border-navy-800 focus:ring-0 focus:outline-none
                       hover:border-gold-800 transition-colors duration-200"
           >
@@ -58,7 +58,7 @@ export const CategoryFilter: React.FC = () => {
 
       {/* Collection Dropdown */}
       <div>
-        <label className="block font-body font-medium text-navy-700 mb-2">
+        <label className="block font-sans font-medium text-navy-700 mb-2">
           Collection
         </label>
         <div className="relative">
@@ -66,7 +66,7 @@ export const CategoryFilter: React.FC = () => {
             value={filters.collection || 'All Collections'}
             onChange={(e) => updateFilter('collection', e.target.value === 'All Collections' ? '' : e.target.value)}
             className="w-full h-11 pl-4 pr-10 bg-white border-2 border-warm-300 rounded-xl
-                      font-body text-navy-800 appearance-none cursor-pointer
+                      font-sans text-navy-800 appearance-none cursor-pointer
                       focus:border-navy-800 focus:ring-0 focus:outline-none
                       hover:border-gold-800 transition-colors duration-200"
           >

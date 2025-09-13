@@ -156,7 +156,7 @@ export default function HeroCarousel() {
                       {slide.headline}
                     </h1>
                     
-                    <p className="font-body text-xl md:text-2xl text-pearl-100/90 mb-10 leading-relaxed 
+                    <p className="font-sans text-xl md:text-2xl text-pearl-100/90 mb-10 leading-relaxed 
                                  animate-fade-in-up animation-delay-400 max-w-2xl">
                       {slide.subtext}
                     </p>

@@ -115,7 +115,7 @@ function LuxuryImageGallery({ images, productName }: { images: string[], product
           {/* Premium Badge */}
           <div className="absolute top-4 left-4">
             <div className="bg-gold-800/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full 
-                           text-sm font-body font-medium flex items-center gap-1 shadow-lg">
+                           text-sm font-sans font-medium flex items-center gap-1 shadow-lg">
               <Sparkles className="w-3 h-3 fill-current" />
               Premium Quality
             </div>
@@ -315,10 +315,10 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
       {/* Brand & Category */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-body font-medium text-gold-800 bg-gold-50 px-3 py-1 rounded-full border border-gold-200">
+          <span className="text-sm font-sans font-medium text-gold-800 bg-gold-50 px-3 py-1 rounded-full border border-gold-200">
             {essentialFields.brand}
           </span>
-          <span className="text-sm font-body text-warm-600">
+          <span className="text-sm font-sans text-warm-600">
             {essentialFields.category}
           </span>
         </div>
@@ -336,11 +336,11 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
             {[1, 2, 3, 4, 5].map((star) => (
               <Star key={star} className="w-5 h-5 fill-gold-800 text-gold-800" />
             ))}
-            <span className="font-body font-medium text-navy-800 ml-2">4.9</span>
-            <span className="font-body text-warm-600 text-sm">(247 reviews)</span>
+            <span className="font-sans font-medium text-navy-800 ml-2">4.9</span>
+            <span className="font-sans text-warm-600 text-sm">(247 reviews)</span>
           </div>
           {fabric.sku && (
-            <span className="font-body text-sm text-warm-600 font-mono bg-warm-100 px-2 py-1 rounded">
+            <span className="font-sans text-sm text-warm-600 font-mono bg-warm-100 px-2 py-1 rounded">
               {fabric.sku}
             </span>
           )}
@@ -350,7 +350,7 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
       {/* Description */}
       {fabric.description && (
         <div className="bg-warm-50 border border-warm-200 rounded-xl p-6">
-          <p className="font-body text-navy-800 leading-relaxed">
+          <p className="font-sans text-navy-800 leading-relaxed">
             {fabric.description}
           </p>
         </div>
@@ -364,8 +364,8 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
               <Award className="w-5 h-5 text-navy-800" />
             </div>
             <div>
-              <div className="font-body text-sm text-warm-600">Material</div>
-              <div className="font-body font-medium text-navy-800">{essentialFields.material}</div>
+              <div className="font-sans text-sm text-warm-600">Material</div>
+              <div className="font-sans font-medium text-navy-800">{essentialFields.material}</div>
             </div>
           </div>
         )}
@@ -375,8 +375,8 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
               <Package className="w-5 h-5 text-navy-800" />
             </div>
             <div>
-              <div className="font-body text-sm text-warm-600">Width</div>
-              <div className="font-body font-medium text-navy-800">{essentialFields.width}</div>
+              <div className="font-sans text-sm text-warm-600">Width</div>
+              <div className="font-sans font-medium text-navy-800">{essentialFields.width}</div>
             </div>
           </div>
         )}
@@ -389,8 +389,8 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
               />
             </div>
             <div>
-              <div className="font-body text-sm text-warm-600">Color</div>
-              <div className="font-body font-medium text-navy-800">{essentialFields.color}</div>
+              <div className="font-sans text-sm text-warm-600">Color</div>
+              <div className="font-sans font-medium text-navy-800">{essentialFields.color}</div>
             </div>
           </div>
         )}
@@ -400,8 +400,8 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
               <Star className="w-5 h-5 text-navy-800" />
             </div>
             <div>
-              <div className="font-body text-sm text-warm-600">Grade</div>
-              <div className="font-body font-medium text-navy-800">Grade {essentialFields.grade}</div>
+              <div className="font-sans text-sm text-warm-600">Grade</div>
+              <div className="font-sans font-medium text-navy-800">Grade {essentialFields.grade}</div>
             </div>
           </div>
         )}
@@ -422,12 +422,12 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
             }`}
           >
             <div className="space-y-2">
-              <div className="font-body font-medium text-navy-800">Swatch Sample</div>
-              <div className="font-body text-sm text-warm-600">4" × 4" sample</div>
+              <div className="font-sans font-medium text-navy-800">Swatch Sample</div>
+              <div className="font-sans text-sm text-warm-600">4" × 4" sample</div>
               <div className="font-display text-xl font-semibold text-navy-800">
                 ${essentialFields.swatchPrice.toFixed(2)}
               </div>
-              <div className={`text-sm font-body font-medium ${
+              <div className={`text-sm font-sans font-medium ${
                 essentialFields.swatchInStock ? 'text-green-600' : 'text-red-600'
               }`}>
                 {essentialFields.swatchInStock ? '✓ In Stock' : '✗ Out of Stock'}
@@ -445,13 +445,13 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
             }`}
           >
             <div className="space-y-2">
-              <div className="font-body font-medium text-navy-800">Full Fabric</div>
-              <div className="font-body text-sm text-warm-600">Minimum 0.5 yards</div>
+              <div className="font-sans font-medium text-navy-800">Full Fabric</div>
+              <div className="font-sans text-sm text-warm-600">Minimum 0.5 yards</div>
               <div className="font-display text-xl font-semibold text-navy-800">
                 ${essentialFields.price.toFixed(2)}
-                <span className="text-sm font-body text-warm-600 font-normal">/yard</span>
+                <span className="text-sm font-sans text-warm-600 font-normal">/yard</span>
               </div>
-              <div className={`text-sm font-body font-medium ${
+              <div className={`text-sm font-sans font-medium ${
                 essentialFields.inStock ? 'text-green-600' : 'text-red-600'
               }`}>
                 {essentialFields.inStock ? '✓ In Stock' : '✗ Out of Stock'}
@@ -464,7 +464,7 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <label className="font-body font-medium text-navy-800">
+              <label className="font-sans font-medium text-navy-800">
                 {selectedVariantType === 'Swatch' ? 'Quantity' : 'Yards'}
               </label>
               <div className="flex items-center border-2 border-warm-300 rounded-lg">
@@ -488,7 +488,7 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
                     const maxValue = selectedVariantType === 'Swatch' ? 10 : 100
                     setQuantity(Math.max(minValue, Math.min(maxValue, value)))
                   }}
-                  className="px-4 py-3 font-body font-medium text-navy-800 text-center border-0 outline-none 
+                  className="px-4 py-3 font-sans font-medium text-navy-800 text-center border-0 outline-none 
                            focus:bg-warm-50 transition-colors min-w-[80px]"
                 />
                 <button
@@ -501,7 +501,7 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
             </div>
             
             <div className="text-right">
-              <div className="font-body text-sm text-warm-600 mb-1">Total Price</div>
+              <div className="font-sans text-sm text-warm-600 mb-1">Total Price</div>
               <div className="font-display text-3xl font-semibold text-navy-800">
                 ${(selectedVariantType === 'Swatch' 
                   ? essentialFields.swatchPrice * quantity
@@ -518,7 +518,7 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
         <button
           onClick={handleAddToCart}
           disabled={selectedVariantType === 'Swatch' ? !essentialFields.swatchInStock : !essentialFields.inStock}
-          className={`w-full py-4 px-6 rounded-xl font-body font-semibold text-lg transition-all duration-300
+          className={`w-full py-4 px-6 rounded-xl font-sans font-semibold text-lg transition-all duration-300
                      flex items-center justify-center gap-3 shadow-lg hover:shadow-xl 
                      disabled:opacity-50 disabled:cursor-not-allowed ${
             addedToCart
@@ -533,7 +533,7 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={handleWishlistToggle}
-            className={`py-3 px-4 rounded-xl font-body font-medium transition-all duration-300
+            className={`py-3 px-4 rounded-xl font-sans font-medium transition-all duration-300
                        flex items-center justify-center gap-2 border-2 ${
               isWishlisted
                 ? 'border-red-300 bg-red-50 text-red-600'
@@ -544,7 +544,7 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
             {isWishlisted ? 'Wishlisted' : 'Add to Wishlist'}
           </button>
 
-          <button className="py-3 px-4 rounded-xl font-body font-medium transition-all duration-300
+          <button className="py-3 px-4 rounded-xl font-sans font-medium transition-all duration-300
                            flex items-center justify-center gap-2 border-2 border-warm-300 text-navy-800 
                            hover:border-gold-800 hover:bg-gold-50">
             <Share2 className="w-4 h-4" />
@@ -558,19 +558,19 @@ function LuxuryProductInfo({ fabric }: { fabric: Fabric }) {
             <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-2">
               <Shield className="w-6 h-6 text-green-600" />
             </div>
-            <div className="font-body text-xs text-warm-600">Quality Guaranteed</div>
+            <div className="font-sans text-xs text-warm-600">Quality Guaranteed</div>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-2">
               <Truck className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="font-body text-xs text-warm-600">Free Shipping $150+</div>
+            <div className="font-sans text-xs text-warm-600">Free Shipping $150+</div>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-2">
               <Phone className="w-6 h-6 text-purple-600" />
             </div>
-            <div className="font-body text-xs text-warm-600">Expert Support</div>
+            <div className="font-sans text-xs text-warm-600">Expert Support</div>
           </div>
         </div>
       </div>
@@ -619,7 +619,7 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-body font-medium 
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-sans font-medium 
                          transition-all duration-300 ${
                 activeTab === tab.id
                   ? 'bg-navy-800 text-white'
@@ -642,7 +642,7 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
             
             {fabric.description && (
               <div className="prose prose-navy max-w-none">
-                <p className="font-body text-navy-800 leading-relaxed text-lg">
+                <p className="font-sans text-navy-800 leading-relaxed text-lg">
                   {fabric.description}
                 </p>
               </div>
@@ -650,12 +650,12 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <h4 className="font-body font-semibold text-navy-800">Key Features</h4>
+                <h4 className="font-sans font-semibold text-navy-800">Key Features</h4>
                 <ul className="space-y-2">
                   {specifications.slice(0, 5).map((spec, index) => (
                     <li key={index} className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-gold-800 rounded-full" />
-                      <span className="font-body text-navy-800">
+                      <span className="font-sans text-navy-800">
                         <strong>{spec.label}:</strong> {spec.value}
                       </span>
                     </li>
@@ -664,8 +664,8 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
               </div>
               
               <div className="bg-warm-50 rounded-xl p-6">
-                <h4 className="font-body font-semibold text-navy-800 mb-4">Why Choose This Fabric?</h4>
-                <ul className="space-y-2 font-body text-navy-800">
+                <h4 className="font-sans font-semibold text-navy-800 mb-4">Why Choose This Fabric?</h4>
+                <ul className="space-y-2 font-sans text-navy-800">
                   <li className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-gold-800" />
                     Premium quality materials
@@ -692,8 +692,8 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {specifications.map((spec, index) => (
                 <div key={index} className="flex items-center justify-between py-3 border-b border-warm-200 last:border-b-0">
-                  <span className="font-body font-medium text-warm-600">{spec.label}</span>
-                  <span className="font-body font-semibold text-navy-800">{spec.value}</span>
+                  <span className="font-sans font-medium text-warm-600">{spec.label}</span>
+                  <span className="font-sans font-semibold text-navy-800">{spec.value}</span>
                 </div>
               ))}
             </div>
@@ -707,9 +707,9 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <h4 className="font-body font-semibold text-navy-800">Care Instructions</h4>
+                <h4 className="font-sans font-semibold text-navy-800">Care Instructions</h4>
                 <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                  <p className="font-body text-green-800 leading-relaxed">
+                  <p className="font-sans text-green-800 leading-relaxed">
                     {(fabric as any).care_instructions || (fabric as any).cleaning || 
                      'Professional cleaning recommended. Avoid direct sunlight for extended periods. Handle with care to maintain fabric integrity.'}
                   </p>
@@ -717,25 +717,25 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
               </div>
               
               <div className="space-y-4">
-                <h4 className="font-body font-semibold text-navy-800">Maintenance Tips</h4>
+                <h4 className="font-sans font-semibold text-navy-800">Maintenance Tips</h4>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
                       <span className="text-blue-600 text-xs font-bold">1</span>
                     </div>
-                    <span className="font-body text-navy-800">Regular vacuuming to remove dust and debris</span>
+                    <span className="font-sans text-navy-800">Regular vacuuming to remove dust and debris</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
                       <span className="text-blue-600 text-xs font-bold">2</span>
                     </div>
-                    <span className="font-body text-navy-800">Rotate cushions regularly for even wear</span>
+                    <span className="font-sans text-navy-800">Rotate cushions regularly for even wear</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
                       <span className="text-blue-600 text-xs font-bold">3</span>
                     </div>
-                    <span className="font-body text-navy-800">Address spills immediately with appropriate methods</span>
+                    <span className="font-sans text-navy-800">Address spills immediately with appropriate methods</span>
                   </li>
                 </ul>
               </div>
@@ -754,7 +754,7 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
                     <Star key={star} className="w-5 h-5 fill-gold-800 text-gold-800" />
                   ))}
                 </div>
-                <span className="font-body font-semibold text-navy-800">4.9 out of 5</span>
+                <span className="font-sans font-semibold text-navy-800">4.9 out of 5</span>
               </div>
             </div>
 
@@ -783,12 +783,12 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
                 <div key={index} className="bg-warm-50 border border-warm-200 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-navy-800 rounded-full flex items-center justify-center text-white font-body font-bold">
+                      <div className="w-10 h-10 bg-navy-800 rounded-full flex items-center justify-center text-white font-sans font-bold">
                         {review.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-body font-medium text-navy-800">{review.name}</div>
-                        <div className="font-body text-sm text-warm-600">{review.date}</div>
+                        <div className="font-sans font-medium text-navy-800">{review.name}</div>
+                        <div className="font-sans text-sm text-warm-600">{review.date}</div>
                       </div>
                     </div>
                     <div className="flex items-center">
@@ -799,13 +799,13 @@ function LuxuryProductTabs({ fabric }: { fabric: Fabric }) {
                       ))}
                     </div>
                   </div>
-                  <p className="font-body text-navy-800 leading-relaxed">{review.review}</p>
+                  <p className="font-sans text-navy-800 leading-relaxed">{review.review}</p>
                 </div>
               ))}
             </div>
 
             <div className="text-center">
-              <button className="bg-navy-800 text-white px-8 py-3 rounded-xl font-body font-medium 
+              <button className="bg-navy-800 text-white px-8 py-3 rounded-xl font-sans font-medium 
                                hover:bg-navy-700 transition-colors">
                 Load More Reviews
               </button>
@@ -838,7 +838,7 @@ function LuxuryRecommendations({ currentFabric }: { currentFabric: Fabric }) {
         <h2 className="font-display text-3xl font-semibold text-navy-800">You May Also Like</h2>
         <Link
           href="/browse"
-          className="font-body font-medium text-navy-800 hover:text-gold-800 transition-colors 
+          className="font-sans font-medium text-navy-800 hover:text-gold-800 transition-colors 
                    flex items-center gap-2"
         >
           View All
@@ -874,7 +874,7 @@ function LuxuryRecommendations({ currentFabric }: { currentFabric: Fabric }) {
                 {fabric.in_stock && (
                   <div className="absolute top-3 left-3">
                     <span className="bg-green-600/90 backdrop-blur-sm text-white px-2 py-1 rounded-full 
-                                   text-xs font-body font-medium">
+                                   text-xs font-sans font-medium">
                       In Stock
                     </span>
                   </div>
@@ -882,7 +882,7 @@ function LuxuryRecommendations({ currentFabric }: { currentFabric: Fabric }) {
               </div>
               
               <div className="p-5">
-                <p className="font-body text-xs font-medium text-warm-600 uppercase tracking-wide mb-2">
+                <p className="font-sans text-xs font-medium text-warm-600 uppercase tracking-wide mb-2">
                   {essentialFields.brand}
                 </p>
                 <h3 className="font-display font-medium text-navy-800 mb-3 line-clamp-2 group-hover:text-navy-900">
@@ -892,7 +892,7 @@ function LuxuryRecommendations({ currentFabric }: { currentFabric: Fabric }) {
                   <div className="font-display text-xl font-semibold text-navy-800">
                     ${essentialFields.price.toFixed(2)}
                   </div>
-                  <div className="font-body text-sm text-warm-600">per yard</div>
+                  <div className="font-sans text-sm text-warm-600">per yard</div>
                 </div>
               </div>
             </div>
@@ -918,7 +918,7 @@ export default function LuxuryProductDetailPage() {
         <div className="pt-24 flex items-center justify-center min-h-[60vh]">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 border-3 border-navy-800 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="font-body text-navy-800">Loading fabric details...</p>
+            <p className="font-sans text-navy-800">Loading fabric details...</p>
           </div>
         </div>
       </div>
@@ -935,10 +935,10 @@ export default function LuxuryProductDetailPage() {
               <X className="w-8 h-8 text-red-500" />
             </div>
             <h2 className="font-display text-2xl font-semibold text-navy-800">Fabric Not Found</h2>
-            <p className="font-body text-warm-600">The fabric you're looking for doesn't exist or has been removed.</p>
+            <p className="font-sans text-warm-600">The fabric you're looking for doesn't exist or has been removed.</p>
             <button
               onClick={() => router.push('/browse')}
-              className="bg-navy-800 text-white px-6 py-3 rounded-xl font-body font-medium 
+              className="bg-navy-800 text-white px-6 py-3 rounded-xl font-sans font-medium 
                        hover:bg-navy-700 transition-colors"
             >
               Browse All Fabrics
@@ -962,7 +962,7 @@ export default function LuxuryProductDetailPage() {
       {/* Breadcrumb */}
       <div className="bg-white border-b border-warm-200 pt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-2 font-body text-sm text-warm-600">
+          <div className="flex items-center gap-2 font-sans text-sm text-warm-600">
             <Link href="/" className="hover:text-navy-800 transition-colors">Home</Link>
             <span>/</span>
             <Link href="/browse" className="hover:text-navy-800 transition-colors">Browse</Link>
@@ -998,7 +998,7 @@ export default function LuxuryProductDetailPage() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-warm-200 p-4 shadow-xl z-30">
         <div className="flex items-center gap-4">
           <div className="flex-1 text-center">
-            <div className="font-body text-sm text-warm-600">Starting at</div>
+            <div className="font-sans text-sm text-warm-600">Starting at</div>
             <div className="font-display text-lg font-semibold text-navy-800">
               ${(fabric.swatch_price || 5).toFixed(2)}
             </div>
@@ -1025,7 +1025,7 @@ export default function LuxuryProductDetailPage() {
               localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
               window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
             }}
-            className="flex-1 bg-navy-800 text-white py-3 px-6 rounded-xl font-body font-semibold
+            className="flex-1 bg-navy-800 text-white py-3 px-6 rounded-xl font-sans font-semibold
                      hover:bg-navy-700 transition-colors flex items-center justify-center gap-2"
           >
             <ShoppingCart className="w-4 h-4" />

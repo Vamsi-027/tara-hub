@@ -154,15 +154,15 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
             <FilterSection title="Attributes" sectionKey="attributes">
               <div className="space-y-6">
                 <div>
-                  <h4 className="font-body font-medium text-navy-700 mb-3">Pattern</h4>
+                  <h4 className="font-sans font-medium text-navy-700 mb-3">Pattern</h4>
                   <PatternFilter />
                 </div>
                 <div>
-                  <h4 className="font-body font-medium text-navy-700 mb-3">Usage</h4>
+                  <h4 className="font-sans font-medium text-navy-700 mb-3">Usage</h4>
                   <UsageFilter />
                 </div>
                 <div>
-                  <h4 className="font-body font-medium text-navy-700 mb-3">Material</h4>
+                  <h4 className="font-sans font-medium text-navy-700 mb-3">Material</h4>
                   <CompositionFilter />
                 </div>
               </div>
@@ -182,7 +182,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
         <div className="lg:hidden p-4 border-t border-warm-200 bg-white">
           <button
             onClick={onClose}
-            className="w-full bg-navy-800 text-white py-3 px-6 rounded-xl font-body 
+            className="w-full bg-navy-800 text-white py-3 px-6 rounded-xl font-sans 
                       font-semibold hover:bg-navy-700 transition-colors duration-300
                       flex items-center justify-center gap-2"
           >
