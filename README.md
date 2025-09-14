@@ -1,11 +1,6 @@
 # Tara Hub - Fabric Marketplace Platform
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://tara-hub.vercel.app)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-
-## 🚀 Overview
-
-A sophisticated multi-tenant fabric marketplace built with Next.js 15, Clean Architecture backend, and enterprise-grade patterns.
+Production-ready Next.js 15 fabric marketplace with MedusaJS v2 backend.
 
 ## ✨ Features
 
