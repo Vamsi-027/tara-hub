@@ -1,7 +1,9 @@
 import { ExecArgs } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
-import FabricProductModuleService, { FabricProductType } from "../src/modules/fabric_products/service"
+import FabricProductModuleService from "../src/modules/fabric_products/service"
+
+type FabricProductType = "standard" | "custom"
 
 /**
  * Setup script to create example products for fabric selection types
@@ -92,14 +94,14 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
     
     // Configure for fabric selection
     await fabricProductService.createConfigurableFabricProduct(
-      customCurtainProduct.result.products[0].id,
+      (customCurtainProduct.result as any).products[0].id,
       {
         category_filter: "Drapery", // Only show drapery fabrics
         base_price: 0 // Price calculated from variant + fabric
       }
     )
     
-    logger.info(`✅ Created: ${customCurtainProduct.result.products[0].title}`)
+    logger.info(`✅ Created: ${(customCurtainProduct.result as any).products[0].title}`)
 
     // ============================================================================
     // TYPE 2: Fixed Fabric Product (Uses standard product + fabric-details)
@@ -139,28 +141,28 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
               sku: "PILLOW-VEL-16-CO",
               options: { Size: "16x16", Insert: "Cover Only" },
               prices: [{ amount: 3500, currency_code: "usd" }],
-              inventory_quantity: 50
+              // inventory_quantity: 50
             },
             {
               title: "16x16 / With Insert",
               sku: "PILLOW-VEL-16-WI",
               options: { Size: "16x16", Insert: "With Insert" },
               prices: [{ amount: 4500, currency_code: "usd" }],
-              inventory_quantity: 30
+              // inventory_quantity: 30
             },
             {
               title: "20x20 / Cover Only",
               sku: "PILLOW-VEL-20-CO",
               options: { Size: "20x20", Insert: "Cover Only" },
               prices: [{ amount: 4500, currency_code: "usd" }],
-              inventory_quantity: 40
+              // inventory_quantity: 40
             },
             {
               title: "20x20 / With Insert",
               sku: "PILLOW-VEL-20-WI",
               options: { Size: "20x20", Insert: "With Insert" },
               prices: [{ amount: 5500, currency_code: "usd" }],
-              inventory_quantity: 25
+              // inventory_quantity: 25
             }
           ],
           
@@ -170,8 +172,8 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
     })
     
     // Add fabric details using fabric-details module
-    await fabricDetailsService.create({
-      product_id: velvetPillowProduct.result.products[0].id,
+    await (fabricDetailsService as any).create({
+      product_id: (velvetPillowProduct.result as any).products[0].id,
       composition: "100% Polyester Velvet",
       color: "Emerald",
       color_family: "Green",
@@ -187,7 +189,7 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
       }
     })
     
-    logger.info(`✅ Created: ${velvetPillowProduct.result.products[0].title} (Standard Product)`)
+    logger.info(`✅ Created: ${(velvetPillowProduct.result as any).products[0].title} (Standard Product)`)
 
     // ============================================================================
     // TYPE 3: Configurable Swatch Set (User selects multiple fabrics)
@@ -215,7 +217,7 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
               title: "5 Swatch Set",
               sku: "SWATCH-SET-5",
               prices: [{ amount: 1000, currency_code: "usd" }], // $10 for 5 swatches
-              inventory_quantity: 999 // Virtually unlimited
+              // inventory_quantity: 999 // Virtually unlimited
             }
           ],
           
@@ -226,7 +228,7 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
     
     // Configure for multiple fabric selection
     await fabricProductService.createConfigurableSwatchSetProduct(
-      swatchSetProduct.result.products[0].id,
+      (swatchSetProduct.result as any).products[0].id,
       {
         min_selections: 5,
         max_selections: 5,
@@ -235,7 +237,7 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
       }
     )
     
-    logger.info(`✅ Created: ${swatchSetProduct.result.products[0].title}`)
+    logger.info(`✅ Created: ${(swatchSetProduct.result as any).products[0].title}`)
 
     // ============================================================================
     // TYPE 4: Fixed Swatch Product (Standard product representing a set)
@@ -276,7 +278,7 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
               title: "Cotton Swatch Set",
               sku: "SWATCH-COTTON-SET",
               prices: [{ amount: 2500, currency_code: "usd" }], // $25 for the set
-              inventory_quantity: 100
+              // inventory_quantity: 100
             }
           ],
           
@@ -286,8 +288,8 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
     })
     
     // Add fabric details for the collection
-    await fabricDetailsService.create({
-      product_id: cottonSwatchProduct.result.products[0].id,
+    await (fabricDetailsService as any).create({
+      product_id: (cottonSwatchProduct.result as any).products[0].id,
       composition: "100% Cotton (various weaves)",
       collection: "Cotton Essentials",
       properties: {
@@ -301,7 +303,7 @@ export default async function setupFabricProductExamples({ container }: ExecArgs
       }
     })
     
-    logger.info(`✅ Created: ${cottonSwatchProduct.result.products[0].title} (Standard Product)`)
+    logger.info(`✅ Created: ${(cottonSwatchProduct.result as any).products[0].title} (Standard Product)`)
 
     // ============================================================================
     // Summary

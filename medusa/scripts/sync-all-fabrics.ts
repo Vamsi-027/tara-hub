@@ -140,7 +140,7 @@ export default async function syncAllFabrics({ container }: ExecArgs) {
     }
 
     // Summary
-    logger.info("=" * 50)
+    logger.info("=".repeat(50))
     logger.info("🎉 Sync completed!")
     logger.info(`✨ Created: ${created} products`)
     logger.info(`✏️  Updated: ${updated} products`)

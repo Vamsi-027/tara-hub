@@ -27,7 +27,7 @@ export async function POST(
   
   try {
     // Extract fabric data from request
-    const { fabric } = req.body
+    const { fabric } = req.body as any
     
     if (!fabric) {
       return res.status(400).json({

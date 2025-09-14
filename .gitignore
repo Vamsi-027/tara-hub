@@ -80,3 +80,6 @@ dev.logs/
 
 # Reference code
 code-reference/
+
+# Deployment tokens (never commit)
+.env.deployment.local

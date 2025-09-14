@@ -65,7 +65,7 @@ class FabricProductModuleService extends MedusaService({
    * Configure a product for fabric selection
    */
   async configureFabricProduct(data: CreateFabricProductDTO) {
-    const config = await this.createFabricProductConfig(data)
+    const config = await this.createFabricProductConfigs([data])
     return config
   }
 
@@ -247,7 +247,7 @@ class FabricProductModuleService extends MedusaService({
       const fabric = fabricResult.rows[0]
       
       // Create selection record
-      await this.createOrderFabricSelection({
+      await this.createOrderFabricSelections([{
         order_id: orderId,
         line_item_id: lineItemId,
         product_id: productId,
@@ -266,7 +266,7 @@ class FabricProductModuleService extends MedusaService({
           swatch_image_url: fabric.swatch_image_url
         },
         selection_index: selection.selection_index || (i + 1)
-      })
+      }])
     }
   }
 
@@ -341,18 +341,18 @@ class FabricProductModuleService extends MedusaService({
       min_order_quantity?: number
     }
   ) {
-    const existing = await this.listFabricProductAvailability({
+    const existing = await this.listFabricProductAvailabilities({
       where: { product_id: productId, fabric_id: fabricId }
     })
 
     if (existing.length > 0) {
-      return this.updateFabricProductAvailability(existing[0].id, options)
+      return this.updateFabricProductAvailabilities([{id: existing[0].id, ...options}])
     } else {
-      return this.createFabricProductAvailability({
+      return this.createFabricProductAvailabilities([{
         product_id: productId,
         fabric_id: fabricId,
         ...options
-      })
+      }])
     }
   }
 
@@ -370,7 +370,7 @@ class FabricProductModuleService extends MedusaService({
    * Helper: Get fabric availability for products
    */
   private async getFabricAvailability(productId: string, fabricIds: string[]) {
-    return this.listFabricProductAvailability({
+    return this.listFabricProductAvailabilities({
       where: { 
         product_id: productId,
         fabric_id: { $in: fabricIds }

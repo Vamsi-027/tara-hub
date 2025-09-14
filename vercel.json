@@ -1,0 +1,25 @@
+{
+  "name": "tara-hub-admin",
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_MEDUSA_BACKEND_URL": "@medusa_backend_url",
+      "DATABASE_URL": "@database_url",
+      "POSTGRES_URL": "@postgres_url",
+      "POSTGRES_URL_NON_POOLING": "@postgres_url_non_pooling",
+      "NEXTAUTH_SECRET": "@nextauth_secret",
+      "GOOGLE_CLIENT_ID": "@google_client_id",
+      "GOOGLE_CLIENT_SECRET": "@google_client_secret",
+      "RESEND_API_KEY": "@resend_api_key",
+      "RESEND_FROM_EMAIL": "@resend_from_email"
+    }
+  }
+}

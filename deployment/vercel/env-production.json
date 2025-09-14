@@ -1,0 +1,76 @@
+{
+  "env": {
+    "NEXT_PUBLIC_MEDUSA_BACKEND_URL": {
+      "value": "https://medusa-backend-production-3655.up.railway.app",
+      "type": "plain"
+    },
+    "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY": {
+      "value": "@fabric_store_medusa_publishable_key",
+      "type": "secret"
+    },
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": {
+      "value": "@fabric_store_stripe_publishable_key",
+      "type": "secret"
+    },
+    "STRIPE_SECRET_KEY": {
+      "value": "@fabric_store_stripe_secret_key",
+      "type": "secret"
+    },
+    "RESEND_API_KEY": {
+      "value": "@fabric_store_resend_api_key",
+      "type": "secret"
+    },
+    "RESEND_FROM_EMAIL": {
+      "value": "Tara Hub Admin <admin@deepcrm.ai>",
+      "type": "plain"
+    },
+    "TWILIO_ACCOUNT_SID": {
+      "value": "@fabric_store_twilio_account_sid",
+      "type": "secret"
+    },
+    "TWILIO_AUTH_TOKEN": {
+      "value": "@fabric_store_twilio_auth_token",
+      "type": "secret"
+    },
+    "TWILIO_PHONE_NUMBER": {
+      "value": "@fabric_store_twilio_phone_number",
+      "type": "secret"
+    },
+    "NEXT_PUBLIC_SANITY_PROJECT_ID": {
+      "value": "d1t5dcup",
+      "type": "plain"
+    },
+    "NEXT_PUBLIC_SANITY_DATASET": {
+      "value": "production",
+      "type": "plain"
+    },
+    "SANITY_API_TOKEN": {
+      "value": "@fabric_store_sanity_api_token",
+      "type": "secret"
+    },
+    "JWT_SECRET": {
+      "value": "@fabric_store_jwt_secret",
+      "type": "secret"
+    },
+    "GOOGLE_CLIENT_ID": {
+      "value": "@fabric_store_google_client_id",
+      "type": "secret"
+    },
+    "GOOGLE_CLIENT_SECRET": {
+      "value": "@fabric_store_google_client_secret",
+      "type": "secret"
+    },
+    "NEXT_PUBLIC_APP_NAME": {
+      "value": "Fabric Store",
+      "type": "plain"
+    },
+    "NEXT_PUBLIC_BASE_URL": {
+      "value": "https://fabric-store.vercel.app",
+      "type": "plain"
+    },
+    "NODE_ENV": {
+      "value": "production",
+      "type": "plain"
+    }
+  }
+}

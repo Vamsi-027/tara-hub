@@ -11,7 +11,7 @@ import { Client } from "pg"
  */
 export default async function syncMaterialsFromFabrics({ container }: ExecArgs) {
   const logger = container.resolve("logger")
-  const materialsService = container.resolve("materialsModuleService")
+  const materialsService = container.resolve("materialsModuleService") as any
   
   logger.info("🔄 Starting materials sync from admin fabrics...")
   
@@ -63,14 +63,14 @@ export default async function syncMaterialsFromFabrics({ container }: ExecArgs) 
           }
         } catch (e) {
           // If not valid JSON, try parsing as string
-          const materials = materialsService.parseMaterialNames(fabric.fiber_content)
+          const materials = (materialsService as any).parseMaterialNames(fabric.fiber_content)
           materials.forEach(m => allMaterials.add(m))
         }
       }
       
       // Also check composition field (text description)
       if (fabric.composition) {
-        const materials = materialsService.parseMaterialNames(fabric.composition)
+        const materials = (materialsService as any).parseMaterialNames(fabric.composition)
         materials.forEach(m => allMaterials.add(m))
       }
     }

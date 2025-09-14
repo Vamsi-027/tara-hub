@@ -1,0 +1,16 @@
+{
+  "name": "fabric-store",
+  "projectId": "prj_1Z6WNwHAxrLIylgChrHnLVJGQvNw",
+  "framework": "nextjs",
+  "rootDirectory": "frontend/experiences/fabric-store",
+  "outputDirectory": ".next",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "public": false,
+  "github": {
+    "enabled": true,
+    "autoAlias": true
+  }
+}
