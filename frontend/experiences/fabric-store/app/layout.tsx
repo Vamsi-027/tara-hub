@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   title: 'Custom Fabric Designs - Premium Fabric Collections',
   description: 'Discover exquisite fabric collections from our curated selection of premium textiles. Perfect for discerning interior designers and premium home projects.',
   keywords: 'custom fabric designs, premium fabrics, premium textiles, designer fabrics, fabric samples, upholstery, interior design, home decor, fabric swatches',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  themeColor: '#ffffff',
 }
 
 export default function RootLayout({
@@ -25,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="font-inter antialiased" suppressHydrationWarning>
+      <body className="font-inter antialiased bg-white" suppressHydrationWarning>
         <AuthSessionProvider>
           {children}
         </AuthSessionProvider>
