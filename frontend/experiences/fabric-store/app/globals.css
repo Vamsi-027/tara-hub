@@ -2,37 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent flash of unstyled content on mobile */
-html {
-  background-color: #ffffff;
-}
-
-body {
-  background-color: #ffffff;
-  min-height: 100vh;
-}
-
 @layer base {
   :root {
-    /* Enhanced luxury color palette - Mobile optimized */
-    --background: 255 255 255; /* Pure white for mobile */
+    /* Enhanced luxury color palette */
+    --background: 248 248 246; /* pearl-100 */
     --foreground: 44 44 44; /* charcoal-800 */
-    --card: 255 255 255; /* Pure white */
+    --card: 253 252 252; /* pearl-50 */
     --card-foreground: 44 44 44;
-    --popover: 255 255 255;
+    --popover: 253 252 252;
     --popover-foreground: 44 44 44;
     --primary: 44 44 44; /* charcoal-800 */
-    --primary-foreground: 255 255 255;
-    --secondary: 245 245 245; /* Neutral gray instead of champagne */
+    --primary-foreground: 248 248 246;
+    --secondary: 245 245 245; /* neutral gray instead of champagne */
     --secondary-foreground: 44 44 44;
-    --muted: 245 245 245; /* Neutral gray */
+    --muted: 243 243 241; /* pearl-200 */
     --muted-foreground: 107 107 107; /* charcoal-500 */
     --accent: 139 38 53; /* burgundy-600 */
-    --accent-foreground: 255 255 255;
+    --accent-foreground: 248 248 246;
     --destructive: 194 56 80; /* burgundy-500 */
-    --destructive-foreground: 255 255 255;
-    --border: 229 229 229; /* Neutral border */
-    --input: 229 229 229;
+    --destructive-foreground: 248 248 246;
+    --border: 238 238 236; /* pearl-300 */
+    --input: 238 238 236;
     --ring: 139 38 53; /* burgundy-600 */
     --radius: 0.75rem;
   }
