@@ -65,18 +65,24 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     console.log(`🎯 Creating fabric order for ${email}`)
 
-    // Get order service
-    const orderService = req.scope.resolve("orderService")
-    const customerService = req.scope.resolve("customerService")
-    const regionService = req.scope.resolve("regionService")
+    // Get order service - using Medusa v2 module system
+    const orderModuleService = req.scope.resolve("order")
+    const customerModuleService = req.scope.resolve("customer")
+    const regionModuleService = req.scope.resolve("region")
 
     // Get or create customer
     let customer
     try {
-      customer = await customerService.retrieveByEmail(email)
+      // Try to find existing customer by email
+      const customers = await customerModuleService.listCustomers({ email: email })
+      customer = customers.length > 0 ? customers[0] : null
     } catch (error) {
+      customer = null
+    }
+
+    if (!customer) {
       // Customer doesn't exist, create one
-      customer = await customerService.create({
+      customer = await customerModuleService.createCustomers({
         email,
         first_name: shipping.firstName,
         last_name: shipping.lastName || '',
@@ -86,7 +92,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // Get default region (US)
-    const regions = await regionService.list()
+    const regions = await regionModuleService.listRegions()
     const region = regions.find(r => r.currency_code === 'usd') || regions[0]
 
     if (!region) {
@@ -162,8 +168,8 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       }
     }
 
-    // Create the order
-    const order = await orderService.create(orderData)
+    // Create the order using Medusa v2 order module
+    const order = await orderModuleService.createOrders(orderData)
 
     console.log(`✅ Order created successfully: ${order.id}`)
     console.log(`📧 Customer: ${email}`)
@@ -212,8 +218,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     console.log(`📋 Retrieving orders for: ${email}`)
 
-    // Get order service
-    const orderService = req.scope.resolve("orderService")
+    // Get order service - using Medusa v2 module system
+    const orderModuleService = req.scope.resolve("order")
 
     // Build filter
     const filters: any = { email: email }
@@ -222,8 +228,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // Get orders
-    const orders = await orderService.list(filters, {
-      relations: ["items", "shipping_address", "billing_address", "customer"],
+    const { data: orders } = await orderModuleService.listAndCountOrders(filters, {
+      relations: ["items", "shipping_address", "billing_address"],
       take: parseInt(limit),
       skip: parseInt(offset),
       order: { created_at: "DESC" }

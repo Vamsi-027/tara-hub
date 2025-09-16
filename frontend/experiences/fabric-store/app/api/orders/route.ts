@@ -1,240 +1,304 @@
+/**
+ * Orders API Route
+ * Production-ready API endpoint for order management
+ * Uses Medusa backend with fallback to local storage
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
-import { getOrderStorage } from '../../../lib/order-storage'
-import { withCors } from '../../../lib/cors'
+import { orderService, OrderStatus } from '@/lib/services/order.service'
+import { withCors } from '@/lib/cors'
+import { z } from 'zod'
 
-// Get persistent order storage
-const orderStorage = getOrderStorage()
+// Request validation schemas
+const GetOrdersQuerySchema = z.object({
+  id: z.string().optional(),
+  email: z.string().email().optional(),
+  status: z.nativeEnum(OrderStatus).optional(),
+  limit: z.coerce.number().min(1).max(100).optional().default(50),
+  offset: z.coerce.number().min(0).optional().default(0),
+})
 
+const CreateOrderBodySchema = z.object({
+  orderId: z.string().optional(),
+  email: z.string().email(),
+  items: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    sku: z.string(),
+    color: z.string(),
+    price: z.number(),
+    quantity: z.number().min(1),
+    image: z.string().optional(),
+  })).min(1),
+  shipping: z.object({
+    firstName: z.string().min(1),
+    lastName: z.string().optional(),
+    email: z.string().email().optional(),
+    phone: z.string().optional(),
+    address: z.string().min(1),
+    city: z.string().min(1),
+    state: z.string().min(1),
+    zipCode: z.string().min(1),
+    country: z.string().optional(),
+  }),
+  total: z.number().min(0),
+  paymentIntentId: z.string().optional(),
+  status: z.nativeEnum(OrderStatus).optional().default(OrderStatus.PENDING),
+})
+
+const UpdateOrderBodySchema = z.object({
+  orderId: z.string(),
+  status: z.nativeEnum(OrderStatus).optional(),
+  notes: z.string().optional(),
+  tracking: z.string().optional(),
+})
+
+/**
+ * GET /api/orders
+ * Retrieve orders by ID, email, or status
+ */
 async function handleGET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const orderId = searchParams.get('id')
-    const email = searchParams.get('email')
-    const status = searchParams.get('status')
-    
-    // Get all orders or filter by criteria
-    let filteredOrders = orderStorage.getAll()
-    
-    if (orderId) {
-      const order = orderStorage.get(orderId)
-      return NextResponse.json(order || null)
-    }
-    
-    if (email) {
-      filteredOrders = filteredOrders.filter(order => 
-        order.email?.toLowerCase() === email.toLowerCase()
-      )
-    }
-    
-    if (status) {
-      filteredOrders = filteredOrders.filter(order => 
-        order.status === status
-      )
-    }
-    
-    // Sort by date (newest first)
-    filteredOrders.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-    
-    return NextResponse.json({
-      orders: filteredOrders,
-      total: filteredOrders.length,
-      stats: orderStorage.getStats()
+
+    // Parse and validate query parameters
+    const query = GetOrdersQuerySchema.parse({
+      id: searchParams.get('id') || undefined,
+      email: searchParams.get('email') || undefined,
+      status: searchParams.get('status') || undefined,
+      limit: searchParams.get('limit') || undefined,
+      offset: searchParams.get('offset') || undefined,
     })
+
+    // Get single order by ID
+    if (query.id) {
+      const order = await orderService.getOrder(query.id)
+
+      if (!order) {
+        return NextResponse.json(
+          { error: 'Order not found' },
+          { status: 404 }
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        order,
+      })
+    }
+
+    // Get orders by email
+    if (query.email) {
+      const orders = await orderService.getOrdersByEmail(query.email)
+
+      // Apply status filter if provided
+      const filteredOrders = query.status
+        ? orders.filter(order => order.status === query.status)
+        : orders
+
+      // Apply pagination
+      const paginatedOrders = filteredOrders.slice(
+        query.offset,
+        query.offset + query.limit
+      )
+
+      return NextResponse.json({
+        success: true,
+        orders: paginatedOrders,
+        total: filteredOrders.length,
+        limit: query.limit,
+        offset: query.offset,
+        hasMore: query.offset + query.limit < filteredOrders.length,
+      })
+    }
+
+    // Return error if no filter provided
+    return NextResponse.json(
+      { error: 'Please provide either an order ID or email address' },
+      { status: 400 }
+    )
   } catch (error) {
     console.error('Error fetching orders:', error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request parameters', details: error.errors },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Failed to fetch orders' },
+      { error: 'Failed to fetch orders', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
 }
 
+/**
+ * POST /api/orders
+ * Create a new order
+ */
 async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { 
-      orderId, 
-      email, 
-      items, 
-      shipping, 
-      total, 
-      paymentIntentId,
-      status = 'pending' 
-    } = body
-    
-    // Create order object
-    const order = {
-      id: orderId || `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      email,
-      items: items || [],
-      shipping: shipping || {},
-      totals: {
-        subtotal: items?.reduce((sum: number, item: any) => 
-          sum + (item.price * item.quantity), 0) || 0,
-        shipping: 1000, // $10 flat rate
-        tax: 0,
-        total: total || 0
+
+    // Validate request body
+    const validated = CreateOrderBodySchema.parse(body)
+
+    // Add email to shipping if not provided
+    if (!validated.shipping.email) {
+      validated.shipping.email = validated.email
+    }
+
+    // Create order
+    const order = await orderService.createOrder({
+      email: validated.email,
+      items: validated.items,
+      shipping: {
+        ...validated.shipping,
+        email: validated.shipping.email || validated.email,
+        lastName: validated.shipping.lastName || '',
+        phone: validated.shipping.phone || '',
+        country: validated.shipping.country || 'US',
       },
-      paymentIntentId,
-      status,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      notes: [],
-      timeline: [
-        {
-          status: 'created',
-          timestamp: new Date().toISOString(),
-          message: 'Order created'
-        }
-      ]
-    }
-    
-    // Calculate tax
-    order.totals.tax = Math.round(order.totals.subtotal * 0.08)
-    if (!order.totals.total) {
-      order.totals.total = order.totals.subtotal + order.totals.shipping + order.totals.tax
-    }
-    
-    // Store order in file storage (backup)
-    orderStorage.set(order.id, order)
-    
-    // Also store order in Medusa database using authentication-free endpoint
-    try {
-      const medusaResponse = await fetch('http://localhost:9000/fabric-db', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderId: order.id,
-          email: order.email,
-          items: order.items,
-          shipping: order.shipping,
-          totals: order.totals,
-          paymentIntentId: order.paymentIntentId,
-          status: order.status
-        })
-      })
-      
-      if (medusaResponse.ok) {
-        const medusaData = await medusaResponse.json()
-        console.log(`✅ Order stored in database: ${order.id}`)
-        
-        // Add database storage info to timeline
-        order.timeline.push({
-          status: 'database_stored',
-          timestamp: new Date().toISOString(),
-          message: 'Order stored in database'
-        })
-        
-        // Update file storage with database confirmation
-        orderStorage.set(order.id, order)
-      } else {
-        console.error('❌ Failed to store order in database, using file storage only')
-        order.timeline.push({
-          status: 'database_error',
-          timestamp: new Date().toISOString(),
-          message: 'Database storage failed, using file backup'
-        })
-        orderStorage.set(order.id, order)
-      }
-    } catch (dbError) {
-      console.error('❌ Database connection error:', dbError)
-      order.timeline.push({
-        status: 'database_error',
-        timestamp: new Date().toISOString(),
-        message: 'Database connection failed, using file backup'
-      })
-      orderStorage.set(order.id, order)
-    }
-    
-    console.log(`📦 Order processed: ${order.id}`)
+      paymentIntentId: validated.paymentIntentId,
+      total: validated.total,
+    })
+
+    // Log order creation
+    console.log(`📦 Order created successfully`)
+    console.log(`   Order ID: ${order.id}`)
     console.log(`   Customer: ${order.email}`)
     console.log(`   Items: ${order.items.length}`)
     console.log(`   Total: $${(order.totals.total / 100).toFixed(2)}`)
-    console.log(`   Storage: File ✅ ${order.timeline.some(t => t.status === 'database_stored') ? 'Database ✅' : 'Database ❌'}`)
-    
+
     return NextResponse.json({
       success: true,
       order,
-      storage: {
-        file: true,
-        database: order.timeline.some(t => t.status === 'database_stored')
-      }
+      message: 'Order created successfully',
     })
   } catch (error) {
     console.error('Error creating order:', error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: error.errors },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Failed to create order' },
+      { error: 'Failed to create order', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
 }
 
+/**
+ * PUT /api/orders
+ * Update an existing order
+ */
 async function handlePUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { orderId, status, notes, tracking } = body
-    
+
+    // Validate request body
+    const validated = UpdateOrderBodySchema.parse(body)
+
+    // Get existing order
+    const existingOrder = await orderService.getOrder(validated.orderId)
+    if (!existingOrder) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      )
+    }
+
+    let updatedOrder = existingOrder
+
+    // Update status if provided
+    if (validated.status) {
+      updatedOrder = await orderService.updateOrderStatus(
+        validated.orderId,
+        validated.status
+      ) || existingOrder
+    }
+
+    // Add tracking if provided
+    if (validated.tracking) {
+      updatedOrder = await orderService.addTracking(
+        validated.orderId,
+        validated.tracking
+      ) || updatedOrder
+    }
+
+    // Add notes if provided
+    if (validated.notes) {
+      updatedOrder.notes = updatedOrder.notes || []
+      updatedOrder.notes.push({
+        text: validated.notes,
+        timestamp: new Date().toISOString(),
+      })
+    }
+
+    return NextResponse.json({
+      success: true,
+      order: updatedOrder,
+      message: 'Order updated successfully',
+    })
+  } catch (error) {
+    console.error('Error updating order:', error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: error.errors },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to update order', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * DELETE /api/orders
+ * Cancel an order
+ */
+async function handleDELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const orderId = searchParams.get('id')
+
     if (!orderId) {
       return NextResponse.json(
         { error: 'Order ID is required' },
         { status: 400 }
       )
     }
-    
-    const order = orderStorage.get(orderId)
-    if (!order) {
+
+    // Update order status to cancelled
+    const cancelledOrder = await orderService.updateOrderStatus(orderId, OrderStatus.CANCELLED)
+
+    if (!cancelledOrder) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
       )
     }
-    
-    // Prepare updates
-    const updates: any = {}
-    
-    if (status && status !== order.status) {
-      updates.status = status
-      if (!order.timeline) order.timeline = []
-      order.timeline.push({
-        status,
-        timestamp: new Date().toISOString(),
-        message: `Status changed to ${status}`
-      })
-    }
-    
-    if (notes) {
-      if (!order.notes) order.notes = []
-      order.notes.push({
-        text: notes,
-        timestamp: new Date().toISOString()
-      })
-    }
-    
-    if (tracking) {
-      updates.tracking = tracking
-      if (!order.timeline) order.timeline = []
-      order.timeline.push({
-        status: 'shipped',
-        timestamp: new Date().toISOString(),
-        message: `Tracking number added: ${tracking}`
-      })
-    }
-    
-    // Update order in storage
-    const updatedOrder = orderStorage.update(orderId, { ...updates, timeline: order.timeline, notes: order.notes })
-    
+
     return NextResponse.json({
       success: true,
-      order: updatedOrder
+      order: cancelledOrder,
+      message: 'Order cancelled successfully',
     })
   } catch (error) {
-    console.error('Error updating order:', error)
+    console.error('Error cancelling order:', error)
+
     return NextResponse.json(
-      { error: 'Failed to update order' },
+      { error: 'Failed to cancel order', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
@@ -242,11 +306,12 @@ async function handlePUT(request: NextRequest) {
 
 // Export wrapped handlers with CORS
 export const GET = withCors(handleGET)
-export const POST = withCors(handlePOST) 
+export const POST = withCors(handlePOST)
 export const PUT = withCors(handlePUT)
+export const DELETE = withCors(handleDELETE)
 
 // Handle preflight OPTIONS requests
-export async function OPTIONS(request: Request) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

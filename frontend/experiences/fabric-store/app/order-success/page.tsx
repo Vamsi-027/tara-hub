@@ -24,6 +24,11 @@ function OrderSuccessContent() {
       // Get email from URL params or localStorage
       const email = emailParam || localStorage.getItem('order-email') || 'customer@example.com'
 
+      // Save email for orders page
+      if (email && email !== 'customer@example.com') {
+        localStorage.setItem('customer-email', email)
+      }
+
       // Get order data from localStorage
       const orderDataStr = localStorage.getItem('order-data')
       const orderData = orderDataStr ? JSON.parse(orderDataStr) : null
