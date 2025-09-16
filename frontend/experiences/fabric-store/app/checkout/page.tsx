@@ -32,7 +32,7 @@ import {
   UserCheck,
   LogIn
 } from 'lucide-react'
-import { useSession, signIn, SessionProvider } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 
 // Lazy initialize Stripe only when needed
 let stripePromise: Promise<any> | null = null
@@ -998,10 +998,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <SessionProvider>
-      <Elements stripe={stripeInstance}>
-        <CheckoutForm />
-      </Elements>
-    </SessionProvider>
+    <Elements stripe={stripeInstance}>
+      <CheckoutForm />
+    </Elements>
   )
 }
