@@ -23,11 +23,11 @@ function OrderSuccessContent() {
     try {
       // Get email from URL params or localStorage
       const email = emailParam || localStorage.getItem('order-email') || 'customer@example.com'
-      
+
       // Get order data from localStorage
       const orderDataStr = localStorage.getItem('order-data')
       const orderData = orderDataStr ? JSON.parse(orderDataStr) : null
-      
+
       const response = await fetch('/api/send-order-confirmation', {
         method: 'POST',
         headers: {
@@ -37,7 +37,8 @@ function OrderSuccessContent() {
           orderId,
           paymentIntentId,
           email,
-          orderData
+          orderData,
+          sendReceipt: true // Send both order confirmation and payment receipt
         })
       })
       
@@ -77,8 +78,8 @@ function OrderSuccessContent() {
               <div className="flex items-center">
                 <CheckCircle className="h-5 w-5 mr-2" />
                 <div>
-                  <p className="font-medium">Email Confirmation Sent!</p>
-                  <p className="text-sm mt-1">Check your email for order details. If you don't see it, check your spam folder.</p>
+                  <p className="font-medium">Emails Sent Successfully!</p>
+                  <p className="text-sm mt-1">We've sent you an order confirmation and payment receipt. Check your inbox (or spam folder).</p>
                 </div>
               </div>
             </div>
@@ -87,8 +88,8 @@ function OrderSuccessContent() {
               <div className="flex items-center">
                 <Mail className="h-5 w-5 mr-2 animate-pulse" />
                 <div>
-                  <p className="font-medium">Sending Confirmation Email...</p>
-                  <p className="text-sm mt-1">We're sending your order details to your email address.</p>
+                  <p className="font-medium">Sending Confirmation Emails...</p>
+                  <p className="text-sm mt-1">We're sending your order confirmation and payment receipt to your email.</p>
                 </div>
               </div>
             </div>
@@ -99,7 +100,7 @@ function OrderSuccessContent() {
             <div className="text-left">
               <p className="font-medium">Email Status</p>
               <p className="text-sm text-gray-600">
-                {emailSent ? '✅ Confirmation sent successfully' : '⏳ Processing...'}
+                {emailSent ? '✅ Order confirmation & receipt sent' : '⏳ Processing emails...'}
               </p>
               {emailParam && (
                 <p className="text-xs text-gray-500 mt-1">Sent to: {decodeURIComponent(emailParam)}</p>

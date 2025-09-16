@@ -513,9 +513,23 @@ function CheckoutForm() {
       if (result.error) {
         setError(result.error.message || 'Payment failed')
       } else {
-        // Success - clear cart and redirect
+        // Success - save order data for email and clear cart
+        const orderData = {
+          items: cart,
+          shipping: formData,
+          email: formData.email,
+          total: totals.total
+        }
+
+        // Save order data and email for the success page
+        localStorage.setItem('order-data', JSON.stringify(orderData))
+        localStorage.setItem('order-email', formData.email)
+
+        // Clear cart
         localStorage.removeItem('fabric-cart')
-        router.push(`/order-success?order_id=${orderId}&payment_intent=${result.paymentIntent.id}`)
+
+        // Redirect to success page with order details
+        router.push(`/order-success?order_id=${orderId}&payment_intent=${result.paymentIntent.id}&email=${encodeURIComponent(formData.email)}`)
       }
 
     } catch (err) {
