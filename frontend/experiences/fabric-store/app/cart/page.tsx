@@ -481,7 +481,10 @@ export default function CartPage() {
   const updateCartInStorage = useCallback((updatedCart: CartItem[]) => {
     try {
       localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-      window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+      // Defer the event dispatch to avoid state updates during render
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+      }, 0)
     } catch (error) {
       console.error('Error saving cart:', error)
     }

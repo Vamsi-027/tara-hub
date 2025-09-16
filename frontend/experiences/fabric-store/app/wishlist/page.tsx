@@ -91,7 +91,10 @@ export default function WishlistPage() {
     localStorage.setItem('fabric-wishlist', JSON.stringify(updatedIds))
     localStorage.setItem('fabric-wishlist-meta', JSON.stringify(updatedWishlist))
 
-    window.dispatchEvent(new CustomEvent('wishlist-updated'))
+    // Defer event dispatch to avoid state updates during render
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('wishlist-updated'))
+    }, 0)
     setNotification({ message: 'Removed from wishlist', type: 'success' })
     setRemovingId(null)
 
@@ -151,7 +154,10 @@ export default function WishlistPage() {
     localStorage.setItem('fabric-wishlist', JSON.stringify(updatedIds))
     localStorage.setItem('fabric-wishlist-meta', JSON.stringify(updatedWishlist))
 
-    window.dispatchEvent(new CustomEvent('wishlist-updated'))
+    // Defer event dispatch to avoid state updates during render
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('wishlist-updated'))
+    }, 0)
     setSelectedItems([])
   }
 

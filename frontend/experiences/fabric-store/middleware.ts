@@ -76,7 +76,8 @@ export async function middleware(request: NextRequest) {
   })
 
   // Protected paths that require authentication
-  const protectedPaths = ['/checkout', '/cart', '/wishlist', '/admin', '/order-success']
+  // Removed /checkout, /cart, /wishlist to allow guest access
+  const protectedPaths = ['/admin']
   const isProtectedPath = protectedPaths.some(p => path === p || path.startsWith(p + '/'))
 
   // If accessing protected path without auth, redirect to signin
