@@ -1,0 +1,112 @@
+[
+  {
+    "id": "CHK-001",
+    "title": "Idempotent Checkout & Payments",
+    "objective": "Zero duplicate orders/charges through payment reliability",
+    "evidence": "/frontend/experiences/fabric-store/app/checkout/ - No idempotency handling in checkout flow",
+    "effort": "S",
+    "rice": 400,
+    "owner": "Engineering",
+    "exit_criteria": "Idempotency keys on all payment endpoints, webhook verification",
+    "metrics": "99.9% payment success rate, zero duplicate orders on retry"
+  },
+  {
+    "id": "CHN-001",
+    "title": "Sales Channels as Tenant Boundary",
+    "objective": "Multi-partner data isolation through sales channel enforcement",
+    "evidence": "/medusa/src/api/ - No channel scoping in API routes",
+    "effort": "M",
+    "rice": 380,
+    "owner": "Engineering",
+    "exit_criteria": "Channel-specific catalogs live, cross-channel data leakage tests pass",
+    "metrics": "Zero cross-channel data leakage, channel-scoped admin roles"
+  },
+  {
+    "id": "R2-001",
+    "title": "Cloudflare R2 File Service",
+    "objective": "Production-ready media pipeline with signed URLs and optimization",
+    "evidence": "/medusa/medusa-config.ts:100-124 - Basic R2 setup, no signed URLs or optimization",
+    "effort": "M",
+    "rice": 360,
+    "owner": "Engineering",
+    "exit_criteria": "All media uploaded/read via R2, background image optimization active",
+    "metrics": "50% faster image loads, 99% transform success rate"
+  },
+  {
+    "id": "PRC-001",
+    "title": "B2B Pricing via Price Lists",
+    "objective": "Tiered pricing for partners through customer groups and price lists",
+    "evidence": "/medusa/src/modules/fabric_details/ - Static pricing only, no price lists",
+    "effort": "M",
+    "rice": 340,
+    "owner": "Product",
+    "exit_criteria": "Group-based pricing visible and honored in cart/checkout",
+    "metrics": "25% margin improvement, tiered pricing operational"
+  },
+  {
+    "id": "INV-001",
+    "title": "Inventory with Stock Locations & Reservations",
+    "objective": "Oversell prevention through proper inventory management",
+    "evidence": "/medusa/medusa-config.ts - No inventory module configuration",
+    "effort": "L",
+    "rice": 320,
+    "owner": "Engineering",
+    "exit_criteria": "Reservation leak tests pass, auto-release on timeout/cancel",
+    "metrics": "Zero oversell in sandbox load test, proper reservation handling"
+  },
+  {
+    "id": "OBS-001",
+    "title": "Observability v1",
+    "objective": "Production monitoring with structured logs and SLO dashboards",
+    "evidence": "Console logging throughout codebase, no structured logging or metrics",
+    "effort": "M",
+    "rice": 300,
+    "owner": "DevOps",
+    "exit_criteria": "P95 add-to-cart <150ms, checkout write P95 <900ms for 7 days",
+    "metrics": "99.5% uptime, correlation IDs, error tracking operational"
+  },
+  {
+    "id": "PRM-001",
+    "title": "Promotions/Discounts Engine Hardening",
+    "objective": "Advanced discount rules with stacking and exclusions",
+    "evidence": "Basic discount functionality, no advanced promotion rules",
+    "effort": "M",
+    "rice": 280,
+    "owner": "Product",
+    "exit_criteria": "Promotion matrix test suite green, no double-discount defects",
+    "metrics": "Stacking rules operational, scheduled promotions working"
+  },
+  {
+    "id": "FUL-001",
+    "title": "Fulfillment Provider Abstraction",
+    "objective": "Shipping integration with returns/claims workflow",
+    "evidence": "Manual fulfillment only, no shipping provider integration",
+    "effort": "L",
+    "rice": 260,
+    "owner": "Engineering",
+    "exit_criteria": "Return→exchange success path verified, labels generated",
+    "metrics": "Automated shipping labels, return workflow operational"
+  },
+  {
+    "id": "SFR-001",
+    "title": "Storefront Data-Fetching Discipline",
+    "objective": "Performance optimization through proper SSR/ISR and caching",
+    "evidence": "/frontend/experiences/fabric-store/ - Mixed SSR/CSR patterns, image optimization disabled",
+    "effort": "M",
+    "rice": 240,
+    "owner": "Engineering",
+    "exit_criteria": "Lighthouse Perf ≥ 90 on PDP/PLP, TTFB within SLO",
+    "metrics": "PDP schema markup, proper cache keys, graceful error handling"
+  },
+  {
+    "id": "SEC-001",
+    "title": "Security & Secrets Hygiene",
+    "objective": "Production security through proper secret management and validation",
+    "evidence": "/medusa/medusa-config.ts - Hardcoded secrets, limited input validation",
+    "effort": "S",
+    "rice": 220,
+    "owner": "DevOps",
+    "exit_criteria": "Baseline security scan clean, pen-test checklist items closed",
+    "metrics": "CORS strict, input validation, rate limits, secret scanning clean"
+  }
+]

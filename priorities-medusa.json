@@ -1,0 +1,112 @@
+[
+  {
+    "id": "1",
+    "title": "Cloudflare R2 File Service",
+    "objective": "Configure S3 driver for R2 (endpoint, credentials, forcePathStyle), signed URLs, background image optimization",
+    "evidence": "/medusa/medusa-config.ts - Basic S3 integration exists but missing advanced features",
+    "effort": "M",
+    "rice": 350,
+    "owner": "Engineering",
+    "exit_criteria": "All media uploaded/read via R2, PDP/LCP image sizes optimized",
+    "metrics": "50% image load time reduction, 99% transform success"
+  },
+  {
+    "id": "2",
+    "title": "Idempotent Checkout & Payments",
+    "objective": "Enforce idempotency on cart, payment, order routes; verify webhooks; retries with backoff; DLQ",
+    "evidence": "/frontend/experiences/fabric-store/app/api/create-payment-intent/route.ts - Stripe payment intents exist but no idempotency keys",
+    "effort": "M",
+    "rice": 320,
+    "owner": "Engineering",
+    "exit_criteria": "Zero duplicate orders on retry; payment reconciliation job green for 7 days",
+    "metrics": "99.9% checkout success rate, 0 payment failures"
+  },
+  {
+    "id": "3",
+    "title": "Sales Channels as Tenant Boundary",
+    "objective": "Model partners as sales channels; enforce channel scoping across catalog/cart/order; admin role guards",
+    "evidence": "/medusa/medusa-config.ts - No multi-tenancy implementation found",
+    "effort": "M",
+    "rice": 300,
+    "owner": "Product",
+    "exit_criteria": "Cross-channel data leakage tests pass; channel-specific catalogs live",
+    "metrics": "100% schema coverage with tenant_id, 0 cross-tenant data access"
+  },
+  {
+    "id": "4",
+    "title": "B2B Pricing via Price Lists & Customer Groups",
+    "objective": "Tiered pricing rules; attach to channels/groups; API coverage on PLP/PDP",
+    "evidence": "/medusa/src/modules/fabric_products - Basic pricing exists but no rule engine",
+    "effort": "M",
+    "rice": 280,
+    "owner": "Product",
+    "exit_criteria": "Group-based pricing visible and honored in cart/checkout",
+    "metrics": "95% pricing accuracy, 15% improved margins"
+  },
+  {
+    "id": "5",
+    "title": "Inventory with Stock Locations & Reservations",
+    "objective": "Prevent oversell; pick/pack flows; auto-release reservations on timeout/cancel",
+    "evidence": "/medusa/src/api/store/fabric-orders - No stock location or reservation system",
+    "effort": "M",
+    "rice": 260,
+    "owner": "Engineering",
+    "exit_criteria": "Reservation leak tests pass; zero oversell in sandbox load test",
+    "metrics": "99.9% inventory accuracy, 0 oversell incidents"
+  },
+  {
+    "id": "6",
+    "title": "Promotions/Discounts Engine Hardening",
+    "objective": "Stacking rules, exclusions, schedule windows, affiliate codes",
+    "evidence": "/medusa/src/modules - No promotion or discount handling",
+    "effort": "M",
+    "rice": 240,
+    "owner": "Product",
+    "exit_criteria": "Promotion matrix test suite green; no double-discount defects",
+    "metrics": "99% promo application accuracy, 0 stacking conflicts"
+  },
+  {
+    "id": "7",
+    "title": "Fulfillment Provider Abstraction",
+    "objective": "Normalize shipping options/rates; returns/claims workflows cover exchanges",
+    "evidence": "/frontend/experiences/fabric-store/app/checkout - Manual shipping only with hard-coded $10 rate",
+    "effort": "M",
+    "rice": 220,
+    "owner": "Engineering",
+    "exit_criteria": "Return→exchange success path verified; labels generated",
+    "metrics": "95% fulfillment success rate, 48h average processing time"
+  },
+  {
+    "id": "8",
+    "title": "Observability v1",
+    "objective": "Structured logs, correlation IDs, error tracking; dashboards for cart add, checkout, webhook P95, error rate",
+    "evidence": "/medusa/src/subscribers - Console logging only",
+    "effort": "M",
+    "rice": 200,
+    "owner": "DevOps",
+    "exit_criteria": "P95 dashboards operational",
+    "metrics": "P95 add-to-cart < 150ms; checkout write P95 < 900ms for last 7 days"
+  },
+  {
+    "id": "9",
+    "title": "Storefront Data-Fetching Discipline",
+    "objective": "SSR/ISR where appropriate; cache keys; avoid over-fetch; graceful errors; PDP schema markup",
+    "evidence": "/frontend/experiences/fabric-store/app/browse - Some over-fetching observed",
+    "effort": "L",
+    "rice": 180,
+    "owner": "Frontend",
+    "exit_criteria": "Lighthouse Perf ≥ 90 on PDP/PLP; TTFB within SLO",
+    "metrics": "TTFB < 200ms P95, hydration < 500ms"
+  },
+  {
+    "id": "10",
+    "title": "Security & Secrets Hygiene",
+    "objective": "CORS strict, input validation, rate limits; secret scanning; environment separation",
+    "evidence": "/medusa/medusa-config.ts - Basic CORS and auth configuration",
+    "effort": "L",
+    "rice": 160,
+    "owner": "Security",
+    "exit_criteria": "Baseline security scan clean; pen-test checklist items closed",
+    "metrics": "0 critical vulnerabilities, 95% security scan pass rate"
+  }
+]
