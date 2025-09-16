@@ -52,14 +52,14 @@ interface CartItem {
 }
 
 // Input Component with floating labels
-function FormInput({ 
-  id, 
-  name, 
-  type = 'text', 
-  value, 
-  onChange, 
-  placeholder, 
-  required = false, 
+function FormInput({
+  id,
+  name,
+  type = 'text',
+  value,
+  onChange,
+  placeholder,
+  required = false,
   error,
   icon: Icon,
   className = '',
@@ -90,7 +90,7 @@ function FormInput({
       <div className="relative">
         {Icon && (
           <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-            <Icon className="w-5 h-5 text-warm-500" />
+            <Icon className="w-5 h-5 text-gray-500" />
           </div>
         )}
         <input
@@ -102,38 +102,38 @@ function FormInput({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoComplete={autoComplete}
-          className={`w-full h-14 bg-white border-2 rounded-xl font-sans transition-all duration-300 
+          className={`w-full h-14 bg-white border-2 rounded-lg font-sans transition-all duration-200
                      outline-none peer
                      ${Icon ? 'pl-12 pr-4' : 'px-4'}
                      ${type === 'password' ? 'pr-12' : ''}
                      ${isFocused || hasValue ? 'pt-6 pb-2' : 'py-4'}
-                     ${error 
-                       ? 'border-red-300 focus:border-red-500 bg-red-50/30' 
-                       : 'border-warm-300 focus:border-navy-800 hover:border-gold-800'
+                     ${error
+                       ? 'border-red-300 focus:border-red-500 bg-red-50/30'
+                       : 'border-gray-200 focus:border-blue-600 hover:border-gray-300'
                      }`}
           placeholder=""
           required={required}
           aria-describedby={error ? `${id}-error` : undefined}
         />
-        
+
         {type === 'password' && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-500 hover:text-navy-800
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700
                       transition-colors duration-200"
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         )}
-        
+
         <label
           htmlFor={id}
           className={`absolute font-sans font-medium transition-all duration-300 pointer-events-none
                      ${Icon ? 'left-12' : 'left-4'}
-                     ${isFocused || hasValue 
-                       ? 'top-2 text-xs text-warm-600' 
-                       : 'top-1/2 -translate-y-1/2 text-base text-warm-500'
+                     ${isFocused || hasValue
+                       ? 'top-2 text-xs text-gray-600'
+                       : 'top-1/2 -translate-y-1/2 text-base text-gray-500'
                      }
                      ${error ? 'text-red-500' : ''}`}
         >
@@ -160,7 +160,7 @@ function CheckoutProgress({ currentStep }: { currentStep: number }) {
   ]
 
   return (
-    <div className="bg-white border border-warm-200 rounded-2xl p-6 mb-8">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8 shadow-sm">
       <div className="flex items-center justify-between">
         {steps.map((step, index) => {
           const Icon = step.icon
@@ -173,11 +173,11 @@ function CheckoutProgress({ currentStep }: { currentStep: number }) {
               <div className="flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center
                                transition-all duration-300
-                               ${isCompleted 
-                                 ? 'bg-green-100 border-green-500 text-green-600' 
+                               ${isCompleted
+                                 ? 'bg-green-50 border-green-500 text-green-600'
                                  : isActive
-                                 ? 'bg-gold-100 border-gold-800 text-gold-800'
-                                 : 'bg-warm-100 border-warm-300 text-warm-500'
+                                 ? 'bg-blue-50 border-blue-600 text-blue-600'
+                                 : 'bg-gray-50 border-gray-300 text-gray-400'
                                }`}>
                   {isCompleted ? (
                     <CheckCircle className="w-6 h-6" />
@@ -186,14 +186,14 @@ function CheckoutProgress({ currentStep }: { currentStep: number }) {
                   )}
                 </div>
                 <span className={`mt-2 text-sm font-medium
-                               ${isActive ? 'text-gold-800' : 'text-warm-600'}`}>
+                               ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>
                   {step.name}
                 </span>
               </div>
-              
+
               {index < steps.length - 1 && (
                 <div className={`flex-1 h-0.5 mx-4 transition-all duration-300
-                               ${step.id < currentStep ? 'bg-green-500' : 'bg-warm-200'}`} />
+                               ${step.id < currentStep ? 'bg-green-500' : 'bg-gray-200'}`} />
               )}
             </React.Fragment>
           )
@@ -204,23 +204,23 @@ function CheckoutProgress({ currentStep }: { currentStep: number }) {
 }
 
 // Order Summary Sidebar Component
-const OrderSummarySidebar = React.memo(({ items, totals }: { 
+const OrderSummarySidebar = React.memo(({ items, totals }: {
   items: CartItem[]
   totals: { subtotal: number; shipping: number; tax: number; total: number }
 }) => {
   return (
-    <div className="bg-white border border-warm-200 rounded-2xl p-6 sticky top-8">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 sticky top-24 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
-        <ShoppingCart className="w-6 h-6 text-navy-800" />
-        <h2 className="font-display text-xl font-semibold text-navy-800">
+        <ShoppingCart className="w-5 h-5 text-gray-700" />
+        <h2 className="text-lg font-semibold text-gray-900">
           Order Summary
         </h2>
       </div>
 
       {/* Items List */}
-      <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
+      <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
         {items.map((item) => (
-          <div key={item.id} className="flex items-start gap-3 p-3 bg-warm-50 rounded-xl">
+          <div key={item.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
             {item.thumbnail && (
               <div className="relative w-12 h-12 flex-shrink-0">
                 <Image
@@ -228,17 +228,17 @@ const OrderSummarySidebar = React.memo(({ items, totals }: {
                   alt={item.title}
                   fill
                   sizes="48px"
-                  className="object-cover rounded-lg"
+                  className="object-cover rounded-md"
                   loading="lazy"
                 />
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h4 className="font-sans font-medium text-navy-800 text-sm truncate">
+              <h4 className="font-medium text-gray-800 text-sm truncate">
                 {item.title}
               </h4>
-              <p className="text-xs text-warm-600 mb-1">{item.variant}</p>
-              <p className="text-sm font-medium text-navy-700">
+              <p className="text-xs text-gray-500 mb-1">{item.variant}</p>
+              <p className="text-sm font-medium text-gray-700">
                 ${(item.price / 100).toFixed(2)} × {item.quantity}
               </p>
             </div>
@@ -247,34 +247,55 @@ const OrderSummarySidebar = React.memo(({ items, totals }: {
       </div>
 
       {/* Cost Breakdown */}
-      <div className="space-y-3 pb-6 border-b border-warm-200">
-        <div className="flex justify-between font-sans text-navy-700">
+      <div className="space-y-3 pb-4 border-b border-gray-200">
+        <div className="flex justify-between text-sm text-gray-600">
           <span>Subtotal</span>
-          <span>${(totals.subtotal / 100).toFixed(2)}</span>
+          <span className="font-medium">${(totals.subtotal / 100).toFixed(2)}</span>
         </div>
-        <div className="flex justify-between font-sans text-navy-700">
+        <div className="flex justify-between text-sm text-gray-600">
           <span>Shipping</span>
-          <span>${(totals.shipping / 100).toFixed(2)}</span>
+          <span className="font-medium">
+            {totals.shipping === 0 ? (
+              <span className="text-green-600">FREE</span>
+            ) : (
+              `$${(totals.shipping / 100).toFixed(2)}`
+            )}
+          </span>
         </div>
-        <div className="flex justify-between font-sans text-navy-700">
+        <div className="flex justify-between text-sm text-gray-600">
           <span>Tax</span>
-          <span>${(totals.tax / 100).toFixed(2)}</span>
+          <span className="font-medium">${(totals.tax / 100).toFixed(2)}</span>
         </div>
       </div>
 
       {/* Total */}
-      <div className="pt-6">
-        <div className="flex justify-between items-center mb-6">
-          <span className="font-display text-xl font-medium text-navy-800">Total</span>
-          <span className="font-display text-2xl font-semibold text-navy-800">
+      <div className="pt-4">
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-lg font-medium text-gray-900">Total</span>
+          <span className="text-2xl font-bold text-gray-900">
             ${(totals.total / 100).toFixed(2)}
           </span>
         </div>
 
+        {/* Free Shipping Progress */}
+        {totals.shipping > 0 && totals.subtotal < 15000 && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-blue-700">Add ${((15000 - totals.subtotal) / 100).toFixed(2)} for free shipping</span>
+            </div>
+            <div className="w-full bg-blue-100 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${Math.min((totals.subtotal / 15000) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Security Badge */}
-        <div className="flex items-center justify-center gap-2 text-sm text-warm-600 mb-4">
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
           <Shield className="w-4 h-4 text-green-600" />
-          <span>Secured with SSL encryption</span>
+          <span>Secure SSL encryption</span>
         </div>
       </div>
     </div>
@@ -339,7 +360,7 @@ function CheckoutForm() {
   // Memoize expensive calculations
   const totals = useMemo(() => {
     const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0)
-    const shipping = subtotal > 10000 ? 0 : 1500 // Free shipping over $100
+    const shipping = subtotal > 15000 ? 0 : 1500 // Free shipping over $150
     const tax = Math.round(subtotal * 0.08) // 8% tax
     return {
       subtotal,
@@ -351,22 +372,34 @@ function CheckoutForm() {
 
   const validateStep = (step: number): boolean => {
     const errors: Record<string, string> = {}
-    
+
     if (step === 1) {
       // Validate shipping information
       if (!formData.email.trim()) errors.email = 'Email is required'
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Invalid email address'
-      
+
       if (!formData.firstName.trim()) errors.firstName = 'First name is required'
       if (!formData.lastName.trim()) errors.lastName = 'Last name is required'
       if (!formData.phone.trim()) errors.phone = 'Phone number is required'
+      else if (!/^[\d\s\-\+\(\)]+$/.test(formData.phone)) errors.phone = 'Invalid phone number'
+
       if (!formData.address.trim()) errors.address = 'Address is required'
       if (!formData.city.trim()) errors.city = 'City is required'
       if (!formData.state.trim()) errors.state = 'State is required'
       if (!formData.zipCode.trim()) errors.zipCode = 'ZIP code is required'
+      else if (!/^\d{5}(-\d{4})?$/.test(formData.zipCode)) errors.zipCode = 'Invalid ZIP code format'
     }
-    
+
     setFormErrors(errors)
+
+    // Scroll to first error if any
+    if (Object.keys(errors).length > 0) {
+      const firstErrorField = Object.keys(errors)[0]
+      const element = document.getElementById(firstErrorField)
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      element?.focus()
+    }
+
     return Object.keys(errors).length === 0
   }
 
@@ -393,8 +426,21 @@ function CheckoutForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!stripe || !elements || !validateStep(currentStep)) {
+      return
+    }
+
+    // If we're not on the final step, just move to the next step
+    if (currentStep < 3) {
+      nextStep()
+      return
+    }
+
+    // Get the card element
+    const cardElement = elements.getElement(CardElement)
+    if (!cardElement) {
+      setError('Payment information is missing. Please go back to the payment step.')
       return
     }
 
@@ -425,7 +471,7 @@ function CheckoutForm() {
       // Confirm payment
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
-          card: elements.getElement(CardElement)!,
+          card: cardElement,
           billing_details: {
             email: formData.email,
             name: `${formData.firstName} ${formData.lastName}`,
@@ -460,48 +506,41 @@ function CheckoutForm() {
   // Totals are now memoized above
 
   return (
-    <div className="min-h-screen bg-warm-50">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
       {/* Loading Overlay */}
       {loading && (
-        <div className="fixed inset-0 bg-navy-900/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center">
-            <div className="w-16 h-16 border-4 border-navy-200 border-t-navy-800 rounded-full animate-spin mx-auto mb-4" />
-            <h3 className="font-display text-xl font-semibold text-navy-800 mb-2">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-sm w-full mx-4 text-center shadow-xl">
+            <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Processing Payment
             </h3>
-            <p className="font-sans text-warm-600">
+            <p className="text-gray-600">
               Please wait while we securely process your payment...
             </p>
           </div>
         </div>
       )}
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-navy-800 to-navy-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Simplified Header */}
+      <div className="bg-white border-b border-gray-200 mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Lock className="w-6 h-6 text-gold-800" />
-                <span className="text-gold-800 font-sans font-medium uppercase tracking-wide text-sm">
-                  Secure Checkout
-                </span>
-              </div>
-              <h1 className="font-display text-4xl md:text-5xl font-semibold mb-4 tracking-tight">
-                Complete Your Order
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Checkout
               </h1>
-              <p className="text-xl text-navy-100 max-w-2xl font-sans leading-relaxed">
-                Your premium fabric collection is just moments away. 
-                Complete your secure checkout with confidence.
+              <p className="text-gray-600">
+                Complete your order securely
               </p>
             </div>
-            
+
             <Link
               href="/cart"
-              className="hidden md:flex items-center gap-2 bg-navy-700/50 border border-navy-600 
-                        text-white px-6 py-3 rounded-xl hover:bg-navy-600 transition-all duration-300"
+              className="hidden md:flex items-center gap-2 text-gray-600 hover:text-gray-900
+                        px-4 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200"
             >
               <ArrowLeft className="w-5 h-5" />
               Back to Cart
@@ -511,8 +550,8 @@ function CheckoutForm() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid lg:grid-cols-3 gap-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2">
             <CheckoutProgress currentStep={currentStep} />
@@ -520,10 +559,10 @@ function CheckoutForm() {
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Step 1: Shipping Information */}
               {currentStep === 1 && (
-                <div className="bg-white border border-warm-200 rounded-2xl p-8">
+                <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
-                    <MapPin className="w-6 h-6 text-navy-800" />
-                    <h2 className="font-display text-2xl font-semibold text-navy-800">
+                    <MapPin className="w-5 h-5 text-gray-700" />
+                    <h2 className="text-xl font-semibold text-gray-900">
                       Shipping Information
                     </h2>
                   </div>
@@ -628,33 +667,35 @@ function CheckoutForm() {
               )}
 
               {/* Step 2: Payment Information */}
-              {currentStep === 2 && (
-                <div className="bg-white border border-warm-200 rounded-2xl p-8">
+              <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
+                <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
-                    <CreditCard className="w-6 h-6 text-navy-800" />
-                    <h2 className="font-display text-2xl font-semibold text-navy-800">
+                    <CreditCard className="w-5 h-5 text-gray-700" />
+                    <h2 className="text-xl font-semibold text-gray-900">
                       Payment Information
                     </h2>
                   </div>
 
                   <div className="mb-6">
-                    <p className="font-sans text-warm-600 text-sm mb-4">
-                      <strong>Test Mode:</strong> Use card number 4242 4242 4242 4242 with any future expiry and CVC
-                    </p>
-                    <div className="p-6 border-2 border-warm-200 rounded-xl bg-warm-50/50">
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        <strong>Test Mode:</strong> Use card 4242 4242 4242 4242 with any future date and CVC
+                      </p>
+                    </div>
+                    <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                       <CardElement
                         options={{
                           style: {
                             base: {
                               fontSize: '16px',
-                              color: '#2C2C2C',
-                              fontFamily: 'Source Sans 3, system-ui, sans-serif',
+                              color: '#374151',
+                              fontFamily: 'system-ui, -apple-system, sans-serif',
                               '::placeholder': {
-                                color: '#A3A3A3',
+                                color: '#9CA3AF',
                               },
                             },
                             invalid: {
-                              color: '#dc2626',
+                              color: '#EF4444',
                             },
                           },
                         }}
@@ -662,33 +703,33 @@ function CheckoutForm() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
                     <Shield className="w-5 h-5 text-green-600" />
-                    <p className="font-sans text-green-800 text-sm">
+                    <p className="text-sm text-green-800">
                       Your payment information is encrypted and secure. We never store your card details.
                     </p>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Step 3: Review & Confirm */}
               {currentStep === 3 && (
-                <div className="bg-white border border-warm-200 rounded-2xl p-8">
+                <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
-                    <CheckCircle className="w-6 h-6 text-navy-800" />
-                    <h2 className="font-display text-2xl font-semibold text-navy-800">
+                    <CheckCircle className="w-5 h-5 text-gray-700" />
+                    <h2 className="text-xl font-semibold text-gray-900">
                       Review & Confirm
                     </h2>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {/* Shipping Details */}
-                    <div className="bg-warm-50 border border-warm-200 rounded-xl p-6">
-                      <h3 className="font-display text-lg font-medium text-navy-800 mb-4">
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
                         Shipping Address
                       </h3>
-                      <div className="space-y-2 font-sans text-navy-700">
-                        <p>{formData.firstName} {formData.lastName}</p>
+                      <div className="space-y-1 text-gray-600">
+                        <p className="font-medium text-gray-900">{formData.firstName} {formData.lastName}</p>
                         <p>{formData.email}</p>
                         <p>{formData.phone}</p>
                         <p>{formData.address}</p>
@@ -697,25 +738,25 @@ function CheckoutForm() {
                       <button
                         type="button"
                         onClick={() => setCurrentStep(1)}
-                        className="mt-4 text-sm text-gold-800 hover:text-gold-900 font-medium"
+                        className="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium"
                       >
                         Edit Address
                       </button>
                     </div>
 
                     {/* Order Items */}
-                    <div className="bg-warm-50 border border-warm-200 rounded-xl p-6">
-                      <h3 className="font-display text-lg font-medium text-navy-800 mb-4">
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
                         Order Items ({cart.length})
                       </h3>
                       <div className="space-y-3">
                         {cart.map((item) => (
                           <div key={item.id} className="flex justify-between items-center">
                             <div>
-                              <p className="font-sans font-medium text-navy-800">{item.title}</p>
-                              <p className="text-sm text-warm-600">{item.variant} × {item.quantity}</p>
+                              <p className="font-medium text-gray-800">{item.title}</p>
+                              <p className="text-sm text-gray-500">{item.variant} × {item.quantity}</p>
                             </div>
-                            <span className="font-sans font-semibold text-navy-800">
+                            <span className="font-semibold text-gray-900">
                               ${((item.price * item.quantity) / 100).toFixed(2)}
                             </span>
                           </div>
@@ -728,13 +769,13 @@ function CheckoutForm() {
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex items-start gap-3">
-                  <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="font-sans font-semibold text-red-800 mb-1">
+                    <h3 className="font-semibold text-red-800 mb-1">
                       Payment Error
                     </h3>
-                    <p className="font-sans text-red-700 text-sm">{error}</p>
+                    <p className="text-red-700 text-sm">{error}</p>
                   </div>
                 </div>
               )}
@@ -745,8 +786,8 @@ function CheckoutForm() {
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="flex items-center gap-2 px-6 py-3 border border-warm-300 
-                              text-navy-700 rounded-xl hover:bg-warm-50 transition-colors"
+                    className="flex items-center gap-2 px-6 py-3 border border-gray-300
+                              text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <ArrowLeft className="w-5 h-5" />
                     Previous
@@ -754,8 +795,8 @@ function CheckoutForm() {
                 ) : (
                   <Link
                     href="/cart"
-                    className="flex items-center gap-2 px-6 py-3 border border-warm-300 
-                              text-navy-700 rounded-xl hover:bg-warm-50 transition-colors"
+                    className="flex items-center gap-2 px-6 py-3 border border-gray-300
+                              text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <ArrowLeft className="w-5 h-5" />
                     Back to Cart
@@ -766,9 +807,9 @@ function CheckoutForm() {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="flex items-center gap-2 bg-navy-800 text-white px-8 py-3 
-                              rounded-xl hover:bg-navy-700 hover:-translate-y-0.5 hover:shadow-lg
-                              transition-all duration-300 font-semibold"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3
+                              rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold
+                              shadow-sm hover:shadow-md"
                   >
                     Continue
                     <ArrowRight className="w-5 h-5" />
@@ -777,10 +818,9 @@ function CheckoutForm() {
                   <button
                     type="submit"
                     disabled={loading || cart.length === 0}
-                    className="flex items-center gap-3 bg-navy-800 text-white px-8 py-4
-                              rounded-xl hover:bg-navy-700 hover:-translate-y-0.5 hover:shadow-lg
-                              transition-all duration-300 font-semibold text-lg
-                              disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="flex items-center gap-3 bg-blue-600 text-white px-8 py-3
+                              rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold
+                              disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                   >
                     {loading ? (
                       <>
@@ -820,10 +860,10 @@ export default function CheckoutPage() {
 
   if (!stripeInstance) {
     return (
-      <div className="min-h-screen bg-warm-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-navy-200 border-t-navy-800 rounded-full animate-spin" />
-          <p className="font-sans text-warm-600">Loading secure checkout...</p>
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+          <p className="text-gray-600">Loading secure checkout...</p>
         </div>
       </div>
     )

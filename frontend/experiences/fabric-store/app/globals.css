@@ -4,49 +4,49 @@
 
 @layer base {
   :root {
-    /* Enhanced luxury color palette */
-    --background: 248 248 246; /* pearl-100 */
-    --foreground: 44 44 44; /* charcoal-800 */
-    --card: 253 252 252; /* pearl-50 */
-    --card-foreground: 44 44 44;
-    --popover: 253 252 252;
-    --popover-foreground: 44 44 44;
-    --primary: 44 44 44; /* charcoal-800 */
-    --primary-foreground: 248 248 246;
-    --secondary: 245 245 245; /* neutral gray instead of champagne */
-    --secondary-foreground: 44 44 44;
-    --muted: 243 243 241; /* pearl-200 */
-    --muted-foreground: 107 107 107; /* charcoal-500 */
-    --accent: 139 38 53; /* burgundy-600 */
-    --accent-foreground: 248 248 246;
-    --destructive: 194 56 80; /* burgundy-500 */
-    --destructive-foreground: 248 248 246;
-    --border: 238 238 236; /* pearl-300 */
-    --input: 238 238 236;
-    --ring: 139 38 53; /* burgundy-600 */
-    --radius: 0.75rem;
+    /* Modern, clean color palette */
+    --background: 255 255 255; /* pure white */
+    --foreground: 17 24 39; /* gray-900 */
+    --card: 255 255 255; /* white */
+    --card-foreground: 17 24 39;
+    --popover: 255 255 255;
+    --popover-foreground: 17 24 39;
+    --primary: 17 24 39; /* gray-900 */
+    --primary-foreground: 255 255 255;
+    --secondary: 249 250 251; /* gray-50 */
+    --secondary-foreground: 17 24 39;
+    --muted: 243 244 246; /* gray-100 */
+    --muted-foreground: 107 114 128; /* gray-500 */
+    --accent: 59 130 246; /* blue-500 */
+    --accent-foreground: 255 255 255;
+    --destructive: 239 68 68; /* red-500 */
+    --destructive-foreground: 255 255 255;
+    --border: 229 231 235; /* gray-200 */
+    --input: 229 231 235;
+    --ring: 59 130 246; /* blue-500 */
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 31 31 31; /* charcoal-900 */
-    --foreground: 248 248 246;
-    --card: 44 44 44; /* charcoal-800 */
-    --card-foreground: 248 248 246;
-    --popover: 44 44 44;
-    --popover-foreground: 248 248 246;
-    --primary: 247 243 233; /* champagne-300 */
-    --primary-foreground: 44 44 44;
-    --secondary: 53 53 53; /* charcoal-700 */
-    --secondary-foreground: 248 248 246;
-    --muted: 53 53 53;
-    --muted-foreground: 157 157 157; /* charcoal-300 */
-    --accent: 212 165 165; /* dustyRose-300 */
-    --accent-foreground: 44 44 44;
-    --destructive: 194 56 80;
-    --destructive-foreground: 248 248 246;
-    --border: 53 53 53;
-    --input: 53 53 53;
-    --ring: 212 165 165;
+    --background: 17 24 39; /* gray-900 */
+    --foreground: 249 250 251; /* gray-50 */
+    --card: 31 41 55; /* gray-800 */
+    --card-foreground: 249 250 251;
+    --popover: 31 41 55;
+    --popover-foreground: 249 250 251;
+    --primary: 249 250 251; /* gray-50 */
+    --primary-foreground: 17 24 39;
+    --secondary: 55 65 81; /* gray-700 */
+    --secondary-foreground: 249 250 251;
+    --muted: 55 65 81;
+    --muted-foreground: 156 163 175; /* gray-400 */
+    --accent: 96 165 250; /* blue-400 */
+    --accent-foreground: 17 24 39;
+    --destructive: 248 113 113; /* red-400 */
+    --destructive-foreground: 17 24 39;
+    --border: 55 65 81;
+    --input: 55 65 81;
+    --ring: 96 165 250;
   }
 }
 
@@ -55,65 +55,64 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-white text-gray-900 font-sans antialiased;
   }
-  
+
   /* Typography enhancements */
   .heading-display {
-    @apply font-semibold tracking-tight;
+    @apply font-semibold tracking-tight text-gray-900;
   }
-  
+
   .heading-luxury {
-    @apply text-charcoal-800 leading-tight font-semibold;
+    @apply text-gray-900 leading-tight font-semibold;
   }
-  
+
   .text-luxury {
-    @apply text-charcoal-600 leading-relaxed;
+    @apply text-gray-600 leading-relaxed;
   }
 }
 
 @layer components {
-  /* Premium Button Components */
+  /* Modern Button Components */
   .btn-primary {
-    @apply bg-charcoal-800 text-pearl-50 hover:bg-charcoal-700 
-           px-8 py-4 rounded-lg font-medium transition-all duration-300
-           shadow-luxury hover:shadow-luxury-lg transform hover:-translate-y-0.5;
+    @apply bg-gray-900 text-white hover:bg-gray-800
+           px-6 py-3 rounded-lg font-medium transition-all duration-200
+           shadow-sm hover:shadow-md;
   }
-  
+
   .btn-secondary {
-    @apply bg-champagne-300 text-charcoal-800 hover:bg-champagne-400
-           px-8 py-4 rounded-lg font-medium transition-all duration-300
-           border border-charcoal-200 hover:border-charcoal-300;
+    @apply bg-white text-gray-900 hover:bg-gray-50
+           px-6 py-3 rounded-lg font-medium transition-all duration-200
+           border border-gray-200 hover:border-gray-300;
   }
-  
+
   .btn-accent {
-    @apply bg-burgundy-600 text-pearl-50 hover:bg-burgundy-700
-           px-8 py-4 rounded-lg font-medium transition-all duration-300
-           shadow-luxury hover:shadow-luxury-lg;
+    @apply bg-blue-500 text-white hover:bg-blue-600
+           px-6 py-3 rounded-lg font-medium transition-all duration-200
+           shadow-sm hover:shadow-md;
   }
-  
-  /* Premium Card Component */
+
+  /* Modern Card Component */
   .card-luxury {
-    @apply bg-pearl-50 border border-pearl-300 rounded-xl
-           shadow-luxury hover:shadow-luxury-lg transition-all duration-500
-           transform hover:-translate-y-1;
+    @apply bg-white border border-gray-200 rounded-lg
+           shadow-sm hover:shadow-md transition-all duration-300;
   }
-  
-  /* Premium Input Component */
+
+  /* Modern Input Component */
   .input-luxury {
-    @apply bg-pearl-50 border border-pearl-300 rounded-lg px-4 py-3
-           focus:ring-2 focus:ring-burgundy-600 focus:border-transparent
-           transition-all duration-300 font-sans;
+    @apply bg-white border border-gray-300 rounded-lg px-4 py-2.5
+           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+           transition-all duration-200 font-sans placeholder-gray-400;
   }
-  
+
   /* Section Spacing */
   .section-luxury {
-    @apply py-24 px-4 sm:px-6 lg:px-8;
+    @apply py-16 md:py-20 px-4 sm:px-6 lg:px-8;
   }
-  
-  /* Text Shimmer Effect for Premium Elements */
+
+  /* Text Gradient Effect */
   .text-shimmer {
-    @apply bg-gradient-to-r from-charcoal-600 via-burgundy-600 to-charcoal-600
+    @apply bg-gradient-to-r from-gray-900 via-blue-600 to-gray-900
            bg-[length:200%_100%] bg-clip-text text-transparent
            animate-shimmer;
   }

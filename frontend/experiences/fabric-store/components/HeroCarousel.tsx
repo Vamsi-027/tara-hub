@@ -83,29 +83,13 @@ export default function HeroCarousel() {
     setTimeout(() => setIsAutoPlaying(true), 10000)
   }
 
-  const getAccentColors = (accent: string) => {
-    switch (accent) {
-      case 'burgundy':
-        return {
-          primaryBg: 'bg-burgundy-600',
-          hoverBg: 'hover:bg-burgundy-700',
-          borderColor: 'border-burgundy-600/30',
-          textColor: 'text-burgundy-100'
-        }
-      case 'forest':
-        return {
-          primaryBg: 'bg-forest-500',
-          hoverBg: 'hover:bg-forest-600',
-          borderColor: 'border-forest-500/30',
-          textColor: 'text-forest-100'
-        }
-      default:
-        return {
-          primaryBg: 'bg-charcoal-800',
-          hoverBg: 'hover:bg-charcoal-700',
-          borderColor: 'border-charcoal-800/30',
-          textColor: 'text-charcoal-100'
-        }
+  const getAccentColors = () => {
+    // Always use modern blue accent for consistency
+    return {
+      primaryBg: 'bg-blue-600',
+      hoverBg: 'hover:bg-blue-700',
+      borderColor: 'border-blue-600/30',
+      textColor: 'text-blue-100'
     }
   }
 
@@ -114,7 +98,7 @@ export default function HeroCarousel() {
       {/* Slides */}
       <div className="relative w-full h-full">
         {slides.map((slide, index) => {
-          const accentColors = getAccentColors(slide.accent)
+          const accentColors = getAccentColors()
           return (
             <div
               key={slide.id}
@@ -129,8 +113,8 @@ export default function HeroCarousel() {
                   alt={slide.backgroundAlt}
                   className="w-full h-full object-cover scale-105 transition-transform duration-[8000ms]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-charcoal-900/80 via-charcoal-900/60 to-charcoal-900/40" />
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-900/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/60 to-gray-900/40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent" />
               </div>
 
               {/* Enhanced Content */}
@@ -140,8 +124,8 @@ export default function HeroCarousel() {
                     {/* Luxury Price Badge */}
                     <div className="inline-flex items-center mb-6 animate-fade-in-up">
                       <div className="relative">
-                        <span className={`${accentColors.primaryBg} backdrop-blur-md text-pearl-50 px-6 py-3 
-                                        rounded-full text-sm font-medium tracking-wide shadow-luxury
+                        <span className={`${accentColors.primaryBg} backdrop-blur-md text-white px-6 py-3
+                                        rounded-full text-sm font-medium tracking-wide shadow-md
                                         border ${accentColors.borderColor}`}>
                           <Sparkles className="inline w-4 h-4 mr-2" />
                           {slide.priceTag}
@@ -150,13 +134,12 @@ export default function HeroCarousel() {
                     </div>
                     
                     {/* Enhanced Headlines with Luxury Typography */}
-                    <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-semibold text-pearl-50 
-                                   mb-6 leading-tight tracking-tight animate-fade-in-up animation-delay-200
-                                   text-shimmer">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white
+                                   mb-6 leading-tight tracking-tight animate-fade-in-up animation-delay-200">
                       {slide.headline}
                     </h1>
                     
-                    <p className="font-sans text-xl md:text-2xl text-pearl-100/90 mb-10 leading-relaxed 
+                    <p className="text-lg md:text-xl text-gray-200 mb-8 md:mb-10 leading-relaxed
                                  animate-fade-in-up animation-delay-400 max-w-2xl">
                       {slide.subtext}
                     </p>
@@ -165,10 +148,10 @@ export default function HeroCarousel() {
                     <div className="animate-fade-in-up animation-delay-600">
                       <Link
                         href={slide.ctaLink}
-                        className={`inline-flex items-center px-10 py-5 ${accentColors.primaryBg} ${accentColors.hoverBg}
-                                   text-pearl-50 font-medium rounded-xl shadow-luxury hover:shadow-luxury-lg 
-                                   transform transition-all duration-500 hover:scale-105 hover:-translate-y-1
-                                   border border-pearl-50/20 backdrop-blur-sm group`}
+                        className={`inline-flex items-center px-8 py-4 ${accentColors.primaryBg} ${accentColors.hoverBg}
+                                   text-white font-medium rounded-lg shadow-md hover:shadow-lg
+                                   transform transition-all duration-200 hover:scale-105
+                                   border border-white/20 backdrop-blur-sm group`}
                       >
                         <span className="mr-3">{slide.ctaText}</span>
                         <ChevronRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
@@ -185,18 +168,18 @@ export default function HeroCarousel() {
       {/* Enhanced Navigation Arrows */}
       <button
         onClick={goToPrevious}
-        className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-4 bg-pearl-50/10 backdrop-blur-md 
-                   rounded-xl text-pearl-50 hover:bg-pearl-50/20 transition-all duration-300 
-                   shadow-luxury hover:shadow-luxury-lg transform hover:scale-110"
+        className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 p-3 bg-white/10 backdrop-blur-md
+                   rounded-lg text-white hover:bg-white/20 transition-all duration-200
+                   shadow-md hover:shadow-lg transform hover:scale-110"
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-7 h-7" />
       </button>
       <button
         onClick={goToNext}
-        className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-4 bg-pearl-50/10 backdrop-blur-md 
-                   rounded-xl text-pearl-50 hover:bg-pearl-50/20 transition-all duration-300 
-                   shadow-luxury hover:shadow-luxury-lg transform hover:scale-110"
+        className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 p-3 bg-white/10 backdrop-blur-md
+                   rounded-lg text-white hover:bg-white/20 transition-all duration-200
+                   shadow-md hover:shadow-lg transform hover:scale-110"
         aria-label="Next slide"
       >
         <ChevronRight className="w-7 h-7" />
@@ -208,10 +191,10 @@ export default function HeroCarousel() {
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`h-2 rounded-full transition-all duration-500 backdrop-blur-sm ${
-              index === currentSlide 
-                ? 'bg-pearl-50 w-12 shadow-luxury' 
-                : 'bg-pearl-50/40 w-2 hover:bg-pearl-50/60 hover:w-8'
+            className={`h-2 rounded-full transition-all duration-300 backdrop-blur-sm ${
+              index === currentSlide
+                ? 'bg-white w-12 shadow-md'
+                : 'bg-white/40 w-2 hover:bg-white/60 hover:w-8'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

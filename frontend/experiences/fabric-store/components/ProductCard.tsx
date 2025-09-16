@@ -52,9 +52,9 @@ export default function ProductCard({ product }: ProductCardProps) {
       <Link href={`/products/${product.id}`}>
         <article className="card-luxury overflow-hidden h-full flex flex-col">
           {/* Enhanced Image Container */}
-          <div className="relative aspect-[4/5] overflow-hidden bg-pearl-100">
+          <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
             {!imageLoaded && (
-              <div className="absolute inset-0 bg-gradient-to-r from-pearl-200 via-pearl-100 to-pearl-200 
+              <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 
                              animate-shimmer bg-[length:200%_100%]"></div>
             )}
             <Image
@@ -69,7 +69,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             />
             
             {/* Enhanced Overlay Actions */}
-            <div className={`absolute inset-0 bg-gradient-to-t from-charcoal-900/60 via-transparent to-transparent
+            <div className={`absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent
                            transition-all duration-500 ${
                              isHovered ? 'opacity-100' : 'opacity-0'
                            }`}>
@@ -77,25 +77,25 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <div className="flex space-x-2">
                   <button
                     onClick={handleAddToCart}
-                    className="p-3 bg-pearl-50/90 backdrop-blur-sm rounded-xl hover:bg-pearl-50 
+                    className="p-3 bg-gray-50/90 backdrop-blur-sm rounded-lg hover:bg-gray-50 
                              transition-all duration-300 transform hover:scale-105 
-                             shadow-luxury hover:shadow-luxury-lg"
+                             shadow-sm hover:shadow-md"
                     aria-label="Add to cart"
                   >
-                    <ShoppingCart className="w-5 h-5 text-charcoal-800" />
+                    <ShoppingCart className="w-5 h-5 text-gray-800" />
                   </button>
                   <button
                     onClick={handleAddToWishlist}
-                    className="p-3 bg-pearl-50/90 backdrop-blur-sm rounded-xl hover:bg-pearl-50 
+                    className="p-3 bg-gray-50/90 backdrop-blur-sm rounded-lg hover:bg-gray-50 
                              transition-all duration-300 transform hover:scale-105 
-                             shadow-luxury hover:shadow-luxury-lg"
+                             shadow-sm hover:shadow-md"
                     aria-label="Add to wishlist"
                   >
-                    <Heart className="w-5 h-5 text-charcoal-800" />
+                    <Heart className="w-5 h-5 text-gray-800" />
                   </button>
                 </div>
-                <div className="p-3 bg-pearl-50/90 backdrop-blur-sm rounded-xl">
-                  <Eye className="w-5 h-5 text-charcoal-800" />
+                <div className="p-3 bg-gray-50/90 backdrop-blur-sm rounded-lg">
+                  <Eye className="w-5 h-5 text-gray-800" />
                 </div>
               </div>
             </div>
@@ -104,15 +104,15 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="absolute top-4 left-4 right-4 flex justify-between">
               <div className="flex flex-col space-y-2">
                 {product.sampleAvailable && (
-                  <span className="bg-forest-500 text-pearl-50 px-3 py-1.5 rounded-full 
-                                 text-xs font-medium shadow-luxury">
+                  <span className="bg-green-500 text-white-50 px-3 py-1.5 rounded-full 
+                                 text-xs font-medium shadow-sm">
                     Sample Available
                   </span>
                 )}
               </div>
               {!product.inStock && (
-                <span className="bg-burgundy-600 text-pearl-50 px-3 py-1.5 rounded-full 
-                               text-xs font-medium shadow-luxury">
+                <span className="bg-red-600 text-white-50 px-3 py-1.5 rounded-full 
+                               text-xs font-medium shadow-sm">
                   Out of Stock
                 </span>
               )}
@@ -122,14 +122,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Enhanced Product Info */}
           <div className="p-6 flex-1 flex flex-col">
             <div className="flex-1">
-              <p className="text-sm text-charcoal-500 mb-2 font-medium uppercase tracking-wider">
+              <p className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wider">
                 {product.category}
               </p>
-              <h3 className="font-display text-xl font-semibold text-charcoal-800 mb-3 line-clamp-2 
-                           group-hover:text-burgundy-600 transition-colors duration-300">
+              <h3 className=" text-xl font-semibold text-gray-800 mb-3 line-clamp-2 
+                           group-hover:text-blue-600 transition-colors duration-300">
                 {product.name}
               </h3>
-              <p className="text-charcoal-600 text-sm mb-4 line-clamp-3 leading-relaxed">
+              <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
                 {product.description}
               </p>
             </div>
@@ -138,14 +138,14 @@ export default function ProductCard({ product }: ProductCardProps) {
               {/* Enhanced Pricing */}
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-2xl font-display font-semibold text-charcoal-800">
+                  <p className="text-2xl  font-semibold text-gray-800">
                     ${product.pricePerYard.toFixed(2)}
-                    <span className="text-sm text-charcoal-500 font-sans font-normal ml-1">
+                    <span className="text-sm text-gray-500 font-sans font-normal ml-1">
                       /yard
                     </span>
                   </p>
                   {product.sampleAvailable && (
-                    <p className="text-xs text-charcoal-500 mt-1">
+                    <p className="text-xs text-gray-500 mt-1">
                       Sample: ${product.samplePrice.toFixed(2)}
                     </p>
                   )}
@@ -156,7 +156,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     <p className="text-xs text-forest-500 font-medium">
                       In Stock
                     </p>
-                    <p className="text-xs text-charcoal-500">
+                    <p className="text-xs text-gray-500">
                       {product.availableQuantity} yards
                     </p>
                   </div>
@@ -164,7 +164,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               </div>
 
               {/* Enhanced CTA */}
-              <div className="pt-2 border-t border-pearl-300">
+              <div className="pt-2 border-t border-gray-300">
                 <button 
                   onClick={handleAddToCart}
                   disabled={!product.inStock}

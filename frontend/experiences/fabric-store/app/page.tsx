@@ -34,15 +34,14 @@ function FeaturesSection() {
   ]
 
   return (
-    <section className="section-luxury bg-champagne-300/30">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+    <section className="py-16 md:py-20 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="font-display text-4xl md:text-5xl font-semibold text-charcoal-800 mb-4 
-                       animate-fade-in-up">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             The Custom Fabric Designs Experience
           </h2>
-          <p className="text-xl text-charcoal-600 max-w-3xl mx-auto animate-fade-in-up animation-delay-200">
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
             Where luxury meets craftsmanship, every detail is designed to exceed expectations
           </p>
         </div>
@@ -51,16 +50,16 @@ function FeaturesSection() {
           {features.map((feature, index) => (
             <div key={index} className="text-center group animate-fade-in-up" 
                  style={{ animationDelay: `${(index + 1) * 200}ms` }}>
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-pearl-50 
-                           border-2 border-pearl-300 text-burgundy-600 rounded-2xl mb-6
-                           shadow-luxury group-hover:shadow-luxury-lg 
-                           transform group-hover:scale-105 transition-all duration-500">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white
+                           border border-gray-200 text-blue-500 rounded-xl mb-4
+                           shadow-sm group-hover:shadow-md
+                           transform group-hover:scale-105 transition-all duration-200">
                 {feature.icon}
               </div>
-              <h3 className="font-display text-xl font-semibold text-charcoal-800 mb-3">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {feature.title}
               </h3>
-              <p className="text-charcoal-600 leading-relaxed">
+              <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                 {feature.description}
               </p>
             </div>
@@ -74,15 +73,15 @@ function FeaturesSection() {
 // Enhanced Newsletter Section
 function NewsletterSection() {
   return (
-    <section className="section-luxury bg-pearl-100">
-      <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
-        <div className="animate-fade-in-up">
-          <h2 className="font-display text-4xl md:text-5xl font-semibold text-charcoal-800 mb-6">
+    <section className="py-16 md:py-20 bg-white">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             Stay Connected with
-            <span className="text-shimmer block">Exclusive Collections</span>
+            <span className="text-blue-500 block">Exclusive Collections</span>
           </h2>
-          <p className="text-xl text-charcoal-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Be the first to discover our latest arrivals and receive insider access to 
+          <p className="text-lg md:text-xl text-gray-600 mb-8 md:mb-12 max-w-2xl mx-auto leading-relaxed">
+            Be the first to discover our latest arrivals and receive insider access to
             limited-edition fabrics and designer collaborations
           </p>
         </div>

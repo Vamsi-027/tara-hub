@@ -71,11 +71,11 @@ function LuxuryInput({
         onChange={onChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className={`w-full h-14 px-4 pt-6 pb-2 bg-white border-2 rounded-xl font-sans
-                   transition-all duration-300 outline-none peer
-                   ${error 
-                     ? 'border-red-300 focus:border-red-500 bg-red-50/30' 
-                     : 'border-warm-300 focus:border-navy-800 hover:border-gold-800'
+        className={`w-full h-14 px-4 pt-6 pb-2 bg-white border-2 rounded-lg
+                   transition-all duration-200 outline-none peer
+                   ${error
+                     ? 'border-red-300 focus:border-red-500 bg-red-50/30'
+                     : 'border-gray-200 focus:border-blue-500 hover:border-gray-300'
                    }
                    ${isFocused || hasValue ? 'pt-6' : 'pt-4'}`}
         placeholder=""
@@ -86,8 +86,8 @@ function LuxuryInput({
         htmlFor={id}
         className={`absolute left-4 font-sans font-medium transition-all duration-300 pointer-events-none
                    ${isFocused || hasValue 
-                     ? 'top-2 text-xs text-warm-600' 
-                     : 'top-1/2 -translate-y-1/2 text-base text-warm-500'
+                     ? 'top-2 text-xs text-gray-600'
+                     : 'top-1/2 -translate-y-1/2 text-base text-gray-500'
                    }
                    ${error ? 'text-red-500' : ''}`}
       >
@@ -144,11 +144,11 @@ function LuxuryTextarea({
         onBlur={() => setIsFocused(false)}
         rows={rows}
         maxLength={maxLength}
-        className={`w-full px-4 pt-8 pb-4 bg-white border-2 rounded-xl font-sans resize-none
-                   transition-all duration-300 outline-none
-                   ${error 
-                     ? 'border-red-300 focus:border-red-500 bg-red-50/30' 
-                     : 'border-warm-300 focus:border-navy-800 hover:border-gold-800'
+        className={`w-full px-4 pt-8 pb-4 bg-white border-2 rounded-lg resize-none
+                   transition-all duration-200 outline-none
+                   ${error
+                     ? 'border-red-300 focus:border-red-500 bg-red-50/30'
+                     : 'border-gray-200 focus:border-blue-500 hover:border-gray-300'
                    }`}
         placeholder=""
         required={required}
@@ -158,8 +158,8 @@ function LuxuryTextarea({
         htmlFor={id}
         className={`absolute left-4 font-sans font-medium transition-all duration-300 pointer-events-none
                    ${isFocused || hasValue 
-                     ? 'top-2 text-xs text-warm-600' 
-                     : 'top-6 text-base text-warm-500'
+                     ? 'top-2 text-xs text-gray-600'
+                     : 'top-6 text-base text-gray-500'
                    }
                    ${error ? 'text-red-500' : ''}`}
       >
@@ -175,7 +175,7 @@ function LuxuryTextarea({
         ) : (
           <div></div>
         )}
-        <p id={`${id}-counter`} className="text-xs text-warm-500">
+        <p id={`${id}-counter`} className="text-xs text-gray-500">
           {value.length}/{maxLength}
         </p>
       </div>
@@ -219,11 +219,11 @@ function LuxurySelect({
         onChange={onChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className={`w-full h-14 px-4 pt-6 pb-2 bg-white border-2 rounded-xl font-sans
-                   transition-all duration-300 outline-none appearance-none cursor-pointer
-                   ${error 
-                     ? 'border-red-300 focus:border-red-500 bg-red-50/30' 
-                     : 'border-warm-300 focus:border-navy-800 hover:border-gold-800'
+        className={`w-full h-14 px-4 pt-6 pb-2 bg-white border-2 rounded-lg
+                   transition-all duration-200 outline-none appearance-none cursor-pointer
+                   ${error
+                     ? 'border-red-300 focus:border-red-500 bg-red-50/30'
+                     : 'border-gray-200 focus:border-blue-500 hover:border-gray-300'
                    }`}
         required={required}
         aria-describedby={error ? `${id}-error` : undefined}
@@ -239,8 +239,8 @@ function LuxurySelect({
         htmlFor={id}
         className={`absolute left-4 font-sans font-medium transition-all duration-300 pointer-events-none
                    ${isFocused || hasValue 
-                     ? 'top-2 text-xs text-warm-600' 
-                     : 'top-1/2 -translate-y-1/2 text-base text-warm-500'
+                     ? 'top-2 text-xs text-gray-600'
+                     : 'top-1/2 -translate-y-1/2 text-base text-gray-500'
                    }
                    ${error ? 'text-red-500' : ''}`}
       >
@@ -249,7 +249,7 @@ function LuxurySelect({
       </label>
       {/* Custom dropdown arrow */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-        <svg className="w-5 h-5 text-warm-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </div>
@@ -264,35 +264,35 @@ function LuxurySelect({
 }
 
 // Luxury contact info card
-function LuxuryInfoCard({ 
-  icon: Icon, 
-  title, 
-  children, 
-  accentColor = 'navy' 
-}: { 
+function LuxuryInfoCard({
+  icon: Icon,
+  title,
+  children,
+  accentColor = 'blue'
+}: {
   icon: React.ElementType
   title: string
   children: React.ReactNode
-  accentColor?: 'navy' | 'gold' | 'green' | 'purple'
+  accentColor?: 'blue' | 'yellow' | 'green' | 'purple'
 }) {
   const colors = {
-    navy: 'bg-navy-50 text-navy-800 border-navy-200',
-    gold: 'bg-gold-50 text-gold-800 border-gold-200',
-    green: 'bg-green-50 text-green-800 border-green-200',
-    purple: 'bg-purple-50 text-purple-800 border-purple-200'
+    blue: 'bg-blue-50 text-blue-700 border-blue-200',
+    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    green: 'bg-green-50 text-green-700 border-green-200',
+    purple: 'bg-purple-50 text-purple-700 border-purple-200'
   }
 
   return (
-    <div className="group p-6 bg-white border border-warm-200 rounded-2xl hover:shadow-lg 
-                   hover:border-gold-800/30 transition-all duration-300">
+    <div className="group p-6 bg-white border border-gray-200 rounded-lg hover:shadow-md
+                   hover:border-gray-300 transition-all duration-200">
       <div className="flex items-start gap-4">
         <div className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center
                         transition-all duration-300 group-hover:scale-110 ${colors[accentColor]}`}>
           <Icon className="w-6 h-6" />
         </div>
         <div className="flex-1">
-          <h3 className="font-display text-lg font-medium text-navy-800 mb-2">{title}</h3>
-          <div className="space-y-1 font-sans text-warm-700">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+          <div className="space-y-1 text-gray-700">
             {children}
           </div>
         </div>
@@ -445,24 +445,24 @@ export default function LuxuryContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-warm-50">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-navy-800 to-navy-900 text-white pt-24 pb-16 overflow-hidden">
+      <div className="relative bg-gradient-to-r from-gray-900 to-gray-800 text-white pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%2523ffffff%22%20fill-opacity%3D%220.03%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%224%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Sparkles className="w-6 h-6 text-gold-800" />
-              <span className="text-gold-800 font-sans font-medium uppercase tracking-wide text-sm">
+              <Sparkles className="w-6 h-6 text-blue-400" />
+              <span className="text-blue-400 font-medium uppercase tracking-wide text-sm">
                 Expert Consultation
               </span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-semibold mb-4 tracking-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
               Get in Touch
             </h1>
-            <p className="text-xl text-navy-100 max-w-2xl mx-auto font-sans leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed">
               Our fabric specialists are here to help you find the perfect textiles 
               for your design vision. Let's create something extraordinary together.
             </p>
@@ -476,10 +476,10 @@ export default function LuxuryContactPage() {
           {/* Contact Information */}
           <div className="lg:col-span-2 space-y-8">
             <div>
-              <h2 className="font-display text-2xl font-semibold text-navy-800 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Let's Connect
               </h2>
-              <p className="font-sans text-warm-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed">
                 Whether you're an interior designer, architect, or fabric enthusiast, 
                 we're here to provide personalized guidance and exceptional service.
               </p>
@@ -487,54 +487,54 @@ export default function LuxuryContactPage() {
 
             {/* Contact Cards */}
             <div className="space-y-6">
-              <LuxuryInfoCard icon={Mail} title="Email Support" accentColor="navy">
+              <LuxuryInfoCard icon={Mail} title="Email Support" accentColor="blue">
                 <p className="font-medium">hello@customfabricdesigns.com</p>
                 <p className="font-medium">orders@customfabricdesigns.com</p>
-                <p className="text-sm text-warm-600 mt-1">Response within 24 hours</p>
+                <p className="text-sm text-gray-600 mt-1">Response within 24 hours</p>
               </LuxuryInfoCard>
 
-              <LuxuryInfoCard icon={Phone} title="Expert Consultation" accentColor="gold">
+              <LuxuryInfoCard icon={Phone} title="Expert Consultation" accentColor="yellow">
                 <p className="font-medium">+1 (555) 123-4567</p>
-                <p className="text-sm text-warm-600">Monday - Friday: 9:00 AM - 6:00 PM EST</p>
-                <p className="text-sm text-warm-600">Saturday: 10:00 AM - 4:00 PM EST</p>
+                <p className="text-sm text-gray-600">Monday - Friday: 9:00 AM - 6:00 PM EST</p>
+                <p className="text-sm text-gray-600">Saturday: 10:00 AM - 4:00 PM EST</p>
               </LuxuryInfoCard>
 
               <LuxuryInfoCard icon={MapPin} title="Design Showroom" accentColor="green">
                 <p className="font-medium">1234 Design District</p>
                 <p className="font-medium">New York, NY 10013</p>
-                <p className="text-sm text-warm-600 mt-1">By appointment only</p>
+                <p className="text-sm text-gray-600 mt-1">By appointment only</p>
               </LuxuryInfoCard>
 
               <LuxuryInfoCard icon={Clock} title="Response Times" accentColor="purple">
                 <p className="font-medium">Email: Within 24 hours</p>
                 <p className="font-medium">Phone: Immediate during business hours</p>
-                <p className="text-sm text-warm-600 mt-1">Emergency orders: Same day response</p>
+                <p className="text-sm text-gray-600 mt-1">Emergency orders: Same day response</p>
               </LuxuryInfoCard>
             </div>
 
             {/* Trust Elements */}
-            <div className="bg-navy-50 border border-navy-200 rounded-2xl p-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <div className="flex items-center gap-3 mb-4">
-                <Shield className="w-6 h-6 text-navy-800" />
-                <h3 className="font-display text-lg font-medium text-navy-800">
+                <Shield className="w-6 h-6 text-blue-700" />
+                <h3 className="text-lg font-semibold text-gray-900">
                   Our Commitment
                 </h3>
               </div>
-              <ul className="space-y-2 font-sans text-navy-700">
+              <ul className="space-y-2 text-gray-700">
                 <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-gold-800 rounded-full" />
+                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
                   Personalized fabric recommendations
                 </li>
                 <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-gold-800 rounded-full" />
+                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
                   Free sample coordination
                 </li>
                 <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-gold-800 rounded-full" />
+                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
                   Expert design consultation
                 </li>
                 <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-gold-800 rounded-full" />
+                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
                   Dedicated account management
                 </li>
               </ul>
@@ -543,26 +543,26 @@ export default function LuxuryContactPage() {
 
           {/* Contact Form */}
           <div className="lg:col-span-3">
-            <div className="bg-white border border-warm-200 rounded-2xl p-8 shadow-sm">
+            <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
               <div className="mb-8">
-                <h2 className="font-display text-2xl font-semibold text-navy-800 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   Send Us a Message
                 </h2>
-                <p className="font-sans text-warm-600">
+                <p className="text-gray-600">
                   Tell us about your project and we'll help you find the perfect fabrics.
                 </p>
               </div>
               
               {/* Status Messages */}
               {submitStatus === 'success' && (
-                <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-2xl">
+                <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-sans font-semibold text-green-800 mb-1">
+                      <h3 className="font-semibold text-green-800 mb-1">
                         Message Sent Successfully!
                       </h3>
-                      <p className="font-sans text-green-700 text-sm leading-relaxed">
+                      <p className="text-green-700 text-sm leading-relaxed">
                         {statusMessage}
                       </p>
                     </div>
@@ -571,14 +571,14 @@ export default function LuxuryContactPage() {
               )}
 
               {submitStatus === 'error' && (
-                <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl">
+                <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-lg">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-6 h-6 text-red-600 mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-sans font-semibold text-red-800 mb-1">
+                      <h3 className="font-semibold text-red-800 mb-1">
                         Unable to Send Message
                       </h3>
-                      <p className="font-sans text-red-700 text-sm leading-relaxed">
+                      <p className="text-red-700 text-sm leading-relaxed">
                         {statusMessage}
                       </p>
                     </div>
@@ -659,12 +659,12 @@ export default function LuxuryContactPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`w-full h-14 rounded-xl font-sans font-semibold text-lg
-                               transition-all duration-300 flex items-center justify-center gap-3
-                               shadow-lg hover:shadow-xl disabled:cursor-not-allowed
+                    className={`w-full h-14 rounded-lg font-sans font-semibold text-base
+                               transition-all duration-200 flex items-center justify-center gap-3
+                               shadow-md hover:shadow-lg disabled:cursor-not-allowed
                                ${isSubmitting
-                                 ? 'bg-warm-300 text-warm-600 cursor-not-allowed'
-                                 : 'bg-navy-800 text-white hover:bg-navy-700 hover:-translate-y-0.5'
+                                 ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                 : 'bg-blue-600 text-white hover:bg-blue-700 transform hover:scale-105'
                                }`}
                   >
                     {isSubmitting ? (
@@ -686,70 +686,70 @@ export default function LuxuryContactPage() {
         </div>
 
         {/* Trust Indicators */}
-        <div className="mt-20 pt-16 border-t border-warm-200">
+        <div className="mt-20 pt-16 border-t border-gray-200">
           <div className="text-center mb-12">
-            <h2 className="font-display text-3xl font-semibold text-navy-800 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Why Designers Choose Us
             </h2>
-            <p className="font-sans text-warm-700 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto">
               Join thousands of satisfied designers who trust us for their fabric needs.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-navy-50 border-2 border-navy-200 rounded-2xl 
+              <div className="w-16 h-16 bg-blue-50 border-2 border-blue-200 rounded-lg
                            flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-navy-800" />
+                <Users className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="font-display text-xl font-medium text-navy-800 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Expert Support
               </h3>
-              <p className="font-sans text-warm-700">
+              <p className="text-gray-600">
                 Dedicated fabric specialists with 15+ years of design experience 
                 provide personalized recommendations.
               </p>
               <div className="flex items-center justify-center gap-1 mt-3">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} className="w-4 h-4 fill-gold-800 text-gold-800" />
+                  <Star key={star} className="w-4 h-4 fill-yellow-500 text-yellow-700" />
                 ))}
-                <span className="font-sans text-sm text-warm-600 ml-2">4.9/5 from 2,400+ reviews</span>
+                <span className="text-sm text-gray-600 ml-2">4.9/5 from 2,400+ reviews</span>
               </div>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-gold-50 border-2 border-gold-200 rounded-2xl 
+              <div className="w-16 h-16 bg-yellow-50 border-2 border-yellow-200 rounded-lg
                            flex items-center justify-center mx-auto mb-4">
-                <Award className="w-8 h-8 text-gold-800" />
+                <Award className="w-8 h-8 text-yellow-600" />
               </div>
-              <h3 className="font-display text-xl font-medium text-navy-800 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Premium Quality
               </h3>
-              <p className="font-sans text-warm-700">
+              <p className="text-gray-600">
                 Curated collection of premium fabrics from renowned mills worldwide, 
                 each piece inspected for exceptional quality.
               </p>
               <div className="mt-3">
-                <span className="bg-gold-100 text-gold-800 px-3 py-1 rounded-full font-sans text-sm font-medium">
+                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium">
                   Quality Guaranteed
                 </span>
               </div>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-50 border-2 border-green-200 rounded-2xl 
+              <div className="w-16 h-16 bg-green-50 border-2 border-green-200 rounded-lg
                            flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-8 h-8 text-green-800" />
+                <MessageSquare className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="font-display text-xl font-medium text-navy-800 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Rapid Response
               </h3>
-              <p className="font-sans text-warm-700">
+              <p className="text-gray-600">
                 Quick turnaround on samples and inquiries. Most emails answered 
                 within 4 hours during business days.
               </p>
               <div className="mt-3">
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-sans text-sm font-medium">
+                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
                   24hr Response Promise
                 </span>
               </div>

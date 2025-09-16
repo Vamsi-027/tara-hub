@@ -62,10 +62,10 @@ export default function Header() {
   }, [])
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      scrolled 
-        ? 'bg-pearl-50/95 backdrop-blur-md border-b border-pearl-300 shadow-luxury' 
-        : 'bg-pearl-50 border-b border-pearl-200'
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      scrolled
+        ? 'bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md'
+        : 'bg-white border-b border-gray-100'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
@@ -74,22 +74,20 @@ export default function Header() {
             <Link href="/" className="flex items-center space-x-4 group">
               {/* Luxury Logo Treatment */}
               <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-charcoal-800 via-charcoal-700 to-burgundy-600 
-                               rounded-xl flex items-center justify-center shadow-luxury 
-                               transform transition-transform duration-300 group-hover:scale-105">
-                  <Layers className="w-7 h-7 text-pearl-50" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-gray-900 to-gray-700
+                               rounded-lg flex items-center justify-center shadow-sm
+                               transform transition-transform duration-200 group-hover:scale-105">
+                  <Layers className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-charcoal-800 to-burgundy-600 
-                               rounded-xl blur opacity-20 transform scale-110"></div>
               </div>
               {/* Enhanced Brand Typography */}
-              <div className="flex flex-col">
-                <span className="font-display text-2xl font-semibold text-charcoal-800 
-                               tracking-tight leading-none group-hover:text-burgundy-600 
-                               transition-colors duration-300">
+              <div className="hidden md:flex flex-col">
+                <span className="text-xl font-semibold text-gray-900
+                               tracking-tight leading-none group-hover:text-blue-600
+                               transition-colors duration-200">
                   Custom Fabric Designs
                 </span>
-                <span className="font-sans text-xs text-charcoal-500 uppercase tracking-wider leading-none">
+                <span className="text-xs text-gray-500 uppercase tracking-wider leading-none mt-0.5">
                   Premium Fabrics
                 </span>
               </div>
@@ -98,32 +96,32 @@ export default function Header() {
 
           {/* Enhanced Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              href="/" 
-              className="font-sans font-medium text-charcoal-700 hover:text-burgundy-600 
-                         transition-colors duration-300 relative group"
+            <Link
+              href="/"
+              className="font-medium text-gray-700 hover:text-blue-600
+                         transition-colors duration-200 relative group"
             >
               Home
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-burgundy-600 
-                             transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600
+                             transition-all duration-200 group-hover:w-full"></span>
             </Link>
-            <Link 
-              href="/browse" 
-              className="font-sans font-medium text-charcoal-700 hover:text-burgundy-600 
-                         transition-colors duration-300 relative group"
+            <Link
+              href="/browse"
+              className="font-medium text-gray-700 hover:text-blue-600
+                         transition-colors duration-200 relative group"
             >
               Browse Fabrics
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-burgundy-600 
-                             transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600
+                             transition-all duration-200 group-hover:w-full"></span>
             </Link>
-            <Link 
-              href="/contact" 
-              className="font-sans font-medium text-charcoal-700 hover:text-burgundy-600 
-                         transition-colors duration-300 relative group"
+            <Link
+              href="/contact"
+              className="font-medium text-gray-700 hover:text-blue-600
+                         transition-colors duration-200 relative group"
             >
               Contact
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-burgundy-600 
-                             transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600
+                             transition-all duration-200 group-hover:w-full"></span>
             </Link>
           </nav>
 
@@ -132,16 +130,14 @@ export default function Header() {
             {/* Enhanced Wishlist */}
             <Link
               href="/wishlist"
-              className="relative p-3 text-charcoal-700 hover:text-burgundy-600 
-                         transition-all duration-300 hover:bg-champagne-300/50 rounded-lg
-                         transform hover:scale-105"
+              className="relative p-2 text-gray-700 hover:text-blue-600
+                         transition-all duration-200 hover:bg-gray-100 rounded-lg"
               title="Wishlist"
             >
-              <Heart className="w-6 h-6" />
+              <Heart className="w-5 h-5" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-burgundy-600 text-pearl-50 
-                               text-xs rounded-full flex items-center justify-center font-bold
-                               animate-fade-in-scale">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white
+                               text-xs rounded-full flex items-center justify-center font-bold">
                   {wishlistCount}
                 </span>
               )}
@@ -150,16 +146,14 @@ export default function Header() {
             {/* Enhanced Cart */}
             <Link
               href="/cart"
-              className="relative p-3 text-charcoal-700 hover:text-burgundy-600 
-                         transition-all duration-300 hover:bg-champagne-300/50 rounded-lg
-                         transform hover:scale-105"
+              className="relative p-2 text-gray-700 hover:text-blue-600
+                         transition-all duration-200 hover:bg-gray-100 rounded-lg"
               title="Shopping Cart"
             >
-              <ShoppingCart className="w-6 h-6" />
+              <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-charcoal-800 text-pearl-50 
-                               text-xs rounded-full flex items-center justify-center font-bold
-                               animate-fade-in-scale">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gray-900 text-white
+                               text-xs rounded-full flex items-center justify-center font-bold">
                   {cartCount}
                 </span>
               )}
@@ -171,10 +165,11 @@ export default function Header() {
             {/* Enhanced Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-3 text-charcoal-700 hover:text-burgundy-600 
-                         hover:bg-champagne-300/50 rounded-lg transition-all duration-300"
+              className="md:hidden p-2 text-gray-700 hover:text-blue-600
+                         hover:bg-gray-100 rounded-lg transition-all duration-200"
+              aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -182,12 +177,12 @@ export default function Header() {
 
       {/* Enhanced Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-pearl-300 bg-pearl-50/95 backdrop-blur-md">
-          <nav className="px-4 py-6 space-y-3">
+        <div className="md:hidden border-t border-gray-200 bg-white">
+          <nav className="px-4 py-4 space-y-1">
             <Link
               href="/"
-              className="flex items-center space-x-3 px-4 py-3 text-charcoal-700 
-                         hover:bg-champagne-300/50 rounded-lg transition-all duration-300"
+              className="flex items-center space-x-3 px-3 py-2.5 text-gray-700
+                         hover:bg-gray-100 rounded-lg transition-all duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
               <Home className="w-5 h-5" />
@@ -195,8 +190,8 @@ export default function Header() {
             </Link>
             <Link
               href="/browse"
-              className="flex items-center space-x-3 px-4 py-3 text-charcoal-700 
-                         hover:bg-champagne-300/50 rounded-lg transition-all duration-300"
+              className="flex items-center space-x-3 px-3 py-2.5 text-gray-700
+                         hover:bg-gray-100 rounded-lg transition-all duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
               <Layers className="w-5 h-5" />
@@ -204,8 +199,8 @@ export default function Header() {
             </Link>
             <Link
               href="/contact"
-              className="flex items-center space-x-3 px-4 py-3 text-charcoal-700 
-                         hover:bg-champagne-300/50 rounded-lg transition-all duration-300"
+              className="flex items-center space-x-3 px-3 py-2.5 text-gray-700
+                         hover:bg-gray-100 rounded-lg transition-all duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
               <Phone className="w-5 h-5" />
