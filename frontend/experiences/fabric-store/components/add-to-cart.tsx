@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ShoppingCart, Check } from 'lucide-react'
+import { addToCart } from '../lib/cart-utils'
 
 interface AddToCartProps {
   product: {
@@ -28,8 +29,7 @@ export default function AddToCart({ product }: AddToCartProps) {
     const variant = product.variants.find(v => v.id === selectedVariant)
     if (!variant) return
 
-    const cartItem = {
-      id: `${product.id}-${variant.id}-${Date.now()}`,
+    addToCart({
       variantId: variant.id,
       productId: product.id,
       title: product.title,
@@ -37,34 +37,11 @@ export default function AddToCart({ product }: AddToCartProps) {
       price: variant.prices[0]?.amount || 0,
       quantity,
       thumbnail: product.thumbnail
-    }
+    })
 
-    // Get existing cart
-    const existingCart = localStorage.getItem('fabric-cart')
-    const cart = existingCart ? JSON.parse(existingCart) : []
-    
-    // Check if this variant already exists in cart
-    const existingItemIndex = cart.findIndex((item: any) => 
-      item.variantId === variant.id
-    )
-
-    if (existingItemIndex > -1) {
-      // Update quantity if item exists
-      cart[existingItemIndex].quantity += quantity
-    } else {
-      // Add new item
-      cart.push(cartItem)
-    }
-
-    // Save to localStorage
-    localStorage.setItem('fabric-cart', JSON.stringify(cart))
-    
     // Show success state
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
-
-    // Dispatch custom event for cart update
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }))
   }
 
   const selectedVariantData = product.variants.find(v => v.id === selectedVariant)

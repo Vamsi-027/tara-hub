@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { useFabric, useFabrics } from '../../../hooks/useFabrics'
 import type { Fabric } from '../../../lib/fabric-api'
+import { addToCart } from '../../../lib/cart-utils'
 import Header from '../../../components/header'
 
 // Modern Image Gallery Component
@@ -264,8 +265,7 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
   }, [selectedVariantType])
 
   const handleAddToCart = () => {
-    const cartItem = {
-      id: `${selectedVariantType.toLowerCase()}-${fabric.id}-${Date.now()}`,
+    addToCart({
       variantId: fabric.id,
       productId: fabric.id,
       title: essentialFields.name,
@@ -276,14 +276,7 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
       quantity: quantity,
       thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
       type: selectedVariantType === 'Swatch' ? 'swatch' : 'fabric'
-    }
-
-    const existingCart = localStorage.getItem('fabric-cart')
-    const cart = existingCart ? JSON.parse(existingCart) : []
-    const updatedCart = [...cart, cartItem]
-
-    localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+    })
 
     // Show success feedback
     setAddedToCart(true)
@@ -1059,8 +1052,7 @@ export default function ModernProductDetailPage() {
           <button
             onClick={() => {
               // Add swatch to cart logic
-              const cartItem = {
-                id: `swatch-${fabric.id}-${Date.now()}`,
+              addToCart({
                 variantId: fabric.id,
                 productId: fabric.id,
                 title: fabric.name,
@@ -1069,14 +1061,7 @@ export default function ModernProductDetailPage() {
                 quantity: 1,
                 thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
                 type: 'swatch'
-              }
-
-              const existingCart = localStorage.getItem('fabric-cart')
-              const cart = existingCart ? JSON.parse(existingCart) : []
-              const updatedCart = [...cart, cartItem]
-
-              localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-              window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+              })
             }}
             className="flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           >

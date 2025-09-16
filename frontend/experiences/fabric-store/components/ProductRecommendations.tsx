@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Heart, ShoppingCart, Star } from 'lucide-react'
 import type { Fabric } from '../lib/fabric-api'
+import { addToCart } from '../lib/cart-utils'
 
 interface ProductRecommendationsProps {
   currentFabric: Fabric
@@ -60,9 +61,8 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
     }
   }, [currentFabric, allFabrics])
 
-  const addToCart = (fabric: Fabric, type: 'swatch' | 'fabric' = 'swatch') => {
-    const cartItem = {
-      id: `${type}-${fabric.id}-${Date.now()}`,
+  const handleAddToCart = (fabric: Fabric, type: 'swatch' | 'fabric' = 'swatch') => {
+    addToCart({
       variantId: fabric.id,
       productId: fabric.id,
       title: fabric.name,
@@ -71,14 +71,7 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
       quantity: 1,
       thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0],
       type
-    }
-
-    const existingCart = localStorage.getItem('fabric-cart')
-    const cart = existingCart ? JSON.parse(existingCart) : []
-    const updatedCart = [...cart, cartItem]
-    
-    localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+    })
   }
 
   const toggleWishlist = (fabricId: string) => {
@@ -183,13 +176,13 @@ export function ProductRecommendations({ currentFabric, allFabrics }: ProductRec
               {/* Action buttons */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => addToCart(fabric, 'swatch')}
+                  onClick={() => handleAddToCart(fabric, 'swatch')}
                   className="flex-1 bg-green-600 text-white text-xs py-2 px-3 rounded-lg hover:bg-green-700 transition-colors"
                 >
                   Swatch ${((fabric as any).swatch_price || 5).toFixed(2)}
                 </button>
                 <button
-                  onClick={() => addToCart(fabric, 'fabric')}
+                  onClick={() => handleAddToCart(fabric, 'fabric')}
                   className="flex-1 bg-blue-600 text-white text-xs py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   1 Yard

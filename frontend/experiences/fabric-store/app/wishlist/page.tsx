@@ -18,6 +18,7 @@ import {
   Layers
 } from 'lucide-react'
 import { useFabrics } from '../../hooks/useFabrics'
+import { addToCart as addToCartUtil } from '../../lib/cart-utils'
 import type { Fabric } from '../../lib/fabric-api'
 
 interface WishlistItem {
@@ -108,8 +109,7 @@ export default function WishlistPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500))
 
-    const cartItem = {
-      id: `${type}-${fabric.id}-${Date.now()}`,
+    addToCartUtil({
       variantId: fabric.id,
       productId: fabric.id,
       title: fabric.name,
@@ -121,14 +121,7 @@ export default function WishlistPage() {
       thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || '/placeholder.jpg',
       type,
       yardage: type === 'fabric' ? quantity : undefined
-    }
-
-    const existingCart = localStorage.getItem('fabric-cart')
-    const cart = existingCart ? JSON.parse(existingCart) : []
-    const updatedCart = [...cart, cartItem]
-
-    localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+    })
 
     setNotification({
       message: `Added ${fabric.name} ${type === 'swatch' ? 'swatch' : `(${quantity} yard${quantity > 1 ? 's' : ''})`} to cart`,
@@ -216,7 +209,7 @@ export default function WishlistPage() {
       )}
 
       {/* Page Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-gray-200 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

@@ -10,6 +10,7 @@ export default function Header() {
   const [wishlistCount, setWishlistCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [cartAnimated, setCartAnimated] = useState(false)
 
   // Enhanced scroll effect
   useEffect(() => {
@@ -47,7 +48,12 @@ export default function Header() {
     updateCartCount()
     updateWishlistCount()
     
-    const handleCartUpdate = () => updateCartCount()
+    const handleCartUpdate = () => {
+      updateCartCount()
+      // Trigger cart animation
+      setCartAnimated(true)
+      setTimeout(() => setCartAnimated(false), 600)
+    }
     const handleWishlistUpdate = () => updateWishlistCount()
     
     window.addEventListener('cart-updated', handleCartUpdate)
@@ -146,14 +152,16 @@ export default function Header() {
             {/* Enhanced Cart */}
             <Link
               href="/cart"
-              className="relative p-2 text-gray-700 hover:text-blue-600
-                         transition-all duration-200 hover:bg-gray-100 rounded-lg"
+              className={`relative p-2 text-gray-700 hover:text-blue-600
+                         transition-all duration-200 hover:bg-gray-100 rounded-lg
+                         ${cartAnimated ? 'animate-bounce' : ''}`}
               title="Shopping Cart"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className={`w-5 h-5 transition-transform duration-200 ${cartAnimated ? 'scale-110' : ''}`} />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gray-900 text-white
-                               text-xs rounded-full flex items-center justify-center font-bold">
+                <span className={`absolute -top-1 -right-1 w-5 h-5 bg-gray-900 text-white
+                               text-xs rounded-full flex items-center justify-center font-bold
+                               transition-all duration-200 ${cartAnimated ? 'scale-125 bg-green-600' : ''}`}>
                   {cartCount}
                 </span>
               )}

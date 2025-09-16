@@ -52,6 +52,11 @@ const CartItemCard = React.memo(({
   const [isRemoving, setIsRemoving] = useState(false)
   const [localQuantity, setLocalQuantity] = useState(item.quantity)
 
+  // Update localQuantity when item.quantity changes
+  useEffect(() => {
+    setLocalQuantity(item.quantity)
+  }, [item.quantity])
+
   const handleRemove = useCallback(async () => {
     setIsRemoving(true)
     await new Promise(resolve => setTimeout(resolve, 200))
@@ -65,8 +70,8 @@ const CartItemCard = React.memo(({
   }, [item.id, onUpdateQuantity])
 
   const itemTotal = useMemo(() => {
-    return ((item.price * item.quantity) / 100).toFixed(2)
-  }, [item.price, item.quantity])
+    return ((item.price * localQuantity) / 100).toFixed(2)
+  }, [item.price, localQuantity])
 
   return (
     <div className={`group bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm
@@ -120,49 +125,50 @@ const CartItemCard = React.memo(({
             <span className="text-xl font-bold text-gray-900">
               ${(item.price / 100).toFixed(2)}
             </span>
-            {item.quantity > 1 && (
+            {localQuantity > 1 && (
               <span className="text-sm text-gray-500">
-                each × {item.quantity} = ${itemTotal}
+                each × {localQuantity} = ${itemTotal}
               </span>
             )}
           </div>
 
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* Quantity Selector */}
-            {item.type === 'swatch' ? (
+            {/* Quantity Selector - Available for both swatch and fabric */}
+            <div className="flex items-center border border-gray-200 rounded-lg">
+              <button
+                onClick={() => handleQuantityChange(localQuantity - 1)}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50
+                          transition-colors duration-200 disabled:opacity-50"
+                disabled={localQuantity <= 1}
+                aria-label="Decrease quantity"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <input
+                type="number"
+                value={localQuantity}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 1
+                  handleQuantityChange(Math.max(1, val))
+                }}
+                className="w-16 text-center border-x border-gray-200 py-2 focus:outline-none"
+                min="1"
+              />
+              <button
+                onClick={() => handleQuantityChange(localQuantity + 1)}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50
+                          transition-colors duration-200"
+                aria-label="Increase quantity"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Type Badge */}
+            {item.type === 'swatch' && (
               <div className="px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
                 <span className="text-sm font-medium text-green-700">Sample</span>
-              </div>
-            ) : (
-              <div className="flex items-center border border-gray-200 rounded-lg">
-                <button
-                  onClick={() => handleQuantityChange(localQuantity - 1)}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50
-                            transition-colors duration-200 disabled:opacity-50"
-                  disabled={localQuantity <= 1}
-                  aria-label="Decrease quantity"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <input
-                  type="number"
-                  value={localQuantity}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value) || 1
-                    handleQuantityChange(Math.max(1, val))
-                  }}
-                  className="w-16 text-center border-x border-gray-200 py-2 focus:outline-none"
-                  min="1"
-                />
-                <button
-                  onClick={() => handleQuantityChange(localQuantity + 1)}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50
-                            transition-colors duration-200"
-                  aria-label="Increase quantity"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
               </div>
             )}
 

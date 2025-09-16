@@ -8,6 +8,7 @@ import { FiltersSidebar, ActiveFiltersChips, useFilters, type FilterState } from
 import { Button } from '@/components/ui/button'
 import Header from '@/components/header'
 import type { Fabric } from '../../lib/fabric-api'
+import { addToCart } from '../../lib/cart-utils'
 import { Pagination } from '../../components/Pagination'
 
 // Enhanced API Hook - integrated with existing enhanced API
@@ -159,9 +160,8 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation()
-    
-    const cartItem = {
-      id: `swatch-${fabric.id}-${Date.now()}`,
+
+    addToCart({
       variantId: fabric.id,
       productId: fabric.id,
       title: fabric.name,
@@ -169,15 +169,8 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
       price: essentialFields.swatchPrice * 100,
       quantity: 1,
       thumbnail: essentialFields.image,
-      type: 'swatch'
-    }
-
-    const existingCart = localStorage.getItem('fabric-cart')
-    const cart = existingCart ? JSON.parse(existingCart) : []
-    const updatedCart = [...cart, cartItem]
-    
-    localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+      type: 'swatch' as 'swatch'
+    })
   }
 
   if (viewMode === 'list') {
