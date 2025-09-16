@@ -379,9 +379,13 @@ function CheckoutForm() {
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Invalid email address'
 
       if (!formData.firstName.trim()) errors.firstName = 'First name is required'
-      if (!formData.lastName.trim()) errors.lastName = 'Last name is required'
-      if (!formData.phone.trim()) errors.phone = 'Phone number is required'
-      else if (!/^[\d\s\-\+\(\)]+$/.test(formData.phone)) errors.phone = 'Invalid phone number'
+
+      // Last name is optional - no validation
+
+      // Phone is optional - only validate format if provided
+      if (formData.phone.trim() && !/^[\d\s\-\+\(\)]+$/.test(formData.phone)) {
+        errors.phone = 'Invalid phone number format'
+      }
 
       if (!formData.address.trim()) errors.address = 'Address is required'
       if (!formData.city.trim()) errors.city = 'City is required'
@@ -598,8 +602,7 @@ function CheckoutForm() {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        placeholder="Last Name"
-                        required
+                        placeholder="Last Name (Optional)"
                         error={formErrors.lastName}
                         autoComplete="family-name"
                       />
@@ -611,8 +614,7 @@ function CheckoutForm() {
                       type="tel"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      placeholder="Phone Number"
-                      required
+                      placeholder="Phone Number (Optional)"
                       error={formErrors.phone}
                       icon={Phone}
                       autoComplete="tel"
