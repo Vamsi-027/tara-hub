@@ -1,185 +1,286 @@
-import { MedusaRequest, MedusaResponse } from "@medusajs/framework"
-import { Client } from 'pg'
+/**
+ * Fabric Orders API - Production Ready
+ * Uses Medusa's built-in order service for proper order management
+ */
 
-// Public endpoint to store fabric orders in PostgreSQL database
-export async function POST(
-  req: MedusaRequest,
-  res: MedusaResponse
-) {
+interface MedusaRequest {
+  scope: any
+  body: any
+  query: any
+}
+
+interface MedusaResponse {
+  status: (code: number) => { json: (data: any) => any }
+}
+
+interface CreateOrderRequest {
+  orderId?: string
+  email: string
+  items: Array<{
+    id: string
+    name: string
+    sku: string
+    color: string
+    price: number
+    quantity: number
+    image?: string
+  }>
+  shipping: {
+    firstName: string
+    lastName?: string
+    email?: string
+    phone?: string
+    address: string
+    city: string
+    state: string
+    zipCode: string
+    country?: string
+  }
+  totals: {
+    subtotal: number
+    shipping: number
+    tax: number
+    total: number
+  }
+  total: number
+  paymentIntentId?: string
+  status?: string
+}
+
+interface GetOrdersQuery {
+  email?: string
+  limit?: string
+  offset?: string
+  status?: string
+}
+
+/**
+ * POST /store/fabric-orders
+ * Create a new order using Medusa's order service
+ */
+export async function POST(req: MedusaRequest, res: MedusaResponse) {
   try {
-    const { 
-      orderId, 
-      email, 
-      items = [], 
-      shipping = {}, 
-      totals = {},
-      paymentIntentId,
-      status = 'pending' 
-    } = req.body
+    const data = req.body as CreateOrderRequest
+    const { email, items, shipping, totals, paymentIntentId, status = 'pending' } = data
 
-    console.log(`📦 Storing order in database: ${orderId}`)
-    console.log(`   Customer: ${email}`)
-    console.log(`   Items: ${items.length}`)
-    console.log(`   Total: $${((totals.total || 0) / 100).toFixed(2)}`)
-    
-    // Get database connection from environment
-    const databaseUrl = process.env.DATABASE_URL
-    
-    if (!databaseUrl) {
-      throw new Error("DATABASE_URL not configured")
-    }
-    
-    // Create PostgreSQL client
-    const client = new Client({
-      connectionString: databaseUrl,
-      ssl: databaseUrl.includes('sslmode=require') ? { rejectUnauthorized: false } : false
-    })
-    
-    await client.connect()
-    
+    console.log(`🎯 Creating fabric order for ${email}`)
+
+    // Get order service
+    const orderService = req.scope.resolve("orderService")
+    const customerService = req.scope.resolve("customerService")
+    const regionService = req.scope.resolve("regionService")
+
+    // Get or create customer
+    let customer
     try {
-      // Create table if it doesn't exist (idempotent)
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS fabric_orders (
-          id VARCHAR(255) PRIMARY KEY,
-          email VARCHAR(255) NOT NULL,
-          status VARCHAR(50) NOT NULL DEFAULT 'pending',
-          items_count INTEGER DEFAULT 0,
-          total_amount INTEGER NOT NULL DEFAULT 0,
-          subtotal INTEGER DEFAULT 0,
-          shipping_cost INTEGER DEFAULT 0,
-          tax_amount INTEGER DEFAULT 0,
-          payment_intent_id VARCHAR(255),
-          customer_data JSONB,
-          shipping_data JSONB,
-          items_data JSONB,
-          metadata JSONB,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-        );
-      `)
-      
-      // Insert order into database
-      const insertQuery = `
-        INSERT INTO fabric_orders (
-          id, email, status, items_count, total_amount, 
-          subtotal, shipping_cost, tax_amount, payment_intent_id,
-          customer_data, shipping_data, items_data, metadata
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-        ON CONFLICT (id) DO UPDATE SET
-          updated_at = NOW(),
-          status = EXCLUDED.status
-        RETURNING *;
-      `
-      
-      const values = [
-        orderId,
+      customer = await customerService.retrieveByEmail(email)
+    } catch (error) {
+      // Customer doesn't exist, create one
+      customer = await customerService.create({
         email,
-        status,
-        items.length,
-        totals.total || 0,
-        totals.subtotal || 0,
-        totals.shipping || 0,
-        totals.tax || 0,
-        paymentIntentId,
-        JSON.stringify({ 
-          email, 
-          firstName: shipping.firstName, 
-          lastName: shipping.lastName 
-        }),
-        JSON.stringify(shipping),
-        JSON.stringify(items),
-        JSON.stringify({ 
-          source: "fabric-store", 
-          created_via: "checkout",
-          api_version: "v1"
-        })
-      ]
-      
-      const result = await client.query(insertQuery, values)
-      const savedOrder = result.rows[0]
-      
-      console.log(`✅ Order stored in PostgreSQL database: ${orderId}`)
-      console.log(`   Database ID: ${savedOrder.id}`)
-      console.log(`   Created: ${savedOrder.created_at}`)
-      console.log(`   Table: fabric_orders`)
-      
-      res.json({
-        success: true,
-        order: {
-          id: savedOrder.id,
-          email: savedOrder.email,
-          status: savedOrder.status,
-          total: savedOrder.total_amount,
-          created_at: savedOrder.created_at,
-          database_stored: true
-        },
-        message: "Order stored in database successfully"
+        first_name: shipping.firstName,
+        last_name: shipping.lastName || '',
+        phone: shipping.phone
       })
-      return
-      
-    } finally {
-      await client.end()
+      console.log(`👤 Created new customer: ${customer.id}`)
     }
-    
+
+    // Get default region (US)
+    const regions = await regionService.list()
+    const region = regions.find(r => r.currency_code === 'usd') || regions[0]
+
+    if (!region) {
+      throw new Error('No region found')
+    }
+
+    // Create order data
+    const orderData = {
+      customer_id: customer.id,
+      email: email,
+      region_id: region.id,
+      currency_code: 'usd',
+
+      // Shipping address
+      shipping_address: {
+        first_name: shipping.firstName,
+        last_name: shipping.lastName || '',
+        phone: shipping.phone || '',
+        address_1: shipping.address,
+        city: shipping.city,
+        province: shipping.state,
+        postal_code: shipping.zipCode,
+        country_code: (shipping.country || 'US').toLowerCase()
+      },
+
+      // Billing address (same as shipping)
+      billing_address: {
+        first_name: shipping.firstName,
+        last_name: shipping.lastName || '',
+        phone: shipping.phone || '',
+        address_1: shipping.address,
+        city: shipping.city,
+        province: shipping.state,
+        postal_code: shipping.zipCode,
+        country_code: (shipping.country || 'US').toLowerCase()
+      },
+
+      // Order items - convert to Medusa format
+      items: items.map(item => ({
+        title: item.name,
+        description: `${item.name} - ${item.color}`,
+        thumbnail: item.image,
+        unit_price: item.price,
+        quantity: item.quantity,
+        variant: {
+          title: item.color,
+          sku: item.sku,
+          inventory_quantity: 100
+        },
+        metadata: {
+          fabric_item_id: item.id,
+          color: item.color,
+          sku: item.sku
+        }
+      })),
+
+      // Order totals
+      subtotal: totals.subtotal,
+      tax_total: totals.tax,
+      shipping_total: totals.shipping,
+      total: totals.total,
+
+      // Payment and fulfillment status
+      payment_status: paymentIntentId ? 'captured' : 'awaiting',
+      fulfillment_status: 'not_fulfilled',
+      status: status,
+
+      // Metadata
+      metadata: {
+        source: 'fabric-store',
+        payment_intent_id: paymentIntentId,
+        original_order_id: data.orderId
+      }
+    }
+
+    // Create the order
+    const order = await orderService.create(orderData)
+
+    console.log(`✅ Order created successfully: ${order.id}`)
+    console.log(`📧 Customer: ${email}`)
+    console.log(`💰 Total: $${(order.total / 100).toFixed(2)}`)
+
+    return res.status(200).json({
+      success: true,
+      order: {
+        id: order.id,
+        email: order.email,
+        status: order.status,
+        total: order.total,
+        created_at: order.created_at,
+        medusa_visible: true,
+        admin_url: `/admin/orders/${order.id}`
+      },
+      message: "Order created and visible in Medusa Admin"
+    })
+
   } catch (error) {
-    console.error("❌ Error storing order in database:", error)
-    res.status(500).json({ 
+    console.error('❌ Error creating fabric order:', error)
+
+    return res.status(500).json({
       success: false,
-      error: "Failed to store order in database",
-      message: error.message,
-      database_stored: false
+      error: 'Failed to create order',
+      message: error instanceof Error ? error.message : 'Unknown error'
     })
   }
 }
 
-// GET endpoint to retrieve orders from database
-export async function GET(
-  req: MedusaRequest,
-  res: MedusaResponse
-) {
+/**
+ * GET /store/fabric-orders
+ * Retrieve orders by email
+ */
+export async function GET(req: MedusaRequest, res: MedusaResponse) {
   try {
-    const databaseUrl = process.env.DATABASE_URL
-    
-    if (!databaseUrl) {
-      throw new Error("DATABASE_URL not configured")
-    }
-    
-    const client = new Client({
-      connectionString: databaseUrl,
-      ssl: databaseUrl.includes('sslmode=require') ? { rejectUnauthorized: false } : false
-    })
-    
-    await client.connect()
-    
-    try {
-      const result = await client.query(`
-        SELECT id, email, status, items_count, total_amount, 
-               payment_intent_id, created_at, updated_at,
-               customer_data, shipping_data, items_data
-        FROM fabric_orders 
-        ORDER BY created_at DESC 
-        LIMIT 50
-      `)
-      
-      console.log(`📊 Retrieved ${result.rows.length} orders from database`)
-      
-      res.json({
-        success: true,
-        orders: result.rows,
-        count: result.rows.length
+    const query = req.query as GetOrdersQuery
+    const { email, limit = "50", offset = "0", status } = query
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: "Email parameter is required"
       })
-      
-    } finally {
-      await client.end()
     }
-    
+
+    console.log(`📋 Retrieving orders for: ${email}`)
+
+    // Get order service
+    const orderService = req.scope.resolve("orderService")
+
+    // Build filter
+    const filters: any = { email: email }
+    if (status) {
+      filters.status = status
+    }
+
+    // Get orders
+    const orders = await orderService.list(filters, {
+      relations: ["items", "shipping_address", "billing_address", "customer"],
+      take: parseInt(limit),
+      skip: parseInt(offset),
+      order: { created_at: "DESC" }
+    })
+
+    console.log(`📊 Retrieved ${orders.length} orders from Medusa`)
+
+    // Transform to our format
+    const transformedOrders = orders.map(order => ({
+      id: order.id,
+      email: order.email,
+      status: order.status,
+      items: order.items?.map(item => ({
+        id: item.metadata?.fabric_item_id || item.id,
+        name: item.title,
+        sku: item.metadata?.sku || '',
+        color: item.metadata?.color || item.variant?.title || '',
+        price: item.unit_price,
+        quantity: item.quantity,
+        image: item.thumbnail
+      })) || [],
+      shipping: {
+        firstName: order.shipping_address?.first_name || '',
+        lastName: order.shipping_address?.last_name || '',
+        email: order.email,
+        phone: order.shipping_address?.phone || '',
+        address: order.shipping_address?.address_1 || '',
+        city: order.shipping_address?.city || '',
+        state: order.shipping_address?.province || '',
+        zipCode: order.shipping_address?.postal_code || '',
+        country: order.shipping_address?.country_code?.toUpperCase() || 'US'
+      },
+      totals: {
+        subtotal: order.subtotal || 0,
+        shipping: order.shipping_total || 0,
+        tax: order.tax_total || 0,
+        total: order.total || 0
+      },
+      paymentIntentId: order.metadata?.payment_intent_id,
+      createdAt: order.created_at,
+      updatedAt: order.updated_at
+    }))
+
+    return res.status(200).json({
+      success: true,
+      orders: transformedOrders,
+      count: transformedOrders.length,
+      source: "medusa"
+    })
+
   } catch (error) {
-    console.error("❌ Error retrieving orders from database:", error)
-    res.status(500).json({
+    console.error('❌ Error retrieving orders:', error)
+
+    return res.status(500).json({
       success: false,
-      error: "Failed to retrieve orders from database",
-      message: error.message
+      error: 'Failed to retrieve orders',
+      message: error instanceof Error ? error.message : 'Unknown error'
     })
   }
 }
