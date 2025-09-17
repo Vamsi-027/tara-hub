@@ -118,6 +118,10 @@ COPY --from=builder --chown=medusa:nodejs /app/.env /app/.env
 # Copy public directory directly instead of symlink (Railway compatibility)
 COPY --from=builder --chown=medusa:nodejs /app/.medusa/server/public /app/public
 
+# Fix permissions for Medusa to write migration files
+RUN chown -R medusa:nodejs /app/node_modules/@medusajs || true
+RUN chmod -R 755 /app/node_modules/@medusajs || true
+
 # Set production environment
 ENV NODE_ENV=production
 
@@ -134,5 +138,6 @@ EXPOSE 9000
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start command with database migration and explicit host binding
-CMD ["sh", "-c", "npm run predeploy && NODE_ENV=production npx medusa start --host 0.0.0.0 --port 9000"]
+# Start command - skip migrations in production (they're already done)
+# Use Railway's PORT environment variable (defaults to 9000 for local development)
+CMD ["sh", "-c", "NODE_ENV=production npx medusa start --host 0.0.0.0 --port ${PORT:-9000}"]
