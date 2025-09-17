@@ -14,7 +14,7 @@ import { createProductsWorkflow } from "@medusajs/medusa/core-flows";
 import { MemoryManager } from "../modules/product_import/memory-manager";
 import { StreamingParser } from "../modules/product_import/streaming-parser";
 import { DataIntegrityValidator, ValidationContext, ValidationIssue } from "../modules/product_import/data-integrity";
-import { SmartColumnMapper } from "../modules/product_import/column-mapper";
+import { ColumnMapper } from "../modules/product_import/column-mapper";
 import { ArtifactGenerator, ErrorRow, ImportResult } from "../modules/product_import/artifact-generator";
 import { productRowSchema, ProductRow } from "../modules/product_import/schemas";
 import { rowToProductInput } from "../modules/product_import/mapping";
@@ -115,7 +115,7 @@ export default async function handler(
     let rowIndex = 0;
 
     // Apply column mapping
-    const columnMapper = new SmartColumnMapper();
+    const columnMapper = new ColumnMapper();
     let mappedHeaders: Record<string, string> = {};
 
     parser.on("readable", async function () {
@@ -129,13 +129,11 @@ export default async function handler(
             // Use provided mapping
             mappedHeaders = data.options.column_mapping_json;
           } else {
-            // Auto-detect mapping
-            const sampleRows = [record];
-            for (let i = 0; i < 5 && (record = parser.read()); i++) {
-              sampleRows.push(record);
-              rows.push(record); // Keep these for processing
-            }
-            mappedHeaders = await columnMapper.detectMapping(headers, sampleRows);
+            // V1: identity mapping to minimize surprises
+            mappedHeaders = headers.reduce((acc, h) => {
+              acc[h] = h;
+              return acc;
+            }, {} as Record<string, string>);
           }
 
           console.log(`[ProductImport] Column mapping:`, mappedHeaders);
@@ -275,11 +273,10 @@ export default async function handler(
             });
 
             // For V1, use simple product creation
-            const created = await createProductsWorkflow.run({
+            const created = await createProductsWorkflow(container).run({
               input: {
                 products: [product],
               },
-              container,
             });
 
             if (created.result?.length > 0) {
