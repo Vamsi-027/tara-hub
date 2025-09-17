@@ -1,0 +1,4 @@
+title,handle,status,currency_code,retail_price,thumbnail_url,image_urls,tags,collection_handles,category_handles,sales_channel_handles,manage_inventory,inventory_quantity
+Linen Fabric A,linen-fabric-a,published,usd,19.99,https://cdn.example.com/img/a.jpg,https://cdn.example.com/img/a1.jpg;https://cdn.example.com/img/a2.jpg,"linen,summer",home-textiles,upholstery,default;online,true,100
+Cotton Fabric B,cotton-fabric-b,draft,usd,14.50,https://cdn.example.com/img/b.jpg,,"cotton,basic",home-textiles,,default,false,
+

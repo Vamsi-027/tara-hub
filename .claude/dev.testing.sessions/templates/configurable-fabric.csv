@@ -1,0 +1,4 @@
+title,handle,status,currency_code,retail_price,config_type,category_filter,collection_filter,min_selections,max_selections,set_price,base_price,thumbnail_url
+Custom Swatch Set D,swatch-set-d,published,usd,0,configurable_swatch_set,,swatches,2,4,9.99,,https://cdn.example.com/img/d.jpg
+Configurable Fabric E,configurable-fabric-e,published,usd,29.99,configurable_fabric,upholstery,,1,1,,19.99,https://cdn.example.com/img/e.jpg
+

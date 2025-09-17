@@ -1,0 +1,5 @@
+title,handle,status,option_1_title,option_2_title,sku,option_1_value,option_2_value,currency_code,variant_price,thumbnail_url,image_urls,tags
+Patterned Fabric C,patterned-fabric-c,published,Color,Width,C-FAB-RED-54,Red,54",usd,24.99,https://cdn.example.com/img/c.jpg,https://cdn.example.com/img/c1.jpg;https://cdn.example.com/img/c2.jpg,"pattern,decor"
+Patterned Fabric C,patterned-fabric-c,published,Color,Width,C-FAB-RED-60,Red,60",usd,26.99,https://cdn.example.com/img/c.jpg,,"pattern,decor"
+Patterned Fabric C,patterned-fabric-c,published,Color,Width,C-FAB-BLU-54,Blue,54",usd,24.99,https://cdn.example.com/img/c.jpg,,"pattern,decor"
+

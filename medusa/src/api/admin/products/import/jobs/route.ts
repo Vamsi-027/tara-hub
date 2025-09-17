@@ -7,17 +7,24 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/medusa";
 import { z } from "zod";
 import * as crypto from "crypto";
+import { ImportConfigValidator, getEnvironmentConfig } from "../../../../modules/product_import/import-config";
+import { MappingProfileService } from "../../../../modules/product_import/mapping-profiles";
+import { ArtifactGenerator } from "../../../../modules/product_import/artifact-generator";
 
-// Request validation schemas
+// Load configuration
+const configValidator = new ImportConfigValidator(getEnvironmentConfig());
+const config = configValidator.getConfig();
+
+// Request validation schemas with safety defaults
 const createJobSchema = z.object({
   mode: z.enum(["dry_run", "execute"]).default("dry_run"),
   source_job_id: z.string().optional(),
-  upsert: z.enum(["off", "handle", "sku", "external_id"]).default("off"),
-  variant_strategy: z.enum(["explicit", "default_type"]).default("explicit"),
-  image_strategy: z.enum(["merge", "replace"]).default("merge"),
-  skip_image_validation: z.boolean().default(true),
+  upsert: z.enum(["off", "handle", "sku", "external_id"]).default(config.defaults.upsert_by),
+  variant_strategy: z.enum(["explicit", "default_type"]).default(config.defaults.variant_strategy),
+  image_strategy: z.enum(["merge", "replace", "append"]).default(config.defaults.image_strategy),
+  skip_image_validation: z.boolean().default(!config.rate_limits.enable_image_validation),
   unarchive: z.boolean().default(false),
-  force_prune_missing_variants: z.boolean().default(false),
+  force_prune_missing_variants: z.boolean().default(config.defaults.force_prune_missing_variants),
   prune_confirm_token: z.string().optional(),
   column_mapping_json: z.record(z.string()).optional(),
   mapping_profile_id: z.string().optional(),
@@ -48,8 +55,28 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     const options = validation.data;
 
+    // Check concurrent import limit
+    const userId = req.user.id;
+    const activeJobs = await getActiveJobsCount(req.scope, userId);
+
+    if (activeJobs >= config.limits.max_concurrent_imports) {
+      return res.status(429).json({
+        error: `Maximum concurrent imports (${config.limits.max_concurrent_imports}) reached`,
+        active_jobs: activeJobs,
+        retry_after: 60,
+      });
+    }
+
     // Enforce pruning safety gates
     if (options.force_prune_missing_variants) {
+      const pruneCheck = configValidator.isPruningAllowed(options);
+      if (!pruneCheck.allowed) {
+        return res.status(400).json({
+          error: pruneCheck.reason,
+          pruning_disabled: true,
+        });
+      }
+
       const confirmHeader = req.headers["x-confirm-prune"];
       const confirmToken = options.prune_confirm_token;
 
@@ -64,9 +91,10 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       }
     }
 
-    // Generate job ID and import session ID
+    // Generate job ID, trace ID, and import session ID
     const jobId = `import_${Date.now()}_${crypto.randomBytes(8).toString("hex")}`;
     const importId = `session_${crypto.randomBytes(16).toString("hex")}`;
+    const traceId = req.headers["x-trace-id"] as string || jobId;
 
     // Handle file upload or source_job_id
     let fileUrl: string | undefined;
@@ -79,6 +107,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       }
       fileUrl = sourceJob.file_url;
     } else if (req.file) {
+      // Validate file size
+      const limitCheck = configValidator.isWithinLimits(req.file.size, 0);
+      if (!limitCheck.valid) {
+        return res.status(400).json({ error: limitCheck.reason });
+      }
+
       // Process uploaded file
       const fileService = req.scope.resolve("fileService");
       const uploadResult = await fileService.upload({
@@ -93,18 +127,42 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       });
     }
 
-    // Create batch job context
+    // Initialize artifact generator
+    const artifactGenerator = new ArtifactGenerator(jobId, config.artifacts.storage_path);
+    await artifactGenerator.initialize();
+
+    // Apply mapping profile if specified
+    let appliedMapping: Record<string, string> | undefined;
+    if (options.mapping_profile_id) {
+      const mappingService = new MappingProfileService(req.scope);
+      try {
+        // Would need headers from file to apply, done during processing
+        appliedMapping = await mappingService.retrieve(options.mapping_profile_id, userId)?.mapping;
+      } catch (error) {
+        console.warn("Failed to load mapping profile:", error);
+      }
+    }
+
+    // Create batch job context with enhanced metadata
     const batchJobService = req.scope.resolve("batchJobService");
     const job = await batchJobService.create({
       type: "product-import",
       context: {
         job_id: jobId,
+        trace_id: traceId,
         import_id: importId,
         file_url: fileUrl,
-        options,
+        options: {
+          ...options,
+          applied_mapping: appliedMapping,
+        },
         idempotency_key: idempotencyKey,
         user_id: req.user.id,
         created_at: new Date().toISOString(),
+        config: {
+          limits: config.limits,
+          rate_limits: config.rate_limits,
+        },
       },
       dry_run: options.mode === "dry_run",
     });
@@ -114,10 +172,28 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     res.json({
       job_id: jobId,
+      trace_id: traceId,
+      idempotency_key: idempotencyKey,
       status: "created",
       import_id: importId,
       mode: options.mode,
+      configuration: {
+        dry_run: options.mode === "dry_run",
+        upsert_by: options.upsert,
+        variant_strategy: options.variant_strategy,
+        force_prune: options.force_prune_missing_variants,
+        limits_applied: {
+          max_rows: config.limits.max_rows,
+          max_file_size_mb: config.limits.max_file_size_mb,
+          rate_limit_rows_per_second: config.rate_limits.rows_per_second,
+        },
+      },
       message: `Import job created and ${options.mode === "dry_run" ? "validation started" : "execution started"}`,
+      links: {
+        status: `/admin/products/import/jobs/${jobId}`,
+        cancel: `/admin/products/import/jobs/${jobId}/cancel`,
+        artifacts: `/admin/products/import/jobs/${jobId}/artifacts`,
+      },
     });
   } catch (error) {
     console.error("Product import job creation failed:", error);
@@ -147,24 +223,45 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       return res.status(404).json({ error: "Job not found" });
     }
 
-    // Calculate progress and stats
+    // Calculate enhanced progress and stats
     const progress = calculateProgress(job);
-    const stats = calculateStats(job);
+    const stats = calculateEnhancedStats(job);
     const artifacts = getArtifactUrls(job);
+    const phase = derivePhase(job);
 
     res.json({
       job_id: job.context.job_id,
+      trace_id: job.context.trace_id || job.context.job_id,
+      idempotency_key: job.context.idempotency_key,
       status: mapJobStatus(job.status),
-      progress,
-      stats,
-      artifacts,
-      context: {
-        import_id: job.context.import_id,
-        options: job.context.options,
-        created_at: job.created_at,
+      phase,
+      progress: {
+        percentage: progress,
+        rows_total: stats.rows_total,
+        rows_processed: stats.rows_processed,
+        rows_valid: stats.rows_valid,
+        rows_invalid: stats.rows_invalid,
+        rows_skipped: stats.rows_skipped,
+      },
+      performance: {
+        processing_rate: stats.processing_rate,
+        estimated_time_remaining: stats.estimated_time_remaining,
+        started_at: job.created_at,
         updated_at: job.updated_at,
         completed_at: job.completed_at,
+        duration_ms: stats.duration_ms,
       },
+      artifacts,
+      options: job.context.options,
+      context: {
+        import_id: job.context.import_id,
+        user_id: job.context.user_id,
+      },
+      error: job.failed_reason ? {
+        code: job.failed_reason.code || "UNKNOWN",
+        message: job.failed_reason.message || job.failed_reason,
+        details: job.failed_reason.details,
+      } : undefined,
     });
   } catch (error) {
     console.error("Failed to retrieve job status:", error);
@@ -190,18 +287,35 @@ function calculateProgress(job: any): number {
   return Math.round((processedRows / totalRows) * 100);
 }
 
-function calculateStats(job: any): any {
+function calculateEnhancedStats(job: any): any {
+  const startTime = new Date(job.created_at).getTime();
+  const currentTime = Date.now();
+  const elapsedMs = currentTime - startTime;
+  const elapsedSeconds = elapsedMs / 1000;
+
+  const processedRows = job.result?.rows_processed || 0;
+  const totalRows = job.result?.rows_total || 0;
+  const processingRate = processedRows > 0 && elapsedSeconds > 0
+    ? Math.round((processedRows / elapsedSeconds) * 10) / 10
+    : 0;
+
+  const remainingRows = totalRows - processedRows;
+  const estimatedTimeRemaining = processingRate > 0 && remainingRows > 0
+    ? Math.ceil(remainingRows / processingRate)
+    : null;
+
   return {
-    rows_total: job.result?.rows_total || 0,
+    rows_total: totalRows,
+    rows_processed: processedRows,
     rows_valid: job.result?.rows_valid || 0,
     rows_invalid: job.result?.rows_invalid || 0,
+    rows_skipped: job.result?.rows_skipped || 0,
     created: job.result?.created || 0,
     updated: job.result?.updated || 0,
-    skipped: job.result?.skipped || 0,
     failed: job.result?.failed || 0,
-    duration_ms: job.result?.duration_ms || 0,
-    processing_rate: job.result?.processing_rate || 0,
-    estimated_time_remaining: job.result?.estimated_time_remaining || 0,
+    duration_ms: elapsedMs,
+    processing_rate: processingRate,
+    estimated_time_remaining: estimatedTimeRemaining,
   };
 }
 
@@ -240,4 +354,39 @@ function mapJobStatus(batchJobStatus: string): string {
   };
 
   return statusMap[batchJobStatus] || batchJobStatus;
+}
+
+function derivePhase(job: any): string {
+  if (job.status === "created") return "queued";
+  if (job.status === "pre_processed") return "validating";
+  if (job.status === "processing" || job.status === "confirmed") {
+    const progress = calculateProgress(job);
+    if (progress === 0) return "initializing";
+    if (progress < 10) return "parsing";
+    if (progress < 50) return "validating";
+    if (progress < 90) return "importing";
+    return "finalizing";
+  }
+  if (job.status === "completed") return "completed";
+  if (job.status === "failed") return "failed";
+  if (job.status === "canceled") return "canceled";
+  return "unknown";
+}
+
+async function getActiveJobsCount(scope: any, userId: string): Promise<number> {
+  try {
+    const batchJobService = scope.resolve("batchJobService");
+    const jobs = await batchJobService.listAndCount(
+      {
+        type: "product-import",
+        status: ["created", "pre_processed", "confirmed", "processing"],
+        context: { user_id: userId },
+      },
+      { take: 10 }
+    );
+    return jobs[1]; // count
+  } catch (error) {
+    console.error("Failed to count active jobs:", error);
+    return 0;
+  }
 }
