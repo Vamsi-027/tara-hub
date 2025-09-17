@@ -21,6 +21,11 @@ export interface ValidationContext {
   configurableCurrencies: Set<string>;
   defaultSalesChannels: string[];
   inventoryLocations: Set<string>;
+  exchangeRateValidation?: {
+    enabled: boolean;
+    rates?: Record<string, number>; // Base currency to target currency rates
+    maxVariation?: number; // Maximum acceptable variation (default: 0.3 = 30%)
+  };
 }
 
 export interface ValidationRule {
@@ -251,18 +256,24 @@ export class DataIntegrityValidator {
       }
     });
 
-    // Validate price consistency rules
-    if (currencies.length > 1) {
+    // Validate price consistency rules (if enabled)
+    if (currencies.length > 1 && this.context.exchangeRateValidation?.enabled) {
+      const maxVariation = this.context.exchangeRateValidation.maxVariation || 0.3;
+      const rates = this.context.exchangeRateValidation.rates || {};
+
       // Check for reasonable price ratios between currencies
       const usdIndex = currencies.indexOf('usd');
       const eurIndex = currencies.indexOf('eur');
 
       if (usdIndex !== -1 && eurIndex !== -1) {
-        const ratio = prices[eurIndex] / prices[usdIndex];
-        if (ratio < 0.7 || ratio > 1.3) { // Reasonable exchange rate range
+        const actualRatio = prices[eurIndex] / prices[usdIndex];
+        const expectedRatio = rates['usd_eur'] || 0.85; // Default expected USD to EUR rate
+        const variation = Math.abs(actualRatio - expectedRatio) / expectedRatio;
+
+        if (variation > maxVariation) {
           analysis.priceInconsistencies.push({
             rowIndex: index,
-            issue: 'Unusual USD/EUR price ratio',
+            issue: `USD/EUR price ratio outside acceptable range (${Math.round(variation * 100)}% variation)`,
             currencies: ['usd', 'eur'],
             prices: [prices[usdIndex], prices[eurIndex]]
           });

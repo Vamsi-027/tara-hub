@@ -141,6 +141,13 @@ export class MemoryManager extends EventEmitter {
     if (global.gc) {
       global.gc();
       this.emit('gc-forced');
+    } else {
+      // GC not available (requires --expose-gc flag)
+      // Log telemetry and continue without forcing GC
+      this.emit('gc-unavailable', {
+        message: 'Garbage collection not available. Run Node.js with --expose-gc flag for better memory management.',
+        currentMemory: this.getMetrics()
+      });
     }
   }
 

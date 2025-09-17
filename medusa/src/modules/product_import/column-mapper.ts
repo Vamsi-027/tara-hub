@@ -178,7 +178,7 @@ export class ColumnMapper {
     }
 
     for (const header of headers) {
-      const mapping = await this.mapSingleColumn(header, sampleRows, profileMappings);
+      const mapping = await this.mapSingleColumn(header, headers, sampleRows, profileMappings);
       mappings.push(mapping);
     }
 
@@ -187,6 +187,7 @@ export class ColumnMapper {
 
   private async mapSingleColumn(
     sourceColumn: string,
+    headers: string[],
     sampleRows: any[][],
     profileMappings: Record<string, string>
   ): Promise<ColumnMapping> {
@@ -197,14 +198,14 @@ export class ColumnMapper {
         targetField: profileMappings[sourceColumn],
         confidence: 1.0,
         dataType: this.inferDataTypeFromField(profileMappings[sourceColumn]),
-        sampleValues: this.extractSampleValues(sourceColumn, sampleRows),
+        sampleValues: this.extractSampleValues(sourceColumn, headers, sampleRows),
         isRequired: this.isFieldRequired(profileMappings[sourceColumn]),
         conflicts: []
       };
     }
 
     // Extract sample values for this column
-    const sampleValues = this.extractSampleValues(sourceColumn, sampleRows);
+    const sampleValues = this.extractSampleValues(sourceColumn, headers, sampleRows);
 
     // Infer data type from samples
     const dataType = this.inferDataType(sampleValues);
@@ -223,12 +224,12 @@ export class ColumnMapper {
     };
   }
 
-  private extractSampleValues(columnName: string, sampleRows: any[][]): string[] {
-    const columnIndex = sampleRows[0]?.indexOf(columnName) ?? -1;
+  private extractSampleValues(columnName: string, headers: string[], sampleRows: any[][]): string[] {
+    const columnIndex = headers.indexOf(columnName);
     if (columnIndex === -1) return [];
 
     return sampleRows
-      .slice(1, 11) // Skip header, take next 10 rows
+      .slice(1, Math.min(11, sampleRows.length)) // Skip first row (assuming it contains data, not headers), take next 10
       .map(row => String(row[columnIndex] || ''))
       .filter(value => value.trim().length > 0);
   }

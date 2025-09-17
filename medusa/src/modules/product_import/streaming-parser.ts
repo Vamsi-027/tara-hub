@@ -8,9 +8,10 @@
 import { Readable, Transform, pipeline } from 'stream';
 import { promisify } from 'util';
 import * as csv from 'csv-parse';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { MemoryManager, AdaptiveBatchSizer } from './memory-manager';
 import { ProductRow, productRowSchema } from './schemas';
+import { ColumnMapper, ColumnMapping } from './column-mapper';
 import { ZodError } from 'zod';
 
 const pipelineAsync = promisify(pipeline);
@@ -68,17 +69,21 @@ export interface ValidationStats {
 export class StreamingParser {
   private memoryManager: MemoryManager;
   private batchSizer: AdaptiveBatchSizer;
+  private columnMapper: ColumnMapper;
   private config: StreamingConfig;
   private progress: ParseProgress;
   private startTime: number;
   private tempBuffers: Map<number, ProductRow[]> = new Map();
+  private columnMappings?: ColumnMapping[];
 
   constructor(
     memoryManager: MemoryManager,
-    config: Partial<StreamingConfig> = {}
+    config: Partial<StreamingConfig> = {},
+    columnMapper?: ColumnMapper
   ) {
     this.memoryManager = memoryManager;
     this.batchSizer = new AdaptiveBatchSizer(memoryManager);
+    this.columnMapper = columnMapper || new ColumnMapper();
     this.config = {
       maxRowsInMemory: config.maxRowsInMemory || 1000,
       bufferSizeBytes: config.bufferSizeBytes || 64 * 1024, // 64KB
@@ -106,7 +111,9 @@ export class StreamingParser {
   public async parseCSVStream(
     stream: Readable,
     onBatch: (batch: ParsedBatch) => Promise<void>,
-    onProgress?: (progress: ParseProgress) => void
+    onProgress?: (progress: ParseProgress) => void,
+    columnMappingJson?: Record<string, string>,
+    mappingProfileId?: string
   ): Promise<void> {
     const parser = csv.parse({
       columns: true,
@@ -117,7 +124,11 @@ export class StreamingParser {
       bom: true, // Handle UTF-8 BOM
     });
 
-    const validator = this.createValidationTransform(onBatch, onProgress);
+    // Set up column mapping configuration
+    this.columnMappings = undefined; // Reset for fresh detection
+    const mappingConfig = { columnMappingJson, mappingProfileId };
+
+    const validator = this.createValidationTransform(onBatch, onProgress, mappingConfig);
 
     try {
       await pipelineAsync(
@@ -132,53 +143,122 @@ export class StreamingParser {
   }
 
   public async parseXLSXStream(
-    buffer: Buffer,
+    buffer: Buffer | Readable,
     onBatch: (batch: ParsedBatch) => Promise<void>,
     onProgress?: (progress: ParseProgress) => void,
-    sheetName?: string
+    sheetName?: string,
+    columnMappingJson?: Record<string, string>,
+    mappingProfileId?: string
   ): Promise<void> {
     try {
-      const workbook = XLSX.read(buffer, { type: 'buffer', cellText: false, cellDates: true });
-      const worksheet = workbook.Sheets[sheetName || workbook.SheetNames[0]];
+      const workbook = new ExcelJS.Workbook();
+      const stream = Buffer.isBuffer(buffer) ? Readable.from(buffer) : buffer;
+
+      // Use streaming reader for memory efficiency
+      await workbook.xlsx.read(stream);
+
+      const worksheet = sheetName
+        ? workbook.getWorksheet(sheetName)
+        : workbook.getWorksheet(1);
 
       if (!worksheet) {
         throw new StreamingParseError('No worksheet found');
       }
 
-      // Convert to JSON with headers
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-        header: 1,
-        raw: false,
-        defval: ''
-      }) as string[][];
+      // Get headers from first row
+      const headerRow = worksheet.getRow(1);
+      const headers: string[] = [];
+      headerRow.eachCell((cell, colNumber) => {
+        headers[colNumber - 1] = String(cell.value || '');
+      });
 
-      if (jsonData.length === 0) {
-        throw new StreamingParseError('Empty worksheet');
+      // Detect or apply column mappings
+      if (!this.columnMappings) {
+        const sampleRows: any[][] = [];
+
+        // Collect sample rows for column detection
+        for (let rowNum = 2; rowNum <= Math.min(12, worksheet.rowCount); rowNum++) {
+          const row = worksheet.getRow(rowNum);
+          const rowData: any[] = [];
+          row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            rowData[colNumber - 1] = cell.value;
+          });
+          sampleRows.push(rowData);
+        }
+
+        // Apply column mapping before validation
+        if (columnMappingJson) {
+          this.columnMappings = headers.map(header => ({
+            sourceColumn: header,
+            targetField: columnMappingJson[header] || header,
+            confidence: columnMappingJson[header] ? 1.0 : 0.5,
+            dataType: 'string' as any,
+            sampleValues: [],
+            isRequired: false,
+            conflicts: []
+          }));
+        } else {
+          this.columnMappings = await this.columnMapper.detectColumns(
+            headers,
+            sampleRows,
+            mappingProfileId
+          );
+        }
       }
 
-      // First row as headers
-      const headers = jsonData[0];
-      const dataRows = jsonData.slice(1);
+      // Count total rows for progress tracking
+      this.progress.totalRows = worksheet.rowCount - 1; // Minus header row
 
-      this.progress.totalRows = dataRows.length;
+      // Process rows in batches with deterministic iteration (fixes async bug)
+      let currentBatch: any[] = [];
+      let batchStartIndex = 0;
 
-      // Process in batches to avoid memory issues
-      const batchSize = this.batchSizer.getCurrentBatchSize();
-
-      for (let i = 0; i < dataRows.length; i += batchSize) {
+      // Use deterministic loop instead of eachRow to properly handle async/await
+      for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
         await this.memoryManager.waitForAvailableSlot();
 
-        const batchRows = dataRows.slice(i, i + batchSize);
-        const objects = batchRows.map(row => {
-          const obj: any = {};
-          headers.forEach((header, index) => {
-            obj[header] = row[index] || '';
-          });
-          return obj;
+        const row = worksheet.getRow(rowNumber);
+
+        // Skip empty rows
+        if (!row.hasValues) continue;
+
+        // Convert row to mapped object
+        const mappedObject: any = {};
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          const sourceColumn = headers[colNumber - 1];
+          const mapping = this.columnMappings?.find(m => m.sourceColumn === sourceColumn);
+          const targetField = mapping?.targetField || sourceColumn;
+          mappedObject[targetField] = cell.value;
         });
 
-        await this.processBatchFromObjects(objects, i, onBatch, onProgress);
+        currentBatch.push(mappedObject);
+
+        const batchSize = this.batchSizer.getCurrentBatchSize();
+
+        if (currentBatch.length >= batchSize) {
+          await this.processBatchFromObjects(
+            currentBatch,
+            batchStartIndex,
+            onBatch,
+            onProgress
+          );
+
+          batchStartIndex += currentBatch.length;
+          currentBatch = [];
+        }
       }
+
+      // Process remaining rows
+      if (currentBatch.length > 0) {
+        await this.processBatchFromObjects(
+          currentBatch,
+          batchStartIndex,
+          onBatch,
+          onProgress
+        );
+      }
+
+      this.progress.phase = 'completed';
 
     } catch (error) {
       this.progress.phase = 'failed';
@@ -188,10 +268,16 @@ export class StreamingParser {
 
   private createValidationTransform(
     onBatch: (batch: ParsedBatch) => Promise<void>,
-    onProgress?: (progress: ParseProgress) => void
+    onProgress?: (progress: ParseProgress) => void,
+    mappingConfig?: { columnMappingJson?: Record<string, string>; mappingProfileId?: string }
   ): Transform {
     let currentBatch: any[] = [];
     let batchStartIndex = 0;
+    let mappingDetectionBuffer: any[] = [];
+    let headersCollected = false;
+    let headers: string[] = [];
+    let mappingDetectionComplete = false;
+    const maxSampleRows = 20; // Buffer first N rows for mapping detection
 
     return new Transform({
       objectMode: true,
@@ -199,26 +285,84 @@ export class StreamingParser {
         try {
           await this.memoryManager.waitForAvailableSlot();
 
-          currentBatch.push(chunk);
-          this.progress.processedRows++;
+          // Collect headers from first chunk
+          if (!headersCollected) {
+            headersCollected = true;
+            headers = Object.keys(chunk);
+          }
 
-          const batchSize = this.batchSizer.getCurrentBatchSize();
+          // Buffer rows for mapping detection if needed
+          if (!mappingDetectionComplete && !mappingConfig?.columnMappingJson) {
+            mappingDetectionBuffer.push(chunk);
 
-          if (currentBatch.length >= batchSize) {
-            await this.processBatchFromObjects(
-              currentBatch,
-              batchStartIndex,
-              onBatch,
-              onProgress
-            );
+            // Once we have enough samples, detect mappings
+            if (mappingDetectionBuffer.length >= Math.min(maxSampleRows, 10)) {
+              mappingDetectionComplete = true;
 
-            batchStartIndex += currentBatch.length;
-            currentBatch = [];
+              // Convert buffer to sample rows format
+              const sampleRows = mappingDetectionBuffer.map(row =>
+                headers.map(h => row[h])
+              );
+
+              // Detect column mappings
+              this.columnMappings = await this.columnMapper.detectColumns(
+                headers,
+                sampleRows,
+                mappingConfig?.mappingProfileId
+              );
+
+              // Process all buffered rows with mappings
+              for (const bufferedChunk of mappingDetectionBuffer) {
+                const mappedChunk = this.applyColumnMapping(bufferedChunk);
+                currentBatch.push(mappedChunk);
+                this.progress.processedRows++;
+              }
+
+              // Clear buffer to free memory
+              mappingDetectionBuffer = [];
+            } else {
+              // Continue buffering
+              callback();
+              return;
+            }
+          } else if (!this.columnMappings && mappingConfig?.columnMappingJson) {
+            // Apply provided column mapping
+            this.columnMappings = headers.map(header => ({
+              sourceColumn: header,
+              targetField: mappingConfig.columnMappingJson![header] || header,
+              confidence: mappingConfig.columnMappingJson![header] ? 1.0 : 0.5,
+              dataType: 'string' as any,
+              sampleValues: [],
+              isRequired: false,
+              conflicts: []
+            }));
+            mappingDetectionComplete = true;
+          }
+
+          // Apply column mapping to chunk
+          if (mappingDetectionComplete) {
+            const mappedChunk = this.applyColumnMapping(chunk);
+            currentBatch.push(mappedChunk);
+            this.progress.processedRows++;
+
+            const batchSize = this.batchSizer.getCurrentBatchSize();
+
+            if (currentBatch.length >= batchSize) {
+              await this.processBatchFromObjects(
+                currentBatch,
+                batchStartIndex,
+                onBatch,
+                onProgress
+              );
+
+              batchStartIndex += currentBatch.length;
+              currentBatch = [];
+            }
           }
 
           callback();
         } catch (error) {
-          callback(error);
+          callback(error as Error);
         }
       }.bind(this),
 
@@ -236,10 +380,20 @@ export class StreamingParser {
           this.progress.phase = 'completed';
           callback();
         } catch (error) {
-          callback(error);
+          callback(error as Error);
         }
       }.bind(this)
     });
+  }
+
+  private applyColumnMapping(chunk: any): any {
+    const mappedChunk: any = {};
+    for (const [sourceColumn, value] of Object.entries(chunk)) {
+      const mapping = this.columnMappings?.find(m => m.sourceColumn === sourceColumn);
+      const targetField = mapping?.targetField || sourceColumn;
+      mappedChunk[targetField] = value;
+    }
+    return mappedChunk;
   }
 
   private async processBatchFromObjects(

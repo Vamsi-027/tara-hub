@@ -4,6 +4,7 @@ export interface RowToProductDefaults {
   default_sales_channel_handles?: string[];
   default_manage_inventory?: boolean;
   default_is_discountable?: boolean;
+  variant_strategy?: 'explicit' | 'default_type'; // Default: 'explicit'
 }
 
 export interface RowToProductResult {
@@ -65,8 +66,8 @@ export const rowToProductInput = (
       options: options.length ? options : undefined,
       prices: variantPrices.length ? variantPrices : productPrices.length ? productPrices : undefined,
     });
-  } else if (productPrices.length) {
-    // default two variants when no explicit variant provided (Swatch & Fabric)
+  } else if (productPrices.length && defaults.variant_strategy === 'default_type') {
+    // Only create default two variants when variant_strategy is 'default_type' (opt-in)
     product.options = product.options?.length ? product.options : [{ title: "Type" }];
 
     const baseSku = row.handle || (row.external_id ? `${row.external_id}` : undefined);
@@ -81,6 +82,12 @@ export const rowToProductInput = (
     product.variants?.push({ sku: swatchSku, options: ["Swatch"], prices: swatchPrice });
     // Fabric
     product.variants?.push({ sku: fabricSku, options: ["Fabric"], prices: productPrices });
+  } else if (productPrices.length && defaults.variant_strategy !== 'default_type') {
+    // Explicit mode (default): Create single default variant with product prices
+    product.variants?.push({
+      sku: row.sku || row.handle || `${row.title.toLowerCase().replace(/\s+/g, '-')}-default`,
+      prices: productPrices
+    });
   }
 
   return {
