@@ -64,14 +64,21 @@ const CartItemCard = React.memo(({
   }, [item.id, onRemove])
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
-    if (newQuantity < 1) return
+    if (newQuantity < 1 && item.type !== 'fabric') return
+    if (item.type === 'fabric' && newQuantity < 1) return // Minimum 1 yard for fabric
+
     setLocalQuantity(newQuantity)
     onUpdateQuantity(item.id, newQuantity)
-  }, [item.id, onUpdateQuantity])
+  }, [item.id, item.type, onUpdateQuantity])
 
   const itemTotal = useMemo(() => {
+    // For fabric: price is per yard, multiply by yardage
+    // For swatch: price is fixed per swatch, multiply by quantity
+    if (item.type === 'fabric' && item.yardage) {
+      return ((item.price * item.yardage) / 100).toFixed(2)
+    }
     return ((item.price * localQuantity) / 100).toFixed(2)
-  }, [item.price, localQuantity])
+  }, [item.price, item.type, item.yardage, localQuantity])
 
   return (
     <div className={`group bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm
@@ -115,54 +122,100 @@ const CartItemCard = React.memo(({
               </h3>
               <p className="text-sm text-gray-600 mt-1">
                 {item.variant}
-                {item.yardage && ` • ${item.yardage} yard${item.yardage > 1 ? 's' : ''}`}
+                {item.type === 'fabric' && item.yardage && (
+                  <span> • {item.yardage} yard{item.yardage !== 1 ? 's' : ''}</span>
+                )}
               </p>
             </div>
           </div>
 
           {/* Price */}
           <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-xl font-bold text-gray-900">
-              ${(item.price / 100).toFixed(2)}
-            </span>
-            {localQuantity > 1 && (
-              <span className="text-sm text-gray-500">
-                each × {localQuantity} = ${itemTotal}
-              </span>
+            {item.type === 'fabric' && item.yardage ? (
+              <>
+                <span className="text-xl font-bold text-gray-900">
+                  ${(item.price / 100).toFixed(2)}
+                  <span className="text-sm font-normal text-gray-500">/yard</span>
+                </span>
+                <span className="text-sm text-gray-500">
+                  × {item.yardage} yards = ${itemTotal}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-xl font-bold text-gray-900">
+                  ${(item.price / 100).toFixed(2)}
+                </span>
+                {localQuantity > 1 && (
+                  <span className="text-sm text-gray-500">
+                    each × {localQuantity} = ${itemTotal}
+                  </span>
+                )}
+              </>
             )}
           </div>
 
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* Quantity Selector - Available for both swatch and fabric */}
-            <div className="flex items-center border border-gray-200 rounded-lg">
-              <button
-                onClick={() => handleQuantityChange(localQuantity - 1)}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50
-                          transition-colors duration-200 disabled:opacity-50"
-                disabled={localQuantity <= 1}
-                aria-label="Decrease quantity"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <input
-                type="number"
-                value={localQuantity}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value) || 1
-                  handleQuantityChange(Math.max(1, val))
-                }}
-                className="w-16 text-center border-x border-gray-200 py-2 focus:outline-none"
-                min="1"
-              />
-              <button
-                onClick={() => handleQuantityChange(localQuantity + 1)}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50
-                          transition-colors duration-200"
-                aria-label="Increase quantity"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+            {/* Quantity Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">
+                {item.type === 'fabric' ? 'Yards:' : 'Qty:'}
+              </span>
+              <div className="flex items-center border border-gray-200 rounded-lg">
+                <button
+                  onClick={() => {
+                    if (item.type === 'fabric') {
+                      // For fabric, decrease by 0.5 yards, minimum 1 yard
+                      const currentYardage = item.yardage || 1
+                      const newYardage = Math.max(1, currentYardage - 0.5)
+                      handleQuantityChange(newYardage)
+                    } else {
+                      handleQuantityChange(localQuantity - 1)
+                    }
+                  }}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50
+                            transition-colors duration-200 disabled:opacity-50"
+                  disabled={item.type === 'fabric' ? (item.yardage || 1) <= 1 : localQuantity <= 1}
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <input
+                  type="number"
+                  value={item.type === 'fabric' ? (item.yardage || 1) : localQuantity}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 1
+                    if (item.type === 'fabric') {
+                      // Round to nearest 0.5 for fabric
+                      const rounded = Math.round(val * 2) / 2
+                      handleQuantityChange(Math.max(1, rounded))
+                    } else {
+                      handleQuantityChange(Math.max(1, Math.floor(val)))
+                    }
+                  }}
+                  className="w-20 text-center border-x border-gray-200 py-2 focus:outline-none"
+                  min="1"
+                  step={item.type === 'fabric' ? "0.5" : "1"}
+                />
+                <button
+                  onClick={() => {
+                    if (item.type === 'fabric') {
+                      // For fabric, increase by 0.5 yards
+                      const currentYardage = item.yardage || 1
+                      const newYardage = currentYardage + 0.5
+                      handleQuantityChange(newYardage)
+                    } else {
+                      handleQuantityChange(localQuantity + 1)
+                    }
+                  }}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50
+                            transition-colors duration-200"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Type Badge */}
@@ -212,7 +265,14 @@ const CartSummary = React.memo(({
   const [promoDiscount, setPromoDiscount] = useState(0)
 
   const { subtotal, shipping, tax, discount, total, savings } = useMemo(() => {
-    const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0)
+    const subtotal = items.reduce((total, item) => {
+      // For fabric items with yardage, price is per yard
+      if (item.type === 'fabric' && item.yardage) {
+        return total + (item.price * item.yardage)
+      }
+      // For other items, price * quantity
+      return total + (item.price * item.quantity)
+    }, 0)
     const shipping = subtotal > 15000 ? 0 : 1500 // Free shipping over $150
     const discount = promoApplied ? Math.round(subtotal * 0.1) : 0 // 10% discount
     const taxableAmount = subtotal - discount
@@ -484,17 +544,31 @@ export default function CartPage() {
   }, [notification])
 
   // Update cart in storage
-  const updateCartInStorage = useCallback((updatedCart: CartItem[]) => {
+  const updateCartInStorage = useCallback((updatedCart: CartItem[], action: string = 'update') => {
     try {
       localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
       // Defer the event dispatch to avoid state updates during render
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+        window.dispatchEvent(new CustomEvent('cart-updated', {
+          detail: {
+            cart: updatedCart,
+            action: action
+          }
+        }))
       }, 0)
     } catch (error) {
       console.error('Error saving cart:', error)
     }
   }, [])
+
+  const removeItem = useCallback((id: string) => {
+    setCart(prevCart => {
+      const updatedCart = prevCart.filter(item => item.id !== id)
+      updateCartInStorage(updatedCart, 'remove')
+      setNotification({ message: 'Item removed from cart', type: 'success' })
+      return updatedCart
+    })
+  }, [updateCartInStorage])
 
   const updateQuantity = useCallback((id: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -503,22 +577,21 @@ export default function CartPage() {
     }
 
     setCart(prevCart => {
-      const updatedCart = prevCart.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-      updateCartInStorage(updatedCart)
+      const updatedCart = prevCart.map(item => {
+        if (item.id === id) {
+          // For fabric items, update yardage
+          if (item.type === 'fabric') {
+            return { ...item, yardage: newQuantity, quantity: 1 }
+          }
+          // For other items, update quantity
+          return { ...item, quantity: newQuantity }
+        }
+        return item
+      })
+      updateCartInStorage(updatedCart, 'update')  // Use 'update' action for quantity changes
       return updatedCart
     })
-  }, [updateCartInStorage])
-
-  const removeItem = useCallback((id: string) => {
-    setCart(prevCart => {
-      const updatedCart = prevCart.filter(item => item.id !== id)
-      updateCartInStorage(updatedCart)
-      setNotification({ message: 'Item removed from cart', type: 'success' })
-      return updatedCart
-    })
-  }, [updateCartInStorage])
+  }, [updateCartInStorage, removeItem])
 
   const moveToWishlist = useCallback((item: CartItem) => {
     // Add to wishlist
@@ -627,7 +700,7 @@ export default function CartPage() {
               <button
                 onClick={() => {
                   setCart([])
-                  updateCartInStorage([])
+                  updateCartInStorage([], 'clear')
                   setNotification({ message: 'Cart cleared', type: 'success' })
                 }}
                 className="text-sm text-red-600 hover:text-red-700 font-medium"

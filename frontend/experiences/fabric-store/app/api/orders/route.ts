@@ -23,9 +23,9 @@ const CreateOrderBodySchema = z.object({
   email: z.string().email(),
   items: z.array(z.object({
     id: z.string(),
-    name: z.string(),
-    sku: z.string(),
-    color: z.string(),
+    name: z.string().optional().default('Unknown Product'),
+    sku: z.string().optional().default(''),
+    color: z.string().optional().default(''),
     price: z.number(),
     quantity: z.number().min(1),
     image: z.string().optional(),

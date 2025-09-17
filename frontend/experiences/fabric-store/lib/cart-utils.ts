@@ -27,8 +27,14 @@ export function addToCart(item: Omit<CartItem, 'id'>) {
   )
 
   if (existingItemIndex > -1) {
-    // Update quantity if item exists
-    cart[existingItemIndex].quantity += item.quantity
+    // Update existing item
+    if (item.type === 'fabric' && item.yardage) {
+      // For fabric, add to yardage
+      cart[existingItemIndex].yardage = (cart[existingItemIndex].yardage || 0) + item.yardage
+    } else {
+      // For other items, update quantity
+      cart[existingItemIndex].quantity += item.quantity
+    }
   } else {
     // Add new item with stable ID
     const newItem: CartItem = {
@@ -41,8 +47,14 @@ export function addToCart(item: Omit<CartItem, 'id'>) {
   // Save to localStorage
   localStorage.setItem('fabric-cart', JSON.stringify(cart))
 
-  // Dispatch custom event for cart update
-  window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }))
+  // Dispatch custom event for cart update with action type
+  window.dispatchEvent(new CustomEvent('cart-updated', {
+    detail: {
+      cart,
+      action: 'add',
+      item: existingItemIndex > -1 ? cart[existingItemIndex] : cart[cart.length - 1]
+    }
+  }))
 
   return cart
 }
@@ -65,7 +77,13 @@ export function updateCartItemQuantity(id: string, quantity: number) {
     }
 
     localStorage.setItem('fabric-cart', JSON.stringify(cart))
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }))
+    window.dispatchEvent(new CustomEvent('cart-updated', {
+      detail: {
+        cart,
+        action: 'update',
+        item: cart[itemIndex]
+      }
+    }))
   }
 
   return cart
@@ -76,13 +94,23 @@ export function removeFromCart(id: string) {
   const updatedCart = cart.filter(item => item.id !== id)
 
   localStorage.setItem('fabric-cart', JSON.stringify(updatedCart))
-  window.dispatchEvent(new CustomEvent('cart-updated', { detail: updatedCart }))
+  window.dispatchEvent(new CustomEvent('cart-updated', {
+    detail: {
+      cart: updatedCart,
+      action: 'remove'
+    }
+  }))
 
   return updatedCart
 }
 
 export function clearCart() {
   localStorage.setItem('fabric-cart', JSON.stringify([]))
-  window.dispatchEvent(new CustomEvent('cart-updated', { detail: [] }))
+  window.dispatchEvent(new CustomEvent('cart-updated', {
+    detail: {
+      cart: [],
+      action: 'clear'
+    }
+  }))
   return []
 }

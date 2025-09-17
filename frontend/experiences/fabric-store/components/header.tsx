@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { ShoppingCart, Heart, Menu, X, Home, Layers, Phone } from 'lucide-react'
+import { ShoppingCart, Heart, Menu, X, Home, Layers, Phone, Package } from 'lucide-react'
 import UserAccount from './user-account'
 
 export default function Header() {
@@ -149,6 +149,16 @@ export default function Header() {
               )}
             </Link>
 
+            {/* Orders */}
+            <Link
+              href="/orders"
+              className="relative p-2 text-gray-700 hover:text-blue-600
+                         transition-all duration-200 hover:bg-gray-100 rounded-lg"
+              title="My Orders"
+            >
+              <Package className="w-5 h-5" />
+            </Link>
+
             {/* Enhanced Cart */}
             <Link
               href="/cart"
@@ -204,6 +214,15 @@ export default function Header() {
             >
               <Layers className="w-5 h-5" />
               <span className="font-medium">Browse Fabrics</span>
+            </Link>
+            <Link
+              href="/orders"
+              className="flex items-center space-x-3 px-3 py-2.5 text-gray-700
+                         hover:bg-gray-100 rounded-lg transition-all duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Package className="w-5 h-5" />
+              <span className="font-medium">My Orders</span>
             </Link>
             <Link
               href="/contact"

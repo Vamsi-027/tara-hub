@@ -14,10 +14,28 @@ export function CartNotificationProvider() {
 
   useEffect(() => {
     const handleCartUpdated = (event: CustomEvent) => {
-      // Add a notification when cart is updated
+      // Only show notification for 'add' action, not for 'update', 'remove', or 'clear'
+      const detail = event.detail
+      if (!detail || typeof detail !== 'object') return
+
+      // Check if this is an add action
+      if (detail.action !== 'add') return
+
+      // Add a notification when item is added to cart
+      let message = 'Added to cart'
+      if (detail.item) {
+        if (detail.item.type === 'fabric' && detail.item.yardage) {
+          message = `${detail.item.yardage} yard${detail.item.yardage !== 1 ? 's' : ''} added to cart`
+        } else if (detail.item.type === 'swatch' && detail.item.quantity > 1) {
+          message = `${detail.item.quantity} swatches added to cart`
+        } else if (detail.item.type === 'swatch') {
+          message = '1 swatch added to cart'
+        }
+      }
+
       const notification: CartNotification = {
         id: `notification-${Date.now()}`,
-        message: 'Added to cart',
+        message,
         timestamp: Date.now()
       }
 

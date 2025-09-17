@@ -94,7 +94,7 @@ class OrderServiceConfig {
   public publishableKey: string
   public maxRetries: number = 3
   public retryDelay: number = 1000
-  public timeout: number = 10000
+  public timeout: number = 60000
   public useFallback: boolean = true
 
   private constructor() {
@@ -102,6 +102,11 @@ class OrderServiceConfig {
                      process.env.MEDUSA_BACKEND_URL ||
                      'http://localhost:9000'
     this.publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ''
+
+    console.log('🔧 OrderService configured:', {
+      medusaUrl: this.medusaUrl,
+      publishableKey: this.publishableKey ? `${this.publishableKey.substring(0, 20)}...` : 'NOT SET'
+    })
   }
 
   public static getInstance(): OrderServiceConfig {
@@ -264,46 +269,344 @@ export class OrderService {
   }
 
   /**
-   * Private: Create order in Medusa backend
+   * Private: Map frontend product IDs to Medusa variant IDs
+   */
+  private async mapToMedusaVariants(items: OrderItem[]): Promise<OrderItem[]> {
+    const mappedItems: OrderItem[] = []
+
+    for (const item of items) {
+      // Try to map common frontend IDs to actual Medusa variant IDs
+      let variantId = item.id
+
+      // Known product mappings (you can expand this based on your catalog)
+      const productMappings: Record<string, string> = {
+        'fabric-001': 'variant_01K51VADRT5G8KNKP7HWFEY235', // Sandwell Lipstick - Fabric Per Yard
+        'fabric-002': 'variant_01K57QA138A2MKQQNR667AM9XC', // Jefferson Linen Sunglow - Fabric Per Yard
+        'swatch-001': 'variant_01K51VADRSDBEJTCXV0GTPZ484', // Sandwell Lipstick - Swatch Sample
+        'swatch-002': 'variant_01K57QA137DXZZN3FZS20X7EAQ', // Jefferson Linen Sunglow - Swatch Sample
+      }
+
+      // Check if we have a mapping for this product ID
+      if (productMappings[item.id]) {
+        variantId = productMappings[item.id]
+        console.log(`🛒 [MEDUSA ORDER] 🔄 Mapped ${item.id} → ${variantId}`)
+      } else {
+        // If the ID already looks like a Medusa variant ID, use it as-is
+        if (item.id.startsWith('variant_')) {
+          variantId = item.id
+        } else {
+          console.log(`🛒 [MEDUSA ORDER] ⚠️ No mapping found for product ID: ${item.id}, using as-is`)
+        }
+      }
+
+      mappedItems.push({
+        ...item,
+        id: variantId
+      })
+    }
+
+    return mappedItems
+  }
+
+  /**
+   * Private: Create order in Medusa backend using proper cart/checkout flow
    */
   private async createMedusaOrder(order: Order): Promise<Order | null> {
-    const url = `${this.config.medusaUrl}/store/fabric-orders`
-
     try {
-      // Create order directly using fabric-orders endpoint
-      const response = await this.fetchWithRetry(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-publishable-api-key': this.config.publishableKey,
-        },
-        body: JSON.stringify({
-          orderId: order.id,
-          email: order.email,
-          items: order.items,
-          shipping: order.shipping,
-          totals: order.totals,
-          paymentIntentId: order.paymentIntentId,
-          status: order.status,
-        }),
+      console.log('🛒 [MEDUSA ORDER] Starting cart/checkout flow...')
+      console.log('🛒 [MEDUSA ORDER] Order data:', {
+        id: order.id,
+        email: order.email,
+        itemCount: order.items.length,
+        total: order.totals.total,
+        shipping: {
+          country: order.shipping.country,
+          state: order.shipping.state,
+          city: order.shipping.city
+        }
+      })
+      console.log('🛒 [MEDUSA ORDER] Original Items:', order.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        sku: item.sku,
+        quantity: item.quantity,
+        price: item.price
+      })))
+
+      // Map frontend product IDs to Medusa variant IDs
+      const mappedItems = await this.mapToMedusaVariants(order.items)
+      console.log('🛒 [MEDUSA ORDER] Mapped Items:', mappedItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      })))
+
+      // Step 0: Get available regions
+      console.log('🛒 [MEDUSA ORDER] Step 0: Fetching regions...')
+      const regionsResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/regions`,
+        {
+          headers: {
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+        }
+      )
+
+      if (!regionsResponse.ok) {
+        console.error('🛒 [MEDUSA ORDER] ❌ Failed to fetch regions:', regionsResponse.status)
+        const errorText = await regionsResponse.text()
+        console.error('🛒 [MEDUSA ORDER] ❌ Regions error details:', errorText)
+        return null
+      }
+
+      const { regions } = await regionsResponse.json()
+      console.log('🛒 [MEDUSA ORDER] ✅ Available regions:', regions?.length || 0)
+      if (!regions || regions.length === 0) {
+        console.error('🛒 [MEDUSA ORDER] ❌ No regions available')
+        return null
+      }
+
+      // Use the first available region (or find by country)
+      let region = regions.find((r: any) =>
+        r.countries?.some((c: any) => c.iso_2.toLowerCase() === order.shipping.country.toLowerCase())
+      )
+
+      // If no region found for the country, use the first available region
+      if (!region) {
+        region = regions[0]
+        console.log('🛒 [MEDUSA ORDER] ⚠️ No region found for country:', order.shipping.country, 'using default region:', region.name)
+      }
+
+      console.log('🛒 [MEDUSA ORDER] ✅ Using region:', {
+        id: region.id,
+        name: region.name,
+        currency: region.currency_code,
+        matchedCountry: order.shipping.country
       })
 
-      if (!response.ok) {
-        throw new Error(`Failed to create order: ${response.status}`)
+      // Step 1: Create a cart
+      console.log('🛒 [MEDUSA ORDER] Step 1: Creating cart...')
+      const cartPayload = {
+        email: order.email,
+        region_id: region.id,
+      }
+      console.log('🛒 [MEDUSA ORDER] Cart payload:', cartPayload)
+
+      const cartResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+          body: JSON.stringify(cartPayload),
+        }
+      )
+
+      if (!cartResponse.ok) {
+        console.error('🛒 [MEDUSA ORDER] ❌ Failed to create cart:', cartResponse.status)
+        const errorText = await cartResponse.text()
+        console.error('🛒 [MEDUSA ORDER] ❌ Cart creation error details:', errorText)
+        return null
       }
 
-      const { order: medusaOrder } = await response.json()
+      const cartResponseData = await cartResponse.json()
+      const { cart } = cartResponseData
+      console.log('🛒 [MEDUSA ORDER] ✅ Cart created successfully:', {
+        id: cart.id,
+        email: cart.email,
+        region_id: cart.region_id,
+        currency: cart.currency_code
+      })
 
-      // Transform the response to our format
-      return {
-        ...order,
+      // Step 2: Add items to cart
+      console.log('🛒 [MEDUSA ORDER] Step 2: Adding items to cart...')
+      console.log('🛒 [MEDUSA ORDER] Processing', mappedItems.length, 'items')
+
+      for (let i = 0; i < mappedItems.length; i++) {
+        const item = mappedItems[i]
+        console.log(`🛒 [MEDUSA ORDER] Adding item ${i + 1}/${mappedItems.length}:`, {
+          id: item.id,
+          name: item.name,
+          sku: item.sku,
+          quantity: item.quantity,
+          price: item.price
+        })
+
+        const itemPayload = {
+          variant_id: item.id, // Assuming item.id is the variant ID
+          quantity: item.quantity,
+        }
+        console.log(`🛒 [MEDUSA ORDER] Item payload:`, itemPayload)
+
+        const addItemResponse = await this.fetchWithRetry(
+          `${this.config.medusaUrl}/store/carts/${cart.id}/line-items`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-publishable-api-key': this.config.publishableKey,
+            },
+            body: JSON.stringify(itemPayload),
+          }
+        )
+
+        if (!addItemResponse.ok) {
+          console.error(`🛒 [MEDUSA ORDER] ❌ Failed to add item ${item.id} to cart:`, addItemResponse.status)
+          const errorText = await addItemResponse.text()
+          console.error(`🛒 [MEDUSA ORDER] ❌ Item addition error details:`, errorText)
+          return null
+        }
+
+        const addItemResponseData = await addItemResponse.json()
+        console.log(`🛒 [MEDUSA ORDER] ✅ Item ${i + 1} added successfully`)
+      }
+
+      console.log('🛒 [MEDUSA ORDER] ✅ All items added to cart successfully')
+
+      // Step 3: Add shipping address
+      console.log('🛒 [MEDUSA ORDER] Step 3: Adding shipping address...')
+      const addressPayload = {
+        shipping_address: {
+          first_name: order.shipping.firstName,
+          last_name: order.shipping.lastName,
+          address_1: order.shipping.address,
+          city: order.shipping.city,
+          province: order.shipping.state,
+          postal_code: order.shipping.zipCode,
+          country_code: order.shipping.country.toLowerCase(),
+          phone: order.shipping.phone,
+        },
+        billing_address: {
+          first_name: order.shipping.firstName,
+          last_name: order.shipping.lastName,
+          address_1: order.shipping.address,
+          city: order.shipping.city,
+          province: order.shipping.state,
+          postal_code: order.shipping.zipCode,
+          country_code: order.shipping.country.toLowerCase(),
+          phone: order.shipping.phone,
+        },
+        email: order.email,
+      }
+      console.log('🛒 [MEDUSA ORDER] Address payload:', addressPayload)
+
+      const shippingResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts/${cart.id}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+          body: JSON.stringify(addressPayload),
+        }
+      )
+
+      if (!shippingResponse.ok) {
+        console.error('🛒 [MEDUSA ORDER] ❌ Failed to add shipping address:', shippingResponse.status)
+        const errorText = await shippingResponse.text()
+        console.error('🛒 [MEDUSA ORDER] ❌ Shipping address error details:', errorText)
+        return null
+      }
+
+      const shippingResponseData = await shippingResponse.json()
+      console.log('🛒 [MEDUSA ORDER] ✅ Shipping address added successfully')
+
+      // Step 4: Add shipping methods (get available first)
+      console.log('🛒 [MEDUSA ORDER] Step 4: Adding shipping methods...')
+      const shippingOptionsResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/shipping-options/${cart.id}`,
+        {
+          headers: {
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+        }
+      )
+
+      if (shippingOptionsResponse.ok) {
+        const { shipping_options } = await shippingOptionsResponse.json()
+        console.log('🛒 [MEDUSA ORDER] Available shipping options:', shipping_options?.length || 0)
+
+        if (shipping_options.length > 0) {
+          console.log('🛒 [MEDUSA ORDER] Using shipping option:', {
+            id: shipping_options[0].id,
+            name: shipping_options[0].name,
+            price: shipping_options[0].price_incl_tax
+          })
+
+          const shippingMethodPayload = {
+            option_id: shipping_options[0].id,
+          }
+
+          const shippingMethodResponse = await this.fetchWithRetry(
+            `${this.config.medusaUrl}/store/carts/${cart.id}/shipping-methods`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-publishable-api-key': this.config.publishableKey,
+              },
+              body: JSON.stringify(shippingMethodPayload),
+            }
+          )
+
+          if (shippingMethodResponse.ok) {
+            console.log('🛒 [MEDUSA ORDER] ✅ Shipping method added successfully')
+          } else {
+            console.error('🛒 [MEDUSA ORDER] ❌ Failed to add shipping method:', shippingMethodResponse.status)
+            const errorText = await shippingMethodResponse.text()
+            console.error('🛒 [MEDUSA ORDER] ❌ Shipping method error details:', errorText)
+          }
+        } else {
+          console.log('🛒 [MEDUSA ORDER] ⚠️ No shipping options available, continuing without shipping method')
+        }
+      } else {
+        console.error('🛒 [MEDUSA ORDER] ❌ Failed to fetch shipping options:', shippingOptionsResponse.status)
+        const errorText = await shippingOptionsResponse.text()
+        console.error('🛒 [MEDUSA ORDER] ❌ Shipping options error details:', errorText)
+      }
+
+      // Step 5: Complete the cart to create order
+      console.log('🛒 [MEDUSA ORDER] Step 5: Completing cart to create order...')
+      const completeResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts/${cart.id}/complete`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+        }
+      )
+
+      if (!completeResponse.ok) {
+        console.error('🛒 [MEDUSA ORDER] ❌ Failed to complete cart:', completeResponse.status)
+        const errorText = await completeResponse.text()
+        console.error('🛒 [MEDUSA ORDER] ❌ Cart completion error details:', errorText)
+        return null
+      }
+
+      const completeResponseData = await completeResponse.json()
+      const { order: medusaOrder } = completeResponseData
+      console.log('🛒 [MEDUSA ORDER] 🎉 Order completed successfully in Medusa!')
+      console.log('🛒 [MEDUSA ORDER] 🎉 Medusa Order ID:', medusaOrder.id)
+      console.log('🛒 [MEDUSA ORDER] 🎉 Order details:', {
         id: medusaOrder.id,
-        createdAt: medusaOrder.created_at,
-        updatedAt: medusaOrder.created_at,
-      }
+        email: medusaOrder.email,
+        status: medusaOrder.status,
+        total: medusaOrder.total,
+        currency: medusaOrder.currency_code
+      })
+
+      // Transform and return the order
+      return this.transformMedusaOrder(medusaOrder)
+
     } catch (error) {
-      console.error('Error creating Medusa order:', error)
-      throw error
+      console.error('Error creating order in Medusa:', error)
+      return null
     }
   }
 
@@ -312,16 +615,35 @@ export class OrderService {
    */
   private async getMedusaOrder(orderId: string): Promise<Order | null> {
     try {
+      // Use the new /store/orders/:id endpoint
+      // This endpoint supports both:
+      // - Authenticated customers (can only see their own orders)
+      // - Guest users (can see any order by ID)
       const response = await this.fetchWithRetry(
         `${this.config.medusaUrl}/store/orders/${orderId}`,
         {
           headers: {
             'x-publishable-api-key': this.config.publishableKey,
+            // Include authentication token if available
+            ...(this.getAuthHeaders()),
           },
         }
       )
 
+      // Guest users can still fetch orders by ID
+      // Only return null if order truly doesn't exist (404)
+      if (response.status === 404) {
+        console.warn('Order not found')
+        return null
+      }
+
+      if (response.status === 403) {
+        console.warn('Access denied - order belongs to a different customer')
+        return null
+      }
+
       if (!response.ok) {
+        console.warn(`Failed to fetch order: ${response.status}`)
         return null
       }
 
@@ -338,14 +660,23 @@ export class OrderService {
    */
   private async getMedusaOrdersByEmail(email: string): Promise<Order[]> {
     try {
+      // Use the new /store/orders endpoint
+      // Note: This requires customer authentication
       const response = await this.fetchWithRetry(
-        `${this.config.medusaUrl}/store/fabric-orders?email=${encodeURIComponent(email)}`,
+        `${this.config.medusaUrl}/store/orders`,
         {
           headers: {
             'x-publishable-api-key': this.config.publishableKey,
+            // Include authentication token if available
+            ...(this.getAuthHeaders()),
           },
         }
       )
+
+      if (response.status === 401) {
+        console.warn('Authentication required to fetch orders')
+        return []
+      }
 
       if (!response.ok) {
         return []
@@ -354,9 +685,28 @@ export class OrderService {
       const { orders } = await response.json()
       return orders.map((order: any) => this.transformMedusaOrder(order))
     } catch (error) {
-      console.error('Error getting Medusa orders by email:', error)
+      console.error('Error getting Medusa orders:', error)
       return []
     }
+  }
+
+  /**
+   * Get authentication headers
+   */
+  private getAuthHeaders(): Record<string, string> {
+    // Check for customer JWT token in localStorage or cookies
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('medusa_auth_token') ||
+                    sessionStorage.getItem('medusa_auth_token')
+
+      if (token) {
+        return {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    }
+
+    return {}
   }
 
   /**
@@ -372,39 +722,48 @@ export class OrderService {
    * Private: Transform Medusa order to our format
    */
   private transformMedusaOrder(medusaOrder: any): Order {
+    // Handle both the new clean endpoint format and legacy format
+    const items = medusaOrder.items || []
+    const shipping_address = medusaOrder.shipping_address || {}
+    const totals = medusaOrder.totals || {}
+
     return {
       id: medusaOrder.id,
       email: medusaOrder.email,
-      items: medusaOrder.items?.map((item: any) => ({
-        id: item.variant_id,
-        name: item.title,
-        sku: item.variant?.sku || '',
-        color: item.variant?.title || '',
-        price: item.unit_price,
-        quantity: item.quantity,
-        image: item.thumbnail,
-      })) || [],
+      items: items.map((item: any) => ({
+        id: item.id || item.variant_id,
+        name: item.title || item.name,
+        sku: item.variant?.sku || item.sku || '',
+        color: item.variant?.title || item.color || '',
+        price: item.unit_price || item.price || 0,
+        quantity: item.quantity || 1,
+        image: item.thumbnail || item.image,
+      })),
       shipping: {
-        firstName: medusaOrder.shipping_address?.first_name || '',
-        lastName: medusaOrder.shipping_address?.last_name || '',
-        email: medusaOrder.email,
-        phone: medusaOrder.shipping_address?.phone || '',
-        address: medusaOrder.shipping_address?.address_1 || '',
-        city: medusaOrder.shipping_address?.city || '',
-        state: medusaOrder.shipping_address?.province || '',
-        zipCode: medusaOrder.shipping_address?.postal_code || '',
-        country: medusaOrder.shipping_address?.country_code?.toUpperCase() || 'US',
+        firstName: shipping_address.first_name || shipping_address.firstName || '',
+        lastName: shipping_address.last_name || shipping_address.lastName || '',
+        email: medusaOrder.email || shipping_address.email || '',
+        phone: shipping_address.phone || '',
+        address: shipping_address.address_1 || shipping_address.address || '',
+        city: shipping_address.city || '',
+        state: shipping_address.province || shipping_address.state || '',
+        zipCode: shipping_address.postal_code || shipping_address.zipCode || '',
+        country: shipping_address.country_code?.toUpperCase() || shipping_address.country || 'US',
       },
       totals: {
-        subtotal: medusaOrder.subtotal || 0,
-        shipping: medusaOrder.shipping_total || 0,
-        tax: medusaOrder.tax_total || 0,
-        total: medusaOrder.total || 0,
+        subtotal: totals.subtotal || medusaOrder.subtotal || 0,
+        shipping: totals.shipping_total || medusaOrder.shipping_total || 0,
+        tax: totals.tax_total || medusaOrder.tax_total || 0,
+        total: totals.total || medusaOrder.total || 0,
       },
       status: this.mapMedusaStatus(medusaOrder.status),
-      paymentIntentId: medusaOrder.payment?.data?.intent_id,
-      createdAt: medusaOrder.created_at,
-      updatedAt: medusaOrder.updated_at,
+      paymentIntentId: medusaOrder.payment_status === 'captured'
+        ? medusaOrder.payment_collections?.[0]?.payments?.[0]?.data?.intent_id
+        : medusaOrder.paymentIntentId,
+      createdAt: medusaOrder.created_at || medusaOrder.createdAt,
+      updatedAt: medusaOrder.updated_at || medusaOrder.updatedAt,
+      // Add timeline if available from new endpoint
+      timeline: medusaOrder.timeline || undefined,
     }
   }
 
@@ -459,7 +818,7 @@ export class OrderService {
    */
   private generateOrderId(): string {
     const timestamp = Date.now()
-    const random = Math.random().toString(36).substr(2, 9)
+    const random = Math.random().toString(36).substring(2, 11)
     return `order_${timestamp}_${random}`
   }
 

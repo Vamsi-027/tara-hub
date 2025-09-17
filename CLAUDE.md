@@ -36,7 +36,7 @@ tara-hub/
 ├── components/             # Shared UI components
 ├── scripts/                # Database and deployment utilities
 └── deployment/             # Deployment configurations
-    └── vercel/             # Vercel deployment scripts
+    └── scripts/            # Deployment shell scripts
 ```
 
 ### Technology Stack
@@ -87,7 +87,6 @@ npm run dev:fabric-store     # Terminal 3: Fabric store
 ```bash
 # Main Admin App
 npm run dev               # Start admin app (port 3000)
-npm run build             # Build with Turbo (placeholder - uses next build currently)
 npm run lint              # Run ESLint across monorepo
 npm run type-check        # TypeScript checking
 npm run format            # Format code with Prettier
@@ -101,6 +100,7 @@ cd medusa && npm run sync:materials  # Sync materials data
 cd medusa && npm run test:materials  # Test materials sync
 cd medusa && npm run setup:contacts  # Setup contact module
 cd medusa && npm run test:contacts   # Test contact integration
+cd medusa && npm run setup:us-region # Setup US region with USD pricing
 cd medusa && npm run build:admin     # Build admin UI
 
 # Database Operations
@@ -108,6 +108,13 @@ npm run db:push           # Push schema changes
 npm run db:migrate        # Run migrations
 npm run db:studio         # Open Drizzle Studio GUI
 npm run db:seed           # Seed sample data
+
+# Materials & Product Management
+npm run sync:materials          # Sync fabrics to materials
+npm run sync:materials:dry      # Dry run sync
+npm run clear:products          # Clear Medusa products
+npm run clear:products:dry      # Dry run clear
+npm run clear:products:force    # Force clear all products
 
 # Testing
 npm run test              # Run tests with Turbo
@@ -117,13 +124,12 @@ npm run test:integration  # Run integration tests
 # Deployment
 npm run deploy            # Deploy all apps
 npm run deploy:prod       # Production deployment
-npm run deploy:admin      # Deploy admin only
 npm run deploy:fabric-store    # Deploy fabric store
-npm run deploy:store-guide     # Deploy store guide
 
 # Environment Management
-npm run env:manage        # Interactive env var management
-npm run env:validate      # Validate environment variables
+node scripts/sync-env-from-vercel.js  # Pull env vars from Vercel
+node scripts/sync-env-to-vercel.js    # Push env vars to Vercel
+node scripts/check-db-tables.js       # Inspect database schema
 ```
 
 ## Port Allocation
@@ -237,11 +243,10 @@ cd frontend/experiences/store-guide && npm run test
 
 ### Deployment Scripts
 ```bash
-deployment/vercel/scripts/
-├── deploy-all.js         # Deploy all apps
-├── deploy-admin.js       # Deploy admin
-├── deploy-fabric-store.js    # Deploy fabric store
-└── deploy-store-guide.js     # Deploy store guide
+deployment/scripts/
+├── deploy.sh              # Deploy specified app or all apps
+├── deploy-production.sh   # Production deployment with safety checks
+└── railway-deploy.sh      # Railway platform deployment
 ```
 
 ## Key Features & Recent Updates
@@ -268,17 +273,22 @@ deployment/vercel/scripts/
 
 ### Module Refactoring in Progress
 The codebase is currently undergoing module reorganization:
-- **Fabric Details module**: Being refactored from `fabric-details` to `fabric_details` 
+- **Fabric Details module**: Being refactored from `fabric-details` to `fabric_details`
 - **Fabric Products module**: Being refactored from `fabric-products` to `fabric_products`
 - **Materials module**: Enhanced with new models and sync capabilities
 - Several old module files have been deleted and are being replaced with updated implementations
 
 ### Active Development Areas
+- **Multi-Region Support**: US region setup with USD pricing implementation
+  - Region creation and configuration scripts
+  - Dynamic pricing based on customer location
+  - Tax handling for different regions
 - **Fabric Store Experience**: Modern filter system implementation in browse page
   - Enhanced filtering with categories, colors, patterns, price ranges
   - Sort functionality and search improvements
   - Mobile-responsive filter drawer
   - Active filter badges display
+- **Order Management**: Transitioning from custom fabric-orders to native Medusa order service
 - **Component Updates**: New filter components in `frontend/experiences/fabric-store/components/filters/`
 - **UI Enhancements**: Tailwind configuration updates for improved styling
 
@@ -305,9 +315,14 @@ The codebase is currently undergoing module reorganization:
 
 Located in `/scripts/`:
 - `seed-data.js` - Comprehensive data seeding
-- `sync-env-from-vercel.js` - Pull env vars from Vercel  
+- `sync-env-from-vercel.js` - Pull env vars from Vercel
 - `sync-env-to-vercel.js` - Push env vars to Vercel
 - `check-db-tables.js` - Database schema inspection
+- `create-us-region.js` - Create US region with USD pricing
+- `set-medusa-prices.js` - Set product prices for regions
+- `setup-medusa-pricing.js` - Configure multi-currency pricing
+- `clear-medusa-products.js` - Clear product catalog (with dry-run option)
+- `sync-fabrics-to-materials.ts` - Sync fabric data to materials module
 
 ## Code Quality & Standards
 

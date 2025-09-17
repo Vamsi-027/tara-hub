@@ -471,14 +471,15 @@ function CheckoutForm() {
     setError('')
 
     try {
-      // Create payment intent
-      const response = await fetch('/api/create-payment-intent', {
+      // Create order in Medusa first, then get payment intent
+      const response = await fetch('/api/create-medusa-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           amount: totals.total,
+          total: totals.total,
           email: formData.email,
           items: cart,
           shipping: formData
@@ -486,10 +487,13 @@ function CheckoutForm() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create payment intent')
+        const errorData = await response.json()
+        console.error('Order creation failed:', errorData)
+        throw new Error(errorData.error || 'Failed to create order')
       }
 
-      const { clientSecret, orderId } = await response.json()
+      const { clientSecret, orderId, order } = await response.json()
+      console.log('✅ Order created in Medusa:', orderId)
 
       // Confirm payment
       const result = await stripe.confirmCardPayment(clientSecret, {

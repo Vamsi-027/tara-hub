@@ -228,7 +228,7 @@ function ModernImageGallery({ images, productName }: { images: string[], product
 
 // Modern Product Info Component
 function ModernProductInfo({ fabric }: { fabric: Fabric }) {
-  const [quantity, setQuantity] = useState(0.5)
+  const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [selectedVariantType, setSelectedVariantType] = useState<'Swatch' | 'Fabric'>('Swatch')
   const [addedToCart, setAddedToCart] = useState(false)
@@ -261,21 +261,25 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
 
   // Reset quantity when switching variants
   useEffect(() => {
-    setQuantity(selectedVariantType === 'Swatch' ? 1 : 0.5)
+    setQuantity(selectedVariantType === 'Swatch' ? 1 : 1)
   }, [selectedVariantType])
 
   const handleAddToCart = () => {
+    // Calculate unit price in cents
+    const unitPriceInCents = selectedVariantType === 'Swatch'
+      ? Math.round(essentialFields.swatchPrice * 100)
+      : Math.round(essentialFields.price * 100)
+
     addToCart({
       variantId: fabric.id,
       productId: fabric.id,
       title: essentialFields.name,
-      variant: selectedVariantType === 'Swatch' ? 'Swatch Sample' : `${quantity} yard${quantity !== 1 ? 's' : ''}`,
-      price: (selectedVariantType === 'Swatch'
-        ? essentialFields.swatchPrice * 100 * quantity
-        : essentialFields.price * 100 * quantity),
-      quantity: quantity,
+      variant: selectedVariantType === 'Swatch' ? 'Swatch Sample' : 'Fabric Per Yard',
+      price: unitPriceInCents,  // Unit price in cents
+      quantity: selectedVariantType === 'Swatch' ? quantity : 1,  // For swatches: actual quantity selected, for fabric: 1
       thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      type: selectedVariantType === 'Swatch' ? 'swatch' : 'fabric'
+      type: selectedVariantType === 'Swatch' ? 'swatch' : 'fabric',
+      yardage: selectedVariantType === 'Fabric' ? quantity : undefined  // Store yardage separately for fabric
     })
 
     // Show success feedback
@@ -308,7 +312,9 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
     if (selectedVariantType === 'Swatch') {
       setQuantity(Math.max(1, Math.min(5, quantity + delta)))
     } else {
-      setQuantity(Math.max(0.5, Math.min(100, Math.round((quantity + delta * 0.5) * 2) / 2)))
+      // For fabric, increment by 0.5 yards but default minimum is 1 yard
+      const newQuantity = quantity + (delta * 0.5)
+      setQuantity(Math.max(1, Math.min(100, Math.round(newQuantity * 2) / 2)))
     }
   }
 
@@ -495,7 +501,7 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
           >
             <div className="space-y-1">
               <div className="font-medium text-gray-900">Full Fabric</div>
-              <div className="text-xs text-gray-500">Min 0.5 yards</div>
+              <div className="text-xs text-gray-500">Min 1 yard</div>
               <div className="text-xl font-bold text-gray-900 mt-2">
                 ${essentialFields.price.toFixed(2)}
                 <span className="text-sm font-normal text-gray-500">/yd</span>
@@ -530,19 +536,19 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
                 onClick={() => handleQuantityChange(-1)}
                 className="p-2 hover:bg-gray-100 transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={selectedVariantType === 'Swatch' ? quantity <= 1 : quantity <= 0.5}
+                disabled={selectedVariantType === 'Swatch' ? quantity <= 1 : quantity <= 1}
               >
                 <Minus className="w-4 h-4 text-gray-600" />
               </button>
               <input
                 type="number"
-                min={selectedVariantType === 'Swatch' ? "1" : "0.5"}
+                min={selectedVariantType === 'Swatch' ? "1" : "1"}
                 max={selectedVariantType === 'Swatch' ? "5" : "100"}
                 step={selectedVariantType === 'Swatch' ? "1" : "0.5"}
                 value={quantity}
                 onChange={(e) => {
-                  const value = parseFloat(e.target.value) || (selectedVariantType === 'Swatch' ? 1 : 0.5)
-                  const minValue = selectedVariantType === 'Swatch' ? 1 : 0.5
+                  const value = parseFloat(e.target.value) || 1
+                  const minValue = 1
                   const maxValue = selectedVariantType === 'Swatch' ? 5 : 100
                   setQuantity(Math.max(minValue, Math.min(maxValue, value)))
                 }}

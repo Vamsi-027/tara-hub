@@ -31,9 +31,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
+    // Don't dispatch cart-updated here - should use proper addToCart function
+    // This is just a placeholder that should redirect to product page
     console.log('Add to cart:', product.id)
-    // Dispatch cart update event
-    window.dispatchEvent(new CustomEvent('cart-updated'))
   }
 
   const handleAddToWishlist = (e: React.MouseEvent) => {

@@ -25,6 +25,8 @@
     "test:materials": "npx tsx ./src/scripts/test-materials-sync.ts",
     "setup:contacts": "npx medusa exec ./src/scripts/setup-contacts.ts",
     "test:contacts": "npx medusa exec ./src/scripts/test-contact-integration.ts",
+    "setup:us-region": "npx medusa exec ./src/scripts/setup-us-region.ts",
+    "setup:inventory": "npx medusa exec ./src/scripts/setup-inventory.ts",
     "start": "NODE_ENV=production npx medusa start -H 0.0.0.0",
     "dev": "npx medusa develop --host 0.0.0.0",
     "test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
