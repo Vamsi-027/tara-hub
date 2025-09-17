@@ -9,7 +9,6 @@
 */
 
 import { createWriteStream, promises as fs } from 'fs';
-import { stringify } from 'csv-parse';
 import * as path from 'path';
 import { ProductRow } from './schemas';
 import { ValidationIssue } from './data-integrity';
@@ -165,94 +164,69 @@ export class ArtifactGenerator {
     return reportPath;
   }
 
-  public async generateErrorRowsCsv(
-    errors: ErrorRow[]
-  ): Promise<string> {
-    const csvPath = path.join(this.artifactsDir, 'error_rows.csv');
-
-    const headers = [
-      'original_row_index',
-      'field',
-      'error',
-      'error_code',
-      'suggestion',
-      'original_value'
-    ];
-
-    const stringifier = stringify({
-      header: true,
-      columns: headers
-    });
-
-    const writeStream = createWriteStream(csvPath);
-    stringifier.pipe(writeStream);
-
-    // Write header row
-    stringifier.write(headers);
-
-    // Write error rows
-    for (const error of errors) {
-      stringifier.write([
-        error.original_row_index,
-        error.field,
-        error.error,
-        error.error_code || '',
-        error.suggestion || '',
-        error.original_value ? JSON.stringify(error.original_value) : ''
-      ]);
-    }
-
-    stringifier.end();
-
-    return new Promise((resolve, reject) => {
-      writeStream.on('finish', () => resolve(csvPath));
-      writeStream.on('error', reject);
-    });
+  private csvEscape(value: any): string {
+    if (value === null || value === undefined) return '';
+    const str = String(value);
+    // Escape double quotes and wrap in quotes if contains comma, quote, or newline
+    const needsQuotes = /[",\n\r]/.test(str);
+    const escaped = str.replace(/"/g, '""');
+    return needsQuotes ? `"${escaped}"` : escaped;
   }
 
-  public async generateResultSummaryCsv(
-    results: ImportResult[]
-  ): Promise<string> {
-    const csvPath = path.join(this.artifactsDir, 'result_summary.csv');
+  public async generateErrorRowsCsv(errors: ErrorRow[]): Promise<string> {
+    const csvPath = path.join(this.artifactsDir, 'error_rows.csv');
 
-    const headers = [
-      'row_index',
-      'status',
-      'product_id',
-      'product_handle',
-      'variant_skus',
-      'message'
-    ];
-
-    const stringifier = stringify({
-      header: true,
-      columns: headers
-    });
-
+    const headers = ['original_row_index','field','error','error_code','suggestion','original_value'];
     const writeStream = createWriteStream(csvPath);
-    stringifier.pipe(writeStream);
 
-    // Write header row
-    stringifier.write(headers);
+    // Write header line
+    writeStream.write(headers.join(',') + '\n');
 
-    // Write result rows
-    for (const result of results) {
-      stringifier.write([
-        result.row_index,
-        result.status,
-        result.product_id || '',
-        result.product_handle || '',
-        result.variant_skus ? result.variant_skus.join(';') : '',
-        result.message || result.error || ''
-      ]);
+    for (const err of errors) {
+      const row = [
+        this.csvEscape(err.original_row_index),
+        this.csvEscape(err.field),
+        this.csvEscape(err.error),
+        this.csvEscape(err.error_code || ''),
+        this.csvEscape(err.suggestion || ''),
+        this.csvEscape(err.original_value ? JSON.stringify(err.original_value) : '')
+      ].join(',');
+      writeStream.write(row + '\n');
     }
 
-    stringifier.end();
-
-    return new Promise((resolve, reject) => {
-      writeStream.on('finish', () => resolve(csvPath));
+    await new Promise<void>((resolve, reject) => {
+      writeStream.end(() => resolve());
       writeStream.on('error', reject);
     });
+
+    return csvPath;
+  }
+
+  public async generateResultSummaryCsv(results: ImportResult[]): Promise<string> {
+    const csvPath = path.join(this.artifactsDir, 'result_summary.csv');
+
+    const headers = ['row_index','status','product_id','product_handle','variant_skus','message'];
+    const writeStream = createWriteStream(csvPath);
+    writeStream.write(headers.join(',') + '\n');
+
+    for (const r of results) {
+      const row = [
+        this.csvEscape(r.row_index),
+        this.csvEscape(r.status),
+        this.csvEscape(r.product_id || ''),
+        this.csvEscape(r.product_handle || ''),
+        this.csvEscape(r.variant_skus ? r.variant_skus.join(';') : ''),
+        this.csvEscape(r.message || r.error || '')
+      ].join(',');
+      writeStream.write(row + '\n');
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      writeStream.end(() => resolve());
+      writeStream.on('error', reject);
+    });
+
+    return csvPath;
   }
 
   public async generateAnnotatedXlsx(

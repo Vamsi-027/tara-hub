@@ -4,7 +4,10 @@
   Single-step creation and execution with comprehensive safety gates
 */
 
-import { MedusaRequest, MedusaResponse } from "@medusajs/medusa";
+import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
+import multer from "multer";
+import { Modules } from "@medusajs/framework/utils";
+import { IFileModuleService } from "@medusajs/framework/types";
 import { z } from "zod";
 import * as crypto from "crypto";
 import { ImportConfigValidator, getEnvironmentConfig } from "../../../../modules/product_import/import-config";
@@ -31,8 +34,18 @@ const createJobSchema = z.object({
 });
 
 // POST /admin/products/import/jobs
+// Multer memory storage for single file field named "file"
+const upload = multer({ storage: multer.memoryStorage() }).single("file");
+
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  // Wrap multer parsing to support multipart form-data
+  const parseMultipart = () =>
+    new Promise<void>((resolve) => {
+      upload(req as any, res as any, () => resolve());
+    });
+
   try {
+    await parseMultipart();
     // Validate admin scope
     if (!req.user || req.user.role !== "admin") {
       return res.status(403).json({ error: "Admin access required" });
@@ -91,70 +104,60 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       }
     }
 
-    // Generate job ID, trace ID, and import session ID
-    const jobId = `import_${Date.now()}_${crypto.randomBytes(8).toString("hex")}`;
+    // Generate trace ID and import session ID; batch job id returned from service
     const importId = `session_${crypto.randomBytes(16).toString("hex")}`;
-    const traceId = req.headers["x-trace-id"] as string || jobId;
+    const traceId = (req.headers["x-trace-id"] as string) || `trace_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
 
     // Handle file upload or source_job_id
     let fileUrl: string | undefined;
 
     if (options.source_job_id) {
       // Reuse file from previous job
-      const sourceJob = await getJobById(options.source_job_id);
+      const sourceJob = await getJobById(req.scope, options.source_job_id);
       if (!sourceJob) {
         return res.status(404).json({ error: "Source job not found" });
       }
-      fileUrl = sourceJob.file_url;
-    } else if (req.file) {
+      fileUrl = sourceJob.context?.file_url;
+    } else if ((req as any).file) {
+      const file = (req as any).file as Express.Multer.File;
       // Validate file size
-      const limitCheck = configValidator.isWithinLimits(req.file.size, 0);
+      const limitCheck = configValidator.isWithinLimits(file.size, 0);
       if (!limitCheck.valid) {
         return res.status(400).json({ error: limitCheck.reason });
       }
 
-      // Process uploaded file
-      const fileService = req.scope.resolve("fileService");
-      const uploadResult = await fileService.upload({
-        file: req.file.buffer,
-        filename: req.file.originalname,
-        mimeType: req.file.mimetype,
-      });
-      fileUrl = uploadResult.url;
+      // Upload via File Module
+      const fileModule: IFileModuleService = req.scope.resolve(Modules.FILE);
+      const filenameSafe = file.originalname?.replace(/[^a-zA-Z0-9._-]/g, "_") || `import_${Date.now()}.dat`;
+      const base64 = file.buffer.toString("base64");
+      const created = await fileModule.createFiles([
+        {
+          filename: `imports/${userId}/${Date.now()}_${filenameSafe}`,
+          mimeType: file.mimetype,
+          content: base64,
+        },
+      ]);
+      fileUrl = created[0]?.url;
     } else {
       return res.status(400).json({
         error: "Either file upload or source_job_id required"
       });
     }
 
-    // Initialize artifact generator
-    const artifactGenerator = new ArtifactGenerator(jobId, config.artifacts.storage_path);
-    await artifactGenerator.initialize();
-
-    // Apply mapping profile if specified
-    let appliedMapping: Record<string, string> | undefined;
-    if (options.mapping_profile_id) {
-      const mappingService = new MappingProfileService(req.scope);
-      try {
-        // Would need headers from file to apply, done during processing
-        appliedMapping = await mappingService.retrieve(options.mapping_profile_id, userId)?.mapping;
-      } catch (error) {
-        console.warn("Failed to load mapping profile:", error);
-      }
-    }
+    // Note: Artifact generation and mapping profile application
+    // will be handled by the batch job processor
 
     // Create batch job context with enhanced metadata
     const batchJobService = req.scope.resolve("batchJobService");
     const job = await batchJobService.create({
       type: "product-import",
       context: {
-        job_id: jobId,
         trace_id: traceId,
         import_id: importId,
         file_url: fileUrl,
         options: {
           ...options,
-          applied_mapping: appliedMapping,
+          column_mapping_json: options.column_mapping_json,
         },
         idempotency_key: idempotencyKey,
         user_id: req.user.id,
@@ -167,11 +170,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       dry_run: options.mode === "dry_run",
     });
 
+    // No need to mirror ID - the processor will use batchJob.id directly
+
     // Start job processing
     await batchJobService.confirm(job.id);
 
     res.json({
-      job_id: jobId,
+      job_id: job.id,
       trace_id: traceId,
       idempotency_key: idempotencyKey,
       status: "created",
@@ -190,9 +195,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       },
       message: `Import job created and ${options.mode === "dry_run" ? "validation started" : "execution started"}`,
       links: {
-        status: `/admin/products/import/jobs/${jobId}`,
-        cancel: `/admin/products/import/jobs/${jobId}/cancel`,
-        artifacts: `/admin/products/import/jobs/${jobId}/artifacts`,
+        status: `/admin/products/import/jobs/${job.id}`,
+        cancel: `/admin/products/import/jobs/${job.id}/cancel`,
+        artifacts: `/admin/products/import/jobs/${job.id}/artifacts`,
       },
     });
   } catch (error) {
@@ -230,7 +235,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const phase = derivePhase(job);
 
     res.json({
-      job_id: job.context.job_id,
+      job_id: job.id,
       trace_id: job.context.trace_id || job.context.job_id,
       idempotency_key: job.context.idempotency_key,
       status: mapJobStatus(job.status),
@@ -273,9 +278,14 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 }
 
 // Helper functions
-async function getJobById(jobId: string): Promise<any> {
-  // Implement job retrieval logic
-  return null;
+async function getJobById(scope: any, jobId: string): Promise<any> {
+  try {
+    const batchJobService = scope.resolve("batchJobService");
+    const job = await batchJobService.retrieve(jobId);
+    return job;
+  } catch (e) {
+    return null;
+  }
 }
 
 function calculateProgress(job: any): number {
@@ -320,25 +330,15 @@ function calculateEnhancedStats(job: any): any {
 }
 
 function getArtifactUrls(job: any): any {
-  const baseUrl = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000";
+  // Return direct File Module URLs stored by the processor
   const artifacts = job.result?.artifacts || {};
 
   return {
-    validation_report_url: artifacts.validation_report
-      ? `${baseUrl}/admin/products/import/artifacts/${artifacts.validation_report}`
-      : undefined,
-    error_rows_url: artifacts.error_rows
-      ? `${baseUrl}/admin/products/import/artifacts/${artifacts.error_rows}`
-      : undefined,
-    result_rows_url: artifacts.result_rows
-      ? `${baseUrl}/admin/products/import/artifacts/${artifacts.result_rows}`
-      : undefined,
-    annotated_xlsx_url: artifacts.annotated_xlsx
-      ? `${baseUrl}/admin/products/import/artifacts/${artifacts.annotated_xlsx}`
-      : undefined,
-    prune_preview_url: artifacts.prune_preview
-      ? `${baseUrl}/admin/products/import/artifacts/${artifacts.prune_preview}`
-      : undefined,
+    validation_report_url: artifacts.validation_report_url,
+    error_rows_url: artifacts.error_rows_url,
+    result_summary_url: artifacts.result_summary_url,
+    annotated_xlsx_url: artifacts.annotated_xlsx_url,
+    prune_preview_url: artifacts.prune_preview_url,
   };
 }
 
