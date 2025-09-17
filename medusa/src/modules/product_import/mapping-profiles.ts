@@ -187,7 +187,36 @@ export class MappingProfileService extends MedusaService {
       throw new Error("You can only delete your own mapping profiles");
     }
 
+    // Check if profile is in use by any active jobs
+    const inUseCheck = await this.isProfileInUse(profileId);
+    if (inUseCheck.inUse) {
+      throw new Error(
+        `Cannot delete profile: currently in use by ${inUseCheck.activeJobs} active import job(s)`
+      );
+    }
+
     await profileRepo.remove(profile);
+  }
+
+  private async isProfileInUse(profileId: string): Promise<{ inUse: boolean; activeJobs: number }> {
+    try {
+      const batchJobService = this.container_.resolve("batchJobService");
+      const jobs = await batchJobService.listAndCount(
+        {
+          type: "product-import",
+          status: ["created", "pre_processed", "confirmed", "processing"],
+          context: { options: { mapping_profile_id: profileId } },
+        },
+        { take: 1 }
+      );
+      return {
+        inUse: jobs[1] > 0,
+        activeJobs: jobs[1]
+      };
+    } catch (error) {
+      console.error("Failed to check profile usage:", error);
+      return { inUse: false, activeJobs: 0 };
+    }
   }
 
   async getDefault(userId: string): Promise<MappingProfile | null> {
@@ -221,9 +250,62 @@ export class MappingProfileService extends MedusaService {
       metadata: {
         ...profile.metadata,
         duplicated_from: profileId,
-        duplicated_at: new Date().toISOString()
+        duplicated_at: new Date().toISOString(),
+        version: 1
       }
     });
+  }
+
+  async exportProfile(
+    profileId: string,
+    userId: string
+  ): Promise<string> {
+    const profile = await this.retrieve(profileId, userId);
+    if (!profile) {
+      throw new Error(`Mapping profile ${profileId} not found`);
+    }
+
+    const exportData = {
+      version: "1.0",
+      exported_at: new Date().toISOString(),
+      profile: {
+        name: profile.name,
+        description: profile.description,
+        mapping: profile.mapping,
+        settings: profile.settings,
+        metadata: profile.metadata
+      }
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  }
+
+  async importProfile(
+    userId: string,
+    exportData: string,
+    newName?: string
+  ): Promise<MappingProfile> {
+    try {
+      const data = JSON.parse(exportData);
+
+      if (!data.version || !data.profile) {
+        throw new Error("Invalid profile export format");
+      }
+
+      return this.create(userId, {
+        name: newName || `${data.profile.name} (Imported)`,
+        description: data.profile.description || `Imported on ${new Date().toISOString()}`,
+        mapping: data.profile.mapping,
+        settings: data.profile.settings,
+        metadata: {
+          ...data.profile.metadata,
+          imported_at: new Date().toISOString(),
+          import_version: data.version
+        }
+      });
+    } catch (error) {
+      throw new Error(`Failed to import profile: ${error.message}`);
+    }
   }
 
   // Built-in profiles for common formats
