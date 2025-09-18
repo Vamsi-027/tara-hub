@@ -161,8 +161,16 @@ const FabricCard: React.FC<{ fabric: Fabric; viewMode: 'grid' | 'list' }> = ({ f
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation()
 
+    // Find the swatch variant from the fabric's variants array
+    const swatchVariant = (fabric as any).variants?.find((v: any) =>
+      v.title?.toLowerCase().includes('swatch')
+    )
+
+    // Use the correct variant ID, fallback to fabric.id if no variant found
+    const variantId = swatchVariant?.id || fabric.id
+
     addToCart({
-      variantId: fabric.id,
+      variantId: variantId,
       productId: fabric.id,
       title: fabric.name,
       variant: 'Swatch Sample',

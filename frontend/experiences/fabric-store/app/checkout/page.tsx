@@ -471,7 +471,7 @@ function CheckoutForm() {
     setError('')
 
     try {
-      // Create order using production Medusa workflows
+      // Create order using Medusa best practices workflow
       const response = await fetch('/api/orders/create', {
         method: 'POST',
         headers: {
@@ -482,7 +482,8 @@ function CheckoutForm() {
           total: totals.total,
           email: formData.email,
           items: cart,
-          shipping: formData
+          shipping: formData,
+          billing: formData
         })
       })
 
@@ -492,11 +493,21 @@ function CheckoutForm() {
         throw new Error(errorData.error || 'Failed to create order')
       }
 
-      const { clientSecret, orderId, order } = await response.json()
-      console.log('✅ Order created in Medusa:', orderId)
+      const responseData = await response.json()
+      const { cart_id, client_secret, payment_session } = responseData
+      console.log('✅ Cart created with payment session:', cart_id)
 
-      // Confirm payment
-      const result = await stripe.confirmCardPayment(clientSecret, {
+      // Check if we have a client_secret
+      if (!client_secret && !payment_session?.data?.client_secret) {
+        console.error('❌ No client_secret received:', responseData)
+        throw new Error('Payment initialization failed - no client secret received from server')
+      }
+
+      const paymentClientSecret = client_secret || payment_session?.data?.client_secret
+      console.log('💳 Using client_secret:', paymentClientSecret.substring(0, 20) + '...')
+
+      // Confirm payment with Stripe
+      const result = await stripe.confirmCardPayment(paymentClientSecret, {
         payment_method: {
           card: cardElement,
           billing_details: {
@@ -517,12 +528,34 @@ function CheckoutForm() {
       if (result.error) {
         setError(result.error.message || 'Payment failed')
       } else {
+        // Payment successful - complete the order
+        console.log('💳 Payment confirmed, completing order...')
+
+        const completeResponse = await fetch('/api/orders/complete-order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            cart_id: cart_id,
+            payment_intent_id: result.paymentIntent?.id
+          })
+        })
+
+        if (!completeResponse.ok) {
+          throw new Error('Failed to complete order after payment')
+        }
+
+        const { order } = await completeResponse.json()
+        console.log('✅ Order completed:', order.id)
+
         // Success - save order data for email and clear cart
         const orderData = {
           items: cart,
           shipping: formData,
           email: formData.email,
-          total: totals.total
+          total: totals.total,
+          order: order
         }
 
         // Save order data and email for the success page
@@ -533,12 +566,26 @@ function CheckoutForm() {
         localStorage.removeItem('fabric-cart')
 
         // Redirect to success page with order details
-        router.push(`/checkout/success?orderId=${orderId}&email=${encodeURIComponent(formData.email)}`)
+        router.push(`/checkout/success?orderId=${order.id}&displayId=${order.display_id}&email=${encodeURIComponent(formData.email)}`)
       }
 
     } catch (err) {
       console.error('Checkout error:', err)
-      setError('Something went wrong. Please try again.')
+
+      // Provide more specific error messages
+      if (err instanceof Error) {
+        if (err.message.includes('client secret')) {
+          setError('Payment setup failed. Please refresh and try again.')
+        } else if (err.message.includes('payment provider')) {
+          setError('Payment provider error. Please check your card details.')
+        } else if (err.message.includes('network')) {
+          setError('Network error. Please check your connection.')
+        } else {
+          setError(err.message || 'Something went wrong. Please try again.')
+        }
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
     } finally {
       setLoading(false)
     }

@@ -109,8 +109,24 @@ export default function WishlistPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500))
 
+    // Find the appropriate variant based on type
+    const variants = (fabric as any).variants || []
+    let variantId = fabric.id // Default fallback
+
+    if (type === 'swatch') {
+      const swatchVariant = variants.find((v: any) =>
+        v.title?.toLowerCase().includes('swatch')
+      )
+      variantId = swatchVariant?.id || fabric.id
+    } else {
+      const fabricVariant = variants.find((v: any) =>
+        v.title?.toLowerCase().includes('fabric') || v.title?.toLowerCase().includes('yard')
+      )
+      variantId = fabricVariant?.id || fabric.id
+    }
+
     addToCartUtil({
-      variantId: fabric.id,
+      variantId: variantId,
       productId: fabric.id,
       title: fabric.name,
       variant: type === 'swatch' ? 'Swatch Sample' : `${quantity} yard${quantity > 1 ? 's' : ''}`,
