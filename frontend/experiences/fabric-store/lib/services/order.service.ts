@@ -130,19 +130,244 @@ export class OrderService {
   }
 
   /**
+   * Create a Medusa cart with items and prepare for payment
+   * Returns cart ID and payment information for Stripe processing
+   */
+  async createMedusaCart(input: CreateOrderInput): Promise<{
+    cartId: string;
+    paymentSession?: any;
+    clientSecret?: string;
+    total: number;
+  } | null> {
+    try {
+      console.log('🛒 [MEDUSA CART] Creating cart for payment processing...')
+
+      // Map items to variant IDs
+      const mappedItems = await this.mapToMedusaVariants(input.items)
+
+      // Get region
+      const regionsResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/regions`,
+        {
+          headers: {
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+        }
+      )
+
+      if (!regionsResponse.ok) {
+        console.error('Failed to fetch regions')
+        return null
+      }
+
+      const { regions } = await regionsResponse.json()
+      const region = regions[0]
+
+      // Create cart
+      const cartResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+          body: JSON.stringify({
+            email: input.email,
+            region_id: region.id,
+          }),
+        }
+      )
+
+      if (!cartResponse.ok) {
+        console.error('Failed to create cart')
+        return null
+      }
+
+      const { cart } = await cartResponse.json()
+      console.log('🛒 [MEDUSA CART] Cart created:', cart.id)
+
+      // Add items
+      for (const item of mappedItems) {
+        await this.fetchWithRetry(
+          `${this.config.medusaUrl}/store/carts/${cart.id}/line-items`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-publishable-api-key': this.config.publishableKey,
+            },
+            body: JSON.stringify({
+              variant_id: item.id,
+              quantity: item.quantity,
+            }),
+          }
+        )
+      }
+
+      // Add shipping address
+      await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts/${cart.id}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+          body: JSON.stringify({
+            shipping_address: {
+              first_name: input.shipping.firstName,
+              last_name: input.shipping.lastName,
+              address_1: input.shipping.address,
+              city: input.shipping.city,
+              province: input.shipping.state,
+              postal_code: input.shipping.zipCode,
+              country_code: input.shipping.country.toLowerCase(),
+              phone: input.shipping.phone,
+            },
+            billing_address: {
+              first_name: input.shipping.firstName,
+              last_name: input.shipping.lastName,
+              address_1: input.shipping.address,
+              city: input.shipping.city,
+              province: input.shipping.state,
+              postal_code: input.shipping.zipCode,
+              country_code: input.shipping.country.toLowerCase(),
+              phone: input.shipping.phone,
+            },
+            email: input.email,
+          }),
+        }
+      )
+
+      console.log('🛒 [MEDUSA CART] Cart prepared with items and address')
+
+      // Try to initialize payment session
+      const paymentResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts/${cart.id}/payment-method`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+          body: JSON.stringify({
+            provider_id: 'stripe',
+          }),
+        }
+      )
+
+      if (paymentResponse.ok) {
+        const paymentCart = await paymentResponse.json()
+        console.log('🛒 [MEDUSA CART] Payment session initialized')
+
+        return {
+          cartId: cart.id,
+          paymentSession: paymentCart.cart?.payment_session,
+          clientSecret: paymentCart.cart?.payment_session?.data?.client_secret,
+          total: cart.total || input.total,
+        }
+      }
+
+      // Return cart even without payment session
+      return {
+        cartId: cart.id,
+        total: cart.total || input.total,
+      }
+
+    } catch (error) {
+      console.error('Error creating Medusa cart:', error)
+      return null
+    }
+  }
+
+  /**
+   * Complete a Medusa cart after payment is processed
+   */
+  async completeMedusaCart(cartId: string): Promise<Order | null> {
+    try {
+      console.log('🛒 [MEDUSA COMPLETE] Completing cart:', cartId)
+
+      const completeResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts/${cartId}/complete`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+        }
+      )
+
+      if (!completeResponse.ok) {
+        const errorText = await completeResponse.text()
+        console.error('Failed to complete cart:', errorText)
+        return null
+      }
+
+      const { order } = await completeResponse.json()
+      console.log('🛒 [MEDUSA COMPLETE] Order completed:', order.id)
+
+      return this.transformMedusaOrder(order)
+
+    } catch (error) {
+      console.error('Error completing Medusa cart:', error)
+      return null
+    }
+  }
+
+  /**
    * Create a new order
    */
   async createOrder(input: CreateOrderInput): Promise<Order> {
     // Validate input
     const validated = CreateOrderSchema.parse(input)
 
-    // Generate order ID
-    const orderId = this.generateOrderId()
+    try {
+      // Try to create order in Medusa by creating and completing a cart
+      console.log('🚀 Creating order in Medusa database...')
+      console.log('🔧 Medusa URL:', this.config.medusaUrl)
+      console.log('🔑 Has publishable key:', !!this.config.publishableKey)
 
-    // Calculate totals
+      // Create cart in Medusa
+      const cartResult = await this.createMedusaCart(validated)
+      if (cartResult && cartResult.cartId) {
+        console.log('✅ Cart created:', cartResult.cartId)
+
+        // Complete the cart to create an order
+        const medusaOrder = await this.completeMedusaCart(cartResult.cartId)
+
+        if (medusaOrder) {
+          console.log('✅ Successfully created order in Medusa database!')
+          console.log('📦 Medusa Order ID:', medusaOrder.id)
+
+          // Return the Medusa order
+          return medusaOrder
+        } else {
+          console.warn('⚠️ completeMedusaCart returned null')
+        }
+      } else {
+        console.warn('⚠️ createMedusaCart returned null or no cartId')
+      }
+    } catch (error) {
+      console.error('❌ Failed to create order in Medusa:', error)
+      console.error('📍 Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      })
+      if (!this.config.useFallback) {
+        throw error
+      }
+    }
+
+    // Fallback to local storage if Medusa fails
+    console.warn('⚠️ Falling back to localStorage for order storage')
+    console.warn('💾 This order will NOT be visible in Medusa admin!')
+
+    // Generate fallback order ID
+    const orderId = this.generateOrderId()
     const totals = this.calculateTotals(validated.items)
 
-    // Create order object
     const order: Order = {
       id: orderId,
       email: validated.email,
@@ -156,38 +381,10 @@ export class OrderService {
       timeline: [{
         status: 'created',
         timestamp: new Date().toISOString(),
-        message: 'Order created',
+        message: 'Order created (fallback)',
       }],
     }
 
-    try {
-      // Try to create order in Medusa
-      console.log('🚀 Attempting to create order in Medusa...')
-      console.log('🔧 Medusa URL:', this.config.medusaUrl)
-      console.log('🔑 Has publishable key:', !!this.config.publishableKey)
-
-      const medusaOrder = await this.createMedusaOrder(order)
-      if (medusaOrder) {
-        console.log('✅ Successfully created order in Medusa database!')
-        console.log('📦 Medusa Order ID:', medusaOrder.id)
-        return medusaOrder
-      } else {
-        console.warn('⚠️ createMedusaOrder returned null')
-      }
-    } catch (error) {
-      console.error('❌ Failed to create order in Medusa:', error)
-      console.error('📍 Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      })
-      if (!this.config.useFallback) {
-        throw error
-      }
-    }
-
-    // Fallback to local storage
-    console.warn('⚠️ Falling back to localStorage for order storage')
-    console.warn('💾 This order will NOT be visible in Medusa admin!')
     return this.saveFallbackOrder(order)
   }
 
@@ -574,14 +771,43 @@ export class OrderService {
         console.log('🛒 [MEDUSA ORDER] ⚠️ Skipping shipping options (not required for test orders)')
       }
 
-      // Step 5: For Medusa v2, we need to use the payment collection API
-      // For now, we'll skip payment and try to complete as a test order
-      console.log('🛒 [MEDUSA ORDER] Step 5: Skipping payment for test order...')
-      console.log('🛒 [MEDUSA ORDER] ℹ️ Note: In production, implement proper payment flow')
+      // Step 5: Initialize payment session with Stripe
+      console.log('🛒 [MEDUSA ORDER] Step 5: Initializing payment session...')
+
+      // First, check if Stripe is configured in the region
+      const paymentSessionPayload = {
+        provider_id: 'stripe', // Use Stripe as the payment provider
+      }
+
+      // Try to select Stripe as payment provider
+      const selectPaymentResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts/${cart.id}/payment-method`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': this.config.publishableKey,
+          },
+          body: JSON.stringify(paymentSessionPayload),
+        }
+      )
+
+      if (selectPaymentResponse.ok) {
+        console.log('🛒 [MEDUSA ORDER] ✅ Stripe payment method selected')
+        const paymentCart = await selectPaymentResponse.json()
+
+        // Check if payment session was created
+        if (paymentCart.cart?.payment_session) {
+          console.log('🛒 [MEDUSA ORDER] 💳 Payment session created:', paymentCart.cart.payment_session.provider_id)
+          console.log('🛒 [MEDUSA ORDER] 💳 Payment status:', paymentCart.cart.payment_session.status)
+        }
+      } else {
+        const errorText = await selectPaymentResponse.text()
+        console.log('🛒 [MEDUSA ORDER] ⚠️ Could not select payment method:', errorText)
+        console.log('🛒 [MEDUSA ORDER] ℹ️ Continuing without payment provider...')
+      }
 
       // Step 6: Try to complete the cart
-      // In Medusa v2, if payment is not required or we're in test mode,
-      // we might be able to complete without payment
       console.log('🛒 [MEDUSA ORDER] Step 6: Attempting to complete cart...')
 
       // First, let's try to complete normally

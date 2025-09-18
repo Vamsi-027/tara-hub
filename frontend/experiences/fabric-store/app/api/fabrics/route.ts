@@ -1052,21 +1052,23 @@ async function handleGET(request: Request) {
       console.log('✅ Successfully fetched from Medusa:', allFabrics.length, 'products')
 
       if (allFabrics.length === 0) {
-        console.warn('⚠️ Medusa returned 0 products, this might indicate an issue')
-        throw new Error('No products found in Medusa')
+        console.log('ℹ️ No products found in Medusa - returning empty array')
+        // Don't throw error - just return empty array which is valid
       }
 
     } catch (medusaError) {
       console.error('❌ Medusa API error:', medusaError)
-      dataSource = 'mock'
 
-      // Only use mock data as absolute last resort and log this as an error
-      console.error('🚨 CRITICAL: Using mock data because Medusa is unavailable. This should not happen in production!')
-      allFabrics = getMockFabrics()
-
-      // In production, we should return an error instead of mock data
+      // In production, return empty array instead of throwing error
       if (process.env.NODE_ENV === 'production') {
-        throw new Error('Product data unavailable - please try again later')
+        console.log('ℹ️ Returning empty array due to Medusa error in production')
+        allFabrics = []
+        dataSource = 'empty'
+      } else {
+        // Only use mock data in development
+        console.warn('⚠️ Using mock data in development mode')
+        allFabrics = getMockFabrics()
+        dataSource = 'mock'
       }
     }
     

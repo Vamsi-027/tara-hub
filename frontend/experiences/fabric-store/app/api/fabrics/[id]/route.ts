@@ -65,11 +65,11 @@ export async function GET(
       console.log('🇺🇸 Using US region for pricing:', regionId)
     }
 
-    // Use custom endpoint that includes metadata
-    console.log(`🔌 Fetching product from Medusa: ${medusaBackendUrl}/store/products-with-metadata?id=${fabricId}`)
+    // Use standard product endpoint with region_id (same as browse API)
+    console.log(`🔌 Fetching product from Medusa: ${medusaBackendUrl}/store/products/${fabricId}`)
     console.log(`🌍 Using region: ${regionId} (${regionParam})`)
 
-    const medusaResponse = await fetch(`${medusaBackendUrl}/store/products-with-metadata?id=${fabricId}&region_id=${regionId}`, {
+    const medusaResponse = await fetch(`${medusaBackendUrl}/store/products/${fabricId}?region_id=${regionId}`, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
