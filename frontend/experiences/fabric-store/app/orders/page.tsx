@@ -516,7 +516,7 @@ export default function OrdersPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
                         <h2 className="text-lg font-semibold text-gray-900">
-                          #{order.id.slice(-8).toUpperCase()}
+                          #{order.id && typeof order.id === 'string' ? order.id.slice(-8).toUpperCase() : 'UNKNOWN'}
                         </h2>
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full
                                        text-xs font-medium border ${getStatusStyle(order.status)}`}>

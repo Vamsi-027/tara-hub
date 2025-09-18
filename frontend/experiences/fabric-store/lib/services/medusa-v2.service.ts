@@ -506,7 +506,7 @@ export class MedusaV2Service {
 
       const data = await response.json()
 
-      if (data.success && data.orders) {
+      if (data.success && data.orders && Array.isArray(data.orders)) {
         console.log(`✅ Found ${data.orders.length} orders for ${email}`)
 
         // Transform raw orders to fabric-store format
@@ -518,6 +518,7 @@ export class MedusaV2Service {
         }
       }
 
+      console.warn(`❌ Invalid response format from orders-by-email endpoint:`, data)
       return { orders: [], hasMore: false }
 
     } catch (error) {
