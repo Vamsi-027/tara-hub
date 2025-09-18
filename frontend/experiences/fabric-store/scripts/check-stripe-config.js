@@ -4,7 +4,7 @@
  */
 
 const MEDUSA_BACKEND_URL = 'https://medusa-backend-production-3655.up.railway.app'
-const PUBLISHABLE_KEY = '' // Try without publishable key first
+const PUBLISHABLE_KEY = 'pk_52c908c87d04f835cc7b96e7579083f06603e4997fc42f7358c69dcff8f17d38' // Correct production key
 
 async function checkStripeConfig() {
   console.log('🔍 Checking Stripe configuration in production Medusa backend...')

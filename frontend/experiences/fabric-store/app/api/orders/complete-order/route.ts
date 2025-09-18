@@ -11,8 +11,8 @@ const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
                            process.env.MEDUSA_BACKEND_URL ||
                            'https://medusa-backend-production-3655.up.railway.app'
 
-// Publishable key - currently optional in production
-const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ''
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ||
+                       'pk_52c908c87d04f835cc7b96e7579083f06603e4997fc42f7358c69dcff8f17d38'
 
 export async function POST(request: NextRequest) {
   try {
