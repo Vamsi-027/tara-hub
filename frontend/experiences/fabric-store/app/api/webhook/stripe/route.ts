@@ -7,16 +7,34 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { orderService } from '@/lib/services/order.service'
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-08-27.basil',
-})
+// Get Stripe configuration
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || 'sk_test_fallback'
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_fallback'
 
-// Webhook secret from Stripe dashboard
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
+// Initialize Stripe only if we have a valid key
+let stripe: Stripe | null = null
+
+if (stripeSecretKey && stripeSecretKey !== 'sk_test_fallback') {
+  try {
+    stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2024-12-18.acacia',
+    })
+  } catch (error) {
+    console.error('Failed to initialize Stripe:', error)
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Stripe is properly configured
+    if (!stripe) {
+      console.warn('Stripe webhook called but Stripe is not configured')
+      return NextResponse.json(
+        { error: 'Stripe not configured' },
+        { status: 501 }
+      )
+    }
+
     // Get raw body for signature verification
     const body = await request.text()
     const signature = request.headers.get('stripe-signature')
