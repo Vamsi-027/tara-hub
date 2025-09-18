@@ -245,7 +245,7 @@ export class MedusaV2Service {
     try {
       console.log(`🔍 Fetching order ${orderId} from raw database API...`)
 
-      const response = await fetch(`${this.config.baseUrl}/admin/orders/raw/${orderId}`, {
+      const response = await fetch(`${this.config.baseUrl}/store/orders-raw/${orderId}`, {
         headers: {
           'Content-Type': 'application/json',
           'x-publishable-api-key': this.config.publishableKey,
