@@ -47,7 +47,7 @@ interface ShippingAddress {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, items, shipping, billing, total } = body
+    const { email, items, shipping, billing } = body
 
     console.log('🏭 [BEST PRACTICE] Creating order with proper Medusa workflow')
     console.log('📧 Customer:', email)
@@ -232,125 +232,98 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Step 5: Initialize payment sessions
-    console.log('5️⃣ Initializing payment...')
+    // Step 5: Create Payment Collection (Medusa v2 workflow)
+    console.log('5️⃣ Creating payment collection...')
     console.log('🌐 Medusa URL:', MEDUSA_BACKEND_URL)
     console.log('🔑 Publishable Key:', PUBLISHABLE_KEY ? 'Present' : 'Missing')
 
-    const paymentSessionResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/carts/${cart.id}/payment-sessions`, {
+    const paymentCollectionResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/payment-collections`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
-      }
+      },
+      body: JSON.stringify({
+        cart_id: cart.id
+      })
+    })
+
+    if (!paymentCollectionResponse.ok) {
+      const errorText = await paymentCollectionResponse.text()
+      console.error('❌ Payment collection creation failed:', errorText)
+
+      return NextResponse.json({
+        success: false,
+        error: 'Payment collection creation failed',
+        message: 'Unable to create payment collection. Please ensure Medusa is properly configured.',
+        details: errorText,
+        cart_id: cart.id
+      }, { status: 500 })
+    }
+
+    const { payment_collection } = await paymentCollectionResponse.json()
+    console.log('✅ Payment collection created:', payment_collection.id)
+
+    // Step 6: Initialize payment session with Stripe provider
+    console.log('6️⃣ Initializing Stripe payment session...')
+
+    const paymentSessionResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/payment-collections/${payment_collection.id}/payment-sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
+      },
+      body: JSON.stringify({
+        provider_id: 'pp_stripe_stripe'  // Correct Medusa v2 Stripe provider ID
+      })
     })
 
     if (!paymentSessionResponse.ok) {
       const errorText = await paymentSessionResponse.text()
-      console.error('❌ Payment session initialization failed:', errorText)
+      console.error('❌ Payment session creation failed:', errorText)
 
-      // Return error with details
       return NextResponse.json({
         success: false,
-        error: 'Payment initialization failed',
-        message: 'Unable to initialize payment. Please ensure Stripe is configured in Medusa.',
+        error: 'Payment session creation failed',
+        message: 'Unable to initialize Stripe payment session.',
         details: errorText,
-        cart_id: cart.id
+        payment_collection_id: payment_collection.id
       }, { status: 500 })
-    } else {
-      console.log('✅ Payment sessions initialized')
-
-      // Get updated cart with payment sessions
-      const updatedCartResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/carts/${cart.id}`, {
-        headers: {
-          ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
-        }
-      })
-
-      if (updatedCartResponse.ok) {
-        const { cart: updatedCart } = await updatedCartResponse.json()
-
-        // Step 6: Select Stripe payment provider
-        if (updatedCart.payment_sessions && updatedCart.payment_sessions.length > 0) {
-          const stripeSession = updatedCart.payment_sessions.find((s: any) =>
-            s.provider_id === 'stripe' || s.provider_id === 'pp_stripe'
-          )
-
-          if (stripeSession) {
-            console.log('6️⃣ Setting Stripe as payment provider...')
-            const setProviderResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/carts/${cart.id}/payment-session`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
-              },
-              body: JSON.stringify({
-                provider_id: stripeSession.provider_id
-              })
-            })
-
-            if (!setProviderResponse.ok) {
-              console.error('❌ Failed to set payment provider')
-              throw new Error('Failed to set payment provider')
-            }
-
-            console.log('✅ Stripe payment provider set')
-
-            // CRITICAL: Fetch the cart again to get the updated payment session with client_secret
-            const finalCartResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/carts/${cart.id}`, {
-              headers: {
-                ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
-              }
-            })
-
-            if (!finalCartResponse.ok) {
-              console.error('❌ Failed to fetch final cart')
-              throw new Error('Failed to fetch cart with payment details')
-            }
-
-            const { cart: finalCart } = await finalCartResponse.json()
-
-            // Find the updated Stripe session with client_secret
-            const finalStripeSession = finalCart.payment_sessions?.find((s: any) =>
-              s.provider_id === 'stripe' || s.provider_id === 'pp_stripe'
-            )
-
-            if (!finalStripeSession?.data?.client_secret) {
-              console.error('❌ No client_secret in payment session:', finalStripeSession)
-              throw new Error('Payment session missing client_secret')
-            }
-
-            console.log('✅ Got client_secret from Stripe:', finalStripeSession.data.client_secret.substring(0, 20) + '...')
-
-            // Return cart with payment information
-            return NextResponse.json({
-              success: true,
-              cart_id: cart.id,
-              payment_session: finalStripeSession,
-              client_secret: finalStripeSession.data.client_secret,
-              message: 'Cart created successfully with proper Medusa workflow',
-              next_step: 'Complete payment with Stripe, then call /complete-order',
-              metadata: {
-                best_practice: true,
-                workflow: 'standard-medusa-v2',
-                items_count: items.length,
-                total_amount: finalCart.total || total
-              }
-            })
-          }
-        }
-      }
     }
 
-    // Fallback response if payment setup incomplete
+    const paymentSessionData = await paymentSessionResponse.json()
+    console.log('✅ Payment session initialized')
+
+    // Get the Stripe payment session
+    const paymentSessions = paymentSessionData.payment_collection?.payment_sessions || []
+    const stripeSession = paymentSessions.find((s: any) => s.provider_id === 'pp_stripe_stripe')
+
+    if (!stripeSession) {
+      console.error('❌ No Stripe payment session found')
+      throw new Error('Stripe payment session not created')
+    }
+
+    if (!stripeSession.data?.client_secret) {
+      console.error('❌ No client_secret in payment session:', stripeSession)
+      throw new Error('Payment session missing client_secret')
+    }
+
+    console.log('✅ Got client_secret from Stripe:', stripeSession.data.client_secret.substring(0, 20) + '...')
+
+    // Return cart with payment information
     return NextResponse.json({
       success: true,
       cart_id: cart.id,
-      message: 'Cart created but payment needs manual initialization',
-      next_step: 'Initialize payment manually, then complete order',
+      payment_collection_id: payment_collection.id,
+      payment_session: stripeSession,
+      client_secret: stripeSession.data.client_secret,
+      message: 'Cart created successfully with Medusa v2 payment collection workflow',
+      next_step: 'Complete payment with Stripe, then call /complete-order',
       metadata: {
-        items_added: items.length,
-        addresses_set: true
+        best_practice: true,
+        workflow: 'medusa-v2-payment-collections',
+        items_count: items.length,
+        total_amount: payment_collection.amount
       }
     })
 
