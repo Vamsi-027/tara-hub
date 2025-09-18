@@ -162,18 +162,32 @@ export class OrderService {
 
     try {
       // Try to create order in Medusa
+      console.log('🚀 Attempting to create order in Medusa...')
+      console.log('🔧 Medusa URL:', this.config.medusaUrl)
+      console.log('🔑 Has publishable key:', !!this.config.publishableKey)
+
       const medusaOrder = await this.createMedusaOrder(order)
       if (medusaOrder) {
+        console.log('✅ Successfully created order in Medusa database!')
+        console.log('📦 Medusa Order ID:', medusaOrder.id)
         return medusaOrder
+      } else {
+        console.warn('⚠️ createMedusaOrder returned null')
       }
     } catch (error) {
-      console.error('Failed to create order in Medusa:', error)
+      console.error('❌ Failed to create order in Medusa:', error)
+      console.error('📍 Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      })
       if (!this.config.useFallback) {
         throw error
       }
     }
 
     // Fallback to local storage
+    console.warn('⚠️ Falling back to localStorage for order storage')
+    console.warn('💾 This order will NOT be visible in Medusa admin!')
     return this.saveFallbackOrder(order)
   }
 
@@ -278,25 +292,49 @@ export class OrderService {
       // Try to map common frontend IDs to actual Medusa variant IDs
       let variantId = item.id
 
-      // Known product mappings (you can expand this based on your catalog)
-      const productMappings: Record<string, string> = {
-        'fabric-001': 'variant_01K51VADRT5G8KNKP7HWFEY235', // Sandwell Lipstick - Fabric Per Yard
-        'fabric-002': 'variant_01K57QA138A2MKQQNR667AM9XC', // Jefferson Linen Sunglow - Fabric Per Yard
-        'swatch-001': 'variant_01K51VADRSDBEJTCXV0GTPZ484', // Sandwell Lipstick - Swatch Sample
-        'swatch-002': 'variant_01K57QA137DXZZN3FZS20X7EAQ', // Jefferson Linen Sunglow - Swatch Sample
+      // Dynamic product to variant mappings
+      // Map product IDs to variant IDs based on SKU pattern
+      const productToVariantMap: Record<string, string> = {
+        // Sandwell Lipstick product variants
+        'prod_01K5C2CN06C8E90SGS1NY77JQD-swatch': 'variant_01K5C2CNNT6SDE68QZFJ8JM5H6', // Swatch Sample
+        'prod_01K5C2CN06C8E90SGS1NY77JQD-yard': 'variant_01K5C2CNNTW2R5B6BHDJ8AQE4A', // Fabric Per Yard
+        'prod_01K5C2CN06C8E90SGS1NY77JQD': 'variant_01K5C2CNNTW2R5B6BHDJ8AQE4A', // Default to yard
+
+        // Legacy mappings (for backward compatibility)
+        'fabric-001': 'variant_01K5C2CNNTW2R5B6BHDJ8AQE4A', // Sandwell Lipstick - Fabric Per Yard
+        'swatch-001': 'variant_01K5C2CNNT6SDE68QZFJ8JM5H6', // Sandwell Lipstick - Swatch Sample
       }
 
-      // Check if we have a mapping for this product ID
-      if (productMappings[item.id]) {
-        variantId = productMappings[item.id]
+      // First check if it's already a variant ID
+      if (item.id.startsWith('variant_')) {
+        variantId = item.id
+        console.log(`🛒 [MEDUSA ORDER] ✅ Using variant ID directly: ${variantId}`)
+      }
+      // Check if we have a direct mapping
+      else if (productToVariantMap[item.id]) {
+        variantId = productToVariantMap[item.id]
         console.log(`🛒 [MEDUSA ORDER] 🔄 Mapped ${item.id} → ${variantId}`)
-      } else {
-        // If the ID already looks like a Medusa variant ID, use it as-is
-        if (item.id.startsWith('variant_')) {
-          variantId = item.id
+      }
+      // If it's a product ID, try to determine variant based on SKU or name
+      else if (item.id.startsWith('prod_')) {
+        // Check if the SKU or name indicates swatch or yard
+        const isSwatch = item.sku?.toLowerCase().includes('swatch') ||
+                         item.name?.toLowerCase().includes('swatch')
+        const mappingKey = isSwatch ? `${item.id}-swatch` : `${item.id}-yard`
+
+        if (productToVariantMap[mappingKey]) {
+          variantId = productToVariantMap[mappingKey]
+          console.log(`🛒 [MEDUSA ORDER] 🔄 Dynamically mapped ${item.id} (${isSwatch ? 'swatch' : 'yard'}) → ${variantId}`)
         } else {
-          console.log(`🛒 [MEDUSA ORDER] ⚠️ No mapping found for product ID: ${item.id}, using as-is`)
+          // Default to using the product ID as-is (will likely fail but we log it)
+          console.warn(`🛒 [MEDUSA ORDER] ⚠️ No variant mapping for product: ${item.id}`)
+          console.warn(`🛒 [MEDUSA ORDER] ⚠️ Item details:`, { sku: item.sku, name: item.name })
+          // For now, we'll try to fetch the product's first variant
+          // This is a fallback that should be improved
+          variantId = item.id
         }
+      } else {
+        console.log(`🛒 [MEDUSA ORDER] ⚠️ Unknown ID format: ${item.id}, using as-is`)
       }
 
       mappedItems.push({
@@ -516,9 +554,11 @@ export class OrderService {
       console.log('🛒 [MEDUSA ORDER] ✅ Shipping address added successfully')
 
       // Step 4: Add shipping methods (get available first)
-      console.log('🛒 [MEDUSA ORDER] Step 4: Adding shipping methods...')
-      const shippingOptionsResponse = await this.fetchWithRetry(
-        `${this.config.medusaUrl}/store/shipping-options/${cart.id}`,
+      console.log('🛒 [MEDUSA ORDER] Step 4: Getting shipping options...')
+      // In Medusa v2, shipping options are part of the cart object after address is set
+      // We need to fetch the updated cart to get shipping options
+      const cartWithShippingResponse = await this.fetchWithRetry(
+        `${this.config.medusaUrl}/store/carts/${cart.id}`,
         {
           headers: {
             'x-publishable-api-key': this.config.publishableKey,
@@ -526,51 +566,25 @@ export class OrderService {
         }
       )
 
-      if (shippingOptionsResponse.ok) {
-        const { shipping_options } = await shippingOptionsResponse.json()
-        console.log('🛒 [MEDUSA ORDER] Available shipping options:', shipping_options?.length || 0)
+      if (cartWithShippingResponse.ok) {
+        const updatedCart = await cartWithShippingResponse.json()
+        console.log('🛒 [MEDUSA ORDER] Cart updated with shipping info')
 
-        if (shipping_options.length > 0) {
-          console.log('🛒 [MEDUSA ORDER] Using shipping option:', {
-            id: shipping_options[0].id,
-            name: shipping_options[0].name,
-            price: shipping_options[0].price_incl_tax
-          })
-
-          const shippingMethodPayload = {
-            option_id: shipping_options[0].id,
-          }
-
-          const shippingMethodResponse = await this.fetchWithRetry(
-            `${this.config.medusaUrl}/store/carts/${cart.id}/shipping-methods`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-publishable-api-key': this.config.publishableKey,
-              },
-              body: JSON.stringify(shippingMethodPayload),
-            }
-          )
-
-          if (shippingMethodResponse.ok) {
-            console.log('🛒 [MEDUSA ORDER] ✅ Shipping method added successfully')
-          } else {
-            console.error('🛒 [MEDUSA ORDER] ❌ Failed to add shipping method:', shippingMethodResponse.status)
-            const errorText = await shippingMethodResponse.text()
-            console.error('🛒 [MEDUSA ORDER] ❌ Shipping method error details:', errorText)
-          }
-        } else {
-          console.log('🛒 [MEDUSA ORDER] ⚠️ No shipping options available, continuing without shipping method')
-        }
-      } else {
-        console.error('🛒 [MEDUSA ORDER] ❌ Failed to fetch shipping options:', shippingOptionsResponse.status)
-        const errorText = await shippingOptionsResponse.text()
-        console.error('🛒 [MEDUSA ORDER] ❌ Shipping options error details:', errorText)
+        // Skip shipping options for now - Medusa v2 handles this differently
+        console.log('🛒 [MEDUSA ORDER] ⚠️ Skipping shipping options (not required for test orders)')
       }
 
-      // Step 5: Complete the cart to create order
-      console.log('🛒 [MEDUSA ORDER] Step 5: Completing cart to create order...')
+      // Step 5: For Medusa v2, we need to use the payment collection API
+      // For now, we'll skip payment and try to complete as a test order
+      console.log('🛒 [MEDUSA ORDER] Step 5: Skipping payment for test order...')
+      console.log('🛒 [MEDUSA ORDER] ℹ️ Note: In production, implement proper payment flow')
+
+      // Step 6: Try to complete the cart
+      // In Medusa v2, if payment is not required or we're in test mode,
+      // we might be able to complete without payment
+      console.log('🛒 [MEDUSA ORDER] Step 6: Attempting to complete cart...')
+
+      // First, let's try to complete normally
       const completeResponse = await this.fetchWithRetry(
         `${this.config.medusaUrl}/store/carts/${cart.id}/complete`,
         {
@@ -583,9 +597,14 @@ export class OrderService {
       )
 
       if (!completeResponse.ok) {
-        console.error('🛒 [MEDUSA ORDER] ❌ Failed to complete cart:', completeResponse.status)
         const errorText = await completeResponse.text()
-        console.error('🛒 [MEDUSA ORDER] ❌ Cart completion error details:', errorText)
+        console.error('🛒 [MEDUSA ORDER] ❌ Failed to complete cart:', completeResponse.status)
+        console.error('🛒 [MEDUSA ORDER] ❌ Error details:', errorText)
+
+        // Since we can't complete without payment in Medusa v2,
+        // we'll return null and let it fall back to localStorage
+        console.log('🛒 [MEDUSA ORDER] ℹ️ Cart created but cannot complete without payment provider')
+        console.log('🛒 [MEDUSA ORDER] ℹ️ Cart ID for reference:', cart.id)
         return null
       }
 

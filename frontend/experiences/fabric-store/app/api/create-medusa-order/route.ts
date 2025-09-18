@@ -26,15 +26,31 @@ export async function POST(request: NextRequest) {
     console.log('Total:', total)
 
     // Transform cart items to match order service format
-    const orderItems = items.map((item: any) => ({
-      id: item.variantId || item.id,
-      name: item.title || 'Product',
-      sku: item.sku || `SKU-${item.id}`,
-      color: item.color || '',
-      price: item.price, // Already in cents
-      quantity: item.type === 'fabric' && item.yardage ? item.yardage : item.quantity,
-      image: item.thumbnail || '',
-    }))
+    const orderItems = items.map((item: any) => {
+      // Use variantId if available, otherwise fall back to id
+      const itemId = item.variantId || item.id
+
+      console.log('📦 Processing cart item:', {
+        originalId: item.id,
+        variantId: item.variantId,
+        usedId: itemId,
+        title: item.title,
+        sku: item.sku,
+        quantity: item.quantity,
+        yardage: item.yardage,
+        type: item.type
+      })
+
+      return {
+        id: itemId,
+        name: item.title || item.variant || 'Product',
+        sku: item.sku || `SKU-${item.type || 'fabric'}-${item.productId || item.id}-${itemId}`,
+        color: item.color || '',
+        price: item.price, // Already in cents
+        quantity: item.type === 'fabric' && item.yardage ? item.yardage : item.quantity,
+        image: item.thumbnail || '',
+      }
+    })
 
     // Create order in Medusa using the order service
     const medusaOrder = await orderService.createOrder({

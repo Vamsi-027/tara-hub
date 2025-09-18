@@ -533,7 +533,7 @@ function CheckoutForm() {
         localStorage.removeItem('fabric-cart')
 
         // Redirect to success page with order details
-        router.push(`/order-success?order_id=${orderId}&payment_intent=${result.paymentIntent.id}&email=${encodeURIComponent(formData.email)}`)
+        router.push(`/checkout/success?orderId=${orderId}&email=${encodeURIComponent(formData.email)}`)
       }
 
     } catch (err) {

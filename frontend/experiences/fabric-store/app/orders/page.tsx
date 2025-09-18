@@ -70,6 +70,8 @@ export default function OrdersPage() {
   const [emailInput, setEmailInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [orderIdInput, setOrderIdInput] = useState('')
+  const [isTracking, setIsTracking] = useState(false)
 
   useEffect(() => {
     const checkEmail = () => {
@@ -235,7 +237,16 @@ export default function OrdersPage() {
     )
   }
 
+  const handleOrderIdSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (orderIdInput) {
+      // Redirect to the specific order page
+      window.location.href = `/orders/${orderIdInput.trim()}`
+    }
+  }
+
   if (!customerEmail) {
+
     return (
       <>
         <Header />
@@ -246,31 +257,34 @@ export default function OrdersPage() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl mb-6">
                   <Package className="w-8 h-8" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-3">Access Your Orders</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-3">Track Your Order</h1>
                 <p className="text-gray-600 leading-relaxed">
-                  Enter your email address to view your complete order history and track deliveries
+                  Enter your Order ID to view order details and track your delivery
                 </p>
               </div>
 
-              <form onSubmit={handleEmailSubmit} className="space-y-6">
+              <form onSubmit={handleOrderIdSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
+                  <label htmlFor="orderId" className="block text-sm font-medium text-gray-700 mb-2">
+                    Order ID
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
-                      type="email"
-                      id="email"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
+                      type="text"
+                      id="orderId"
+                      value={orderIdInput}
+                      onChange={(e) => setOrderIdInput(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl
                                focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                               transition-all duration-200"
-                      placeholder="your@email.com"
+                               transition-all duration-200 font-mono"
+                      placeholder="e.g., order_1758133842735_h5dchh79i"
                       required
                     />
                   </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    You received this ID in your order confirmation email
+                  </p>
                 </div>
                 <button
                   type="submit"
@@ -278,18 +292,56 @@ export default function OrdersPage() {
                            hover:bg-blue-700 transform hover:scale-[1.02]
                            transition-all duration-200 font-medium shadow-lg"
                 >
-                  View My Orders
+                  Track Order
                 </button>
               </form>
 
-              <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-                <Link
-                  href="/auth/signin"
-                  className="inline-flex items-center text-blue-600 hover:text-blue-700
-                           font-medium transition-colors duration-200"
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                <p className="text-center text-sm text-gray-600 mb-4">
+                  Want to see all your orders?
+                </p>
+                <button
+                  onClick={() => setIsTracking(!isTracking)}
+                  className="w-full text-blue-600 hover:text-blue-700 font-medium
+                           transition-colors duration-200"
                 >
-                  Sign in with Google instead
-                </Link>
+                  {isTracking ? 'Use Order ID instead' : 'Track by Email'}
+                </button>
+
+                {isTracking && (
+                  <form onSubmit={handleEmailSubmit} className="mt-6 space-y-4">
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="email"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl
+                                 focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                 transition-all duration-200"
+                        placeholder="your@email.com"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full bg-gray-600 text-white py-3 rounded-xl
+                               hover:bg-gray-700 transition-all duration-200 font-medium"
+                    >
+                      View Order History
+                    </button>
+                  </form>
+                )}
+
+                <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                  <Link
+                    href="/auth/signin"
+                    className="inline-flex items-center text-blue-600 hover:text-blue-700
+                             font-medium transition-colors duration-200 text-sm"
+                  >
+                    Sign in with Google for full account access
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -310,13 +362,48 @@ export default function OrdersPage() {
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">No Orders Found</h1>
               <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-                It looks like you haven't placed any orders yet. Start exploring our premium fabric collections.
+                No orders found for <strong>{customerEmail}</strong>.
+                You can track a specific order using your Order ID below.
               </p>
+
+              {/* Track Order by ID Section */}
+              <div className="max-w-md mx-auto mb-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center justify-center gap-2">
+                  <Package className="w-5 h-5 text-blue-600" />
+                  Track Your Order
+                </h2>
+                <form onSubmit={handleOrderIdSubmit} className="space-y-4">
+                  <div>
+                    <input
+                      type="text"
+                      value={orderIdInput}
+                      onChange={(e) => setOrderIdInput(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl
+                               focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                               transition-all duration-200 font-mono text-sm"
+                      placeholder="Enter your Order ID"
+                      required
+                    />
+                    <p className="mt-2 text-xs text-gray-600">
+                      You received this ID in your order confirmation
+                    </p>
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-3 rounded-xl
+                             hover:bg-blue-700 transform hover:scale-[1.02]
+                             transition-all duration-200 font-medium shadow-md"
+                  >
+                    Track Order
+                  </button>
+                </form>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/browse"
-                  className="inline-flex items-center px-8 py-3 bg-blue-600 text-white
-                           rounded-xl hover:bg-blue-700 transform hover:scale-105
+                  className="inline-flex items-center px-8 py-3 bg-gray-800 text-white
+                           rounded-xl hover:bg-gray-900 transform hover:scale-105
                            transition-all duration-200 font-medium shadow-lg"
                 >
                   Browse Fabrics
