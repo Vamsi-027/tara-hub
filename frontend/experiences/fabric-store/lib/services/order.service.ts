@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod'
+import { medusaV2Service } from './medusa-v2.service'
 
 // Order validation schemas
 const OrderItemSchema = z.object({
@@ -905,8 +906,15 @@ export class OrderService {
    */
   private async getMedusaOrdersByEmail(email: string): Promise<Order[]> {
     try {
-      // Use the new /store/orders endpoint
-      // Note: This requires customer authentication
+      // Use the new Medusa v2 service that bypasses serialization issues
+      const { orders } = await medusaV2Service.getOrdersByEmail(email)
+
+      if (orders && orders.length > 0) {
+        console.log(`✅ Found ${orders.length} orders for ${email} from Medusa v2`)
+        return orders
+      }
+
+      // Fallback to the standard store API if needed
       const response = await this.fetchWithRetry(
         `${this.config.medusaUrl}/store/orders`,
         {
@@ -927,8 +935,8 @@ export class OrderService {
         return []
       }
 
-      const { orders } = await response.json()
-      return orders.map((order: any) => this.transformMedusaOrder(order))
+      const { orders: fallbackOrders } = await response.json()
+      return fallbackOrders.map((order: any) => this.transformMedusaOrder(order))
     } catch (error) {
       console.error('Error getting Medusa orders:', error)
       return []

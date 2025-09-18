@@ -484,6 +484,49 @@ export class MedusaV2Service {
   }
 
   /**
+   * Get orders by customer email using store API
+   */
+  async getOrdersByEmail(email: string, limit = 50, offset = 0): Promise<{ orders: Order[]; hasMore: boolean }> {
+    try {
+      console.log(`🔍 Fetching orders for email ${email} from Medusa...`)
+
+      // Try the new store endpoint that bypasses serialization issues
+      const response = await fetch(`${this.config.baseUrl}/store/orders-by-email?email=${encodeURIComponent(email)}&limit=${limit}&offset=${offset}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-publishable-api-key': this.config.publishableKey,
+        },
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.warn(`❌ Failed to fetch orders by email: ${response.status} - ${errorText}`)
+        return { orders: [], hasMore: false }
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.orders) {
+        console.log(`✅ Found ${data.orders.length} orders for ${email}`)
+
+        // Transform raw orders to fabric-store format
+        const transformedOrders = data.orders.map((rawOrder: any) => this.transformRawOrder(rawOrder))
+
+        return {
+          orders: transformedOrders,
+          hasMore: data.hasMore || false
+        }
+      }
+
+      return { orders: [], hasMore: false }
+
+    } catch (error) {
+      console.error(`❌ Error fetching orders by email ${email}:`, error)
+      return { orders: [], hasMore: false }
+    }
+  }
+
+  /**
    * Private: Transform Medusa order to fabric-store format
    */
   private transformMedusaOrder(medusaOrder: MedusaOrder): Order {
