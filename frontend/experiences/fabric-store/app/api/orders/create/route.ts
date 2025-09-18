@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     console.log('📦 Items:', items.length)
     console.log('💰 Total:', total)
 
-    // Enhanced variant ID mapping for fabric-store
-    const mapToVariantId = (item: any): string => {
+    // Fetch correct variant ID from Medusa backend
+    const getVariantId = async (item: any): Promise<string> => {
       // If already a variant ID, return as is
       if (item.variantId && item.variantId.startsWith('variant_')) {
         return item.variantId
@@ -35,49 +35,96 @@ export async function POST(request: NextRequest) {
         return item.id
       }
 
-      // Product ID mapping to variants (production IDs)
-      const productVariantMap: Record<string, string> = {
-        // Sandwell Lipstick variants
-        'prod_01K5C2CN06C8E90SGS1NY77JQD-swatch': 'variant_01K5C2CNNT6SDE68QZFJ8JM5H6',
-        'prod_01K5C2CN06C8E90SGS1NY77JQD-yard': 'variant_01K5C2CNNTW2R5B6BHDJ8AQE4A',
-        'prod_01K5C2CN06C8E90SGS1NY77JQD': 'variant_01K5C2CNNTW2R5B6BHDJ8AQE4A',
+      // Fetch product details from Medusa to get correct variant IDs
+      try {
+        let productId = item.productId || item.id
 
-        // Legacy mappings
-        'fabric-001': 'variant_01K5C2CNNTW2R5B6BHDJ8AQE4A',
-        'swatch-001': 'variant_01K5C2CNNT6SDE68QZFJ8JM5H6',
-      }
+        // If we don't have a product ID, fetch the first available product
+        if (!productId || !productId.startsWith('prod_')) {
+          console.log('🔍 Fetching available products from Medusa...')
+          const productsResponse = await fetch(`${medusaBackendUrl}/store/products?limit=1`, {
+            headers: {
+              'x-publishable-api-key': publishableKey || '',
+            }
+          })
 
-      // Check for direct mapping
-      if (productVariantMap[item.id]) {
-        return productVariantMap[item.id]
-      }
-
-      // Determine variant based on type for product IDs
-      if (item.id && item.id.startsWith('prod_')) {
-        const isSwatch = item.type === 'swatch' ||
-                        item.sku?.toLowerCase().includes('swatch') ||
-                        item.title?.toLowerCase().includes('swatch')
-
-        const mappingKey = isSwatch ? `${item.id}-swatch` : `${item.id}-yard`
-        if (productVariantMap[mappingKey]) {
-          return productVariantMap[mappingKey]
+          if (productsResponse.ok) {
+            const { products } = await productsResponse.json()
+            if (products && products.length > 0) {
+              productId = products[0].id
+              console.log(`✅ Using product: ${productId}`)
+            }
+          }
         }
+
+        // Fetch product variants
+        if (productId && productId.startsWith('prod_')) {
+          console.log(`🔍 Fetching variants for product ${productId}...`)
+          const productResponse = await fetch(`${medusaBackendUrl}/store/products/${productId}`, {
+            headers: {
+              'x-publishable-api-key': publishableKey || '',
+            }
+          })
+
+          if (productResponse.ok) {
+            const { product } = await productResponse.json()
+
+            if (product && product.variants && product.variants.length > 0) {
+              // Determine which variant to use based on item type
+              const isSwatch = item.type === 'swatch' ||
+                              item.sku?.toLowerCase().includes('swatch') ||
+                              item.title?.toLowerCase().includes('swatch')
+
+              // Find the appropriate variant
+              const variant = product.variants.find((v: any) => {
+                const variantTitle = v.title?.toLowerCase() || ''
+                const variantSku = v.sku?.toLowerCase() || ''
+
+                if (isSwatch) {
+                  return variantTitle.includes('swatch') || variantSku.includes('swatch')
+                } else {
+                  return variantTitle.includes('yard') || variantTitle.includes('fabric') ||
+                         variantSku.includes('yard') || !variantTitle.includes('swatch')
+                }
+              })
+
+              if (variant) {
+                console.log(`✅ Found variant: ${variant.id} (${variant.title})`)
+                return variant.id
+              }
+
+              // Fallback to first variant if no specific match
+              console.log(`⚠️ No specific variant match, using first variant: ${product.variants[0].id}`)
+              return product.variants[0].id
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error fetching variant ID:', error)
       }
 
-      console.warn('⚠️ No variant mapping found for:', item.id, 'defaulting to fabric variant')
-      return 'variant_01K5C2CNNTW2R5B6BHDJ8AQE4A' // Default fabric variant
+      // Final fallback - return null and let the system handle it
+      console.warn('⚠️ Could not determine variant ID for item:', item.id)
+      return ''
     }
 
     // Transform frontend data to Medusa format with enhanced fabric-store metadata
-    const orderItems = items.map((item: any) => {
-      const variantId = mapToVariantId(item)
+    const orderItems = await Promise.all(items.map(async (item: any) => {
+      const variantId = await getVariantId(item)
       console.log(`🔄 Mapped ${item.id} → ${variantId}`)
+
+      // Get product ID from the item or use the variant's product ID
+      let productId = item.productId
+      if (!productId && variantId) {
+        // Extract product ID from variant if needed
+        productId = item.id && item.id.startsWith('prod_') ? item.id : null
+      }
 
       return {
         id: variantId,
         title: item.title || item.variant || item.name || 'Fabric Product',
         variant_id: variantId,
-        product_id: item.productId || (item.id.startsWith('prod_') ? item.id.split('-')[0] : 'prod_01K5C2CN06C8E90SGS1NY77JQD'),
+        product_id: productId,
         quantity: item.type === 'fabric' && item.yardage ? item.yardage : item.quantity,
         price: item.price,
         color: item.color || '',
@@ -95,7 +142,7 @@ export async function POST(request: NextRequest) {
           source: 'fabric-store-checkout'
         }
       }
-    })
+    }))
 
     // Prepare addresses in Medusa format
     const shippingAddress = {
@@ -143,6 +190,12 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Add items to cart
     for (const item of orderItems) {
+      // Skip items without valid variant IDs
+      if (!item.variant_id) {
+        console.warn(`⚠️ Skipping item without variant ID: ${item.title}`)
+        continue
+      }
+
       const addItemResponse = await fetch(`${medusaBackendUrl}/store/carts/${cart.id}/line-items`, {
         method: 'POST',
         headers: {
@@ -150,16 +203,17 @@ export async function POST(request: NextRequest) {
           'x-publishable-api-key': publishableKey || '',
         },
         body: JSON.stringify({
-          variant_id: item.variant_id || 'variant_01K5C2CNNTW2R5B6BHDJ8AQE4A',
+          variant_id: item.variant_id,
           quantity: item.quantity,
           metadata: item.metadata
         })
       })
 
       if (addItemResponse.ok) {
-        console.log(`✅ Added item: ${item.title}`)
+        console.log(`✅ Added item: ${item.title} (${item.variant_id})`)
       } else {
-        console.warn(`⚠️ Failed to add item: ${item.title}`)
+        const errorText = await addItemResponse.text()
+        console.warn(`⚠️ Failed to add item: ${item.title}`, errorText)
       }
     }
 

@@ -25,7 +25,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     // Get the query service for direct database access
     const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
-    // Query orders with minimal fields to avoid serialization issues
+    // Query orders with comprehensive fields including all item details
     const { data: orders, metadata } = await query.graph({
       entity: "order",
       fields: [
@@ -41,12 +41,24 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         "created_at",
         "updated_at",
         "metadata",
-        // Basic item data
+        // Comprehensive item data
         "items.id",
         "items.title",
+        "items.subtitle",
+        "items.description",
+        "items.thumbnail",
         "items.quantity",
         "items.unit_price",
         "items.total",
+        "items.subtotal",
+        "items.tax_total",
+        "items.discount_total",
+        "items.variant_id",
+        "items.product_id",
+        "items.variant_sku",
+        "items.variant_barcode",
+        "items.variant_title",
+        "items.metadata",
         // Basic address data
         "shipping_address.first_name",
         "shipping_address.last_name",
@@ -57,7 +69,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         "shipping_address.country_code",
         // Payment data
         "payment_collections.status",
-        "payment_collections.amount"
+        "payment_collections.amount",
+        "payment_collections.currency_code"
       ],
       filters: {
         email: email.toLowerCase()
@@ -73,6 +86,12 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     console.log(`✅ Found ${orders?.length || 0} orders for ${email}`)
 
+    // Debug log to see what data we're getting
+    if (orders && orders.length > 0) {
+      console.log(`📊 First order items count: ${orders[0].items?.length || 0}`)
+      console.log(`💰 First order total: ${orders[0].total || 0}`)
+    }
+
     // Transform to fabric-store compatible format
     const transformedOrders = (orders || []).map((order: any) => ({
       id: order.id,
@@ -83,15 +102,19 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       created_at: order.created_at,
       updated_at: order.updated_at,
 
-      // Items
+      // Items with enhanced details
       items: (order.items || []).map((item: any) => ({
         id: item.id,
-        name: item.title || 'Unknown Product',
-        title: item.title || 'Unknown Product',
+        name: item.title || item.variant_title || 'Unknown Product',
+        title: item.title || item.variant_title || 'Unknown Product',
+        sku: item.variant_sku || item.sku || '',
+        color: item.metadata?.color || '',
         quantity: item.quantity || 1,
         price: item.unit_price || 0,
         unit_price: item.unit_price || 0,
-        total: item.total || item.unit_price || 0,
+        total: item.total || item.subtotal || (item.unit_price * item.quantity) || 0,
+        thumbnail: item.thumbnail || '',
+        metadata: item.metadata || {}
       })),
 
       // Shipping address
