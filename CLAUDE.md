@@ -40,7 +40,7 @@ tara-hub/
 ```
 
 ### Technology Stack
-- **Framework**: Next.js 15.1.0+ with App Router, React 19.1.1
+- **Framework**: Next.js 15.1.0+ with App Router, React 19.1.1 (note: most components use React 18.2.0)
 - **Backend**: MedusaJS v2.10.0 (Node.js commerce platform) + Clean Architecture service
 - **Database**: PostgreSQL (Neon) with Drizzle ORM + MikroORM 6.4.3
 - **Caching**: Vercel KV (Redis)

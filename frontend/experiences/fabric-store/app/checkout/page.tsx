@@ -471,8 +471,8 @@ function CheckoutForm() {
     setError('')
 
     try {
-      // Create order in Medusa first, then get payment intent
-      const response = await fetch('/api/create-medusa-order', {
+      // Create order using production Medusa workflows
+      const response = await fetch('/api/orders/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

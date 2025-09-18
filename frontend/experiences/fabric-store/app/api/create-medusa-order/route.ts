@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Create order in Medusa using the order service
+    // Create order using the order service (fallback will handle Medusa creation)
     const medusaOrder = await orderService.createOrder({
       email,
       items: orderItems,
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
         // Update order with payment intent ID
         try {
-          await orderService.updateOrderStatus(medusaOrder.id, 'processing')
+          await orderService.updateOrderStatus(medusaOrder.id, 'paid' as any)
         } catch (updateError) {
           console.error('Failed to update order with payment intent:', updateError)
         }

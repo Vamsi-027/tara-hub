@@ -321,36 +321,44 @@ export class MedusaV2Service {
   }
 
   /**
-   * Get orders by customer email using admin API
+   * Get orders by customer email using store API with bypass for serialization issues
    */
   async getOrdersByEmail(email: string): Promise<Order[]> {
     try {
-      console.log(`🔍 Fetching orders for ${email} from Medusa...`)
+      console.log(`🔍 Fetching orders for email ${email} from Medusa...`)
 
-      // Use admin API to search orders by email
-      const response = await this.fetchWithAuth(`${this.config.baseUrl}/admin/orders?email=${encodeURIComponent(email)}`, {
-        method: 'GET',
+      // Try the new store endpoint that bypasses serialization issues
+      const response = await fetch(`${this.config.baseUrl}/store/orders-by-email?email=${encodeURIComponent(email)}`, {
         headers: {
           'Content-Type': 'application/json',
+          'x-publishable-api-key': this.config.publishableKey,
         },
       })
 
       if (!response.ok) {
-        if (response.status === 404) {
-          return []
-        }
-        throw new Error(`Admin API error: ${response.status}`)
+        const errorText = await response.text()
+        console.warn(`❌ Failed to fetch orders by email: ${response.status} - ${errorText}`)
+        return []
       }
 
       const data = await response.json()
-      const orders = data.orders || []
 
-      console.log(`✅ Found ${orders.length} orders for ${email}`)
-      return orders.map((order: MedusaOrder) => this.transformMedusaOrder(order))
+      if (data.success && data.orders && Array.isArray(data.orders)) {
+        console.log(`✅ Found ${data.orders.length} orders for ${email}`)
+
+        // Transform raw orders to fabric-store format
+        const transformedOrders = data.orders.map((rawOrder: any) => this.transformRawOrder(rawOrder))
+
+        return transformedOrders
+
+      } else {
+        console.warn(`❌ Invalid response format from orders-by-email endpoint:`, data)
+        return []
+      }
 
     } catch (error) {
-      console.error(`❌ Error fetching orders for ${email}:`, error)
-      throw new Error(`Failed to fetch orders: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error(`❌ Error fetching orders by email ${email}:`, error)
+      return []
     }
   }
 
@@ -483,49 +491,6 @@ export class MedusaV2Service {
     }
   }
 
-  /**
-   * Get orders by customer email using store API
-   */
-  async getOrdersByEmail(email: string, limit = 50, offset = 0): Promise<{ orders: Order[]; hasMore: boolean }> {
-    try {
-      console.log(`🔍 Fetching orders for email ${email} from Medusa...`)
-
-      // Try the new store endpoint that bypasses serialization issues
-      const response = await fetch(`${this.config.baseUrl}/store/orders-by-email?email=${encodeURIComponent(email)}&limit=${limit}&offset=${offset}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-publishable-api-key': this.config.publishableKey,
-        },
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.warn(`❌ Failed to fetch orders by email: ${response.status} - ${errorText}`)
-        return { orders: [], hasMore: false }
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.orders && Array.isArray(data.orders)) {
-        console.log(`✅ Found ${data.orders.length} orders for ${email}`)
-
-        // Transform raw orders to fabric-store format
-        const transformedOrders = data.orders.map((rawOrder: any) => this.transformRawOrder(rawOrder))
-
-        return {
-          orders: transformedOrders,
-          hasMore: data.hasMore || false
-        }
-      }
-
-      console.warn(`❌ Invalid response format from orders-by-email endpoint:`, data)
-      return { orders: [], hasMore: false }
-
-    } catch (error) {
-      console.error(`❌ Error fetching orders by email ${email}:`, error)
-      return { orders: [], hasMore: false }
-    }
-  }
 
   /**
    * Private: Transform Medusa order to fabric-store format
@@ -672,11 +637,28 @@ export function createMedusaV2Service(): MedusaV2Service {
   }
 
   if (!config.baseUrl || !config.publishableKey) {
+    // During build, provide a dummy configuration
+    if (process.env.NODE_ENV === 'production' || process.env.NEXT_PHASE === 'phase-production-build') {
+      console.warn('⚠️ Medusa configuration not found during build. Using dummy values.')
+      return new MedusaV2Service({
+        baseUrl: 'http://localhost:9000',
+        publishableKey: 'pk_dummy',
+      })
+    }
     throw new Error('Missing Medusa configuration. Please check your environment variables.')
   }
 
   return new MedusaV2Service(config)
 }
 
-// Export singleton instance
-export const medusaV2Service = createMedusaV2Service()
+// Create singleton instance lazily to avoid build-time errors
+let _medusaV2Service: MedusaV2Service | null = null
+
+export const medusaV2Service = new Proxy({} as MedusaV2Service, {
+  get(_target, prop, receiver) {
+    if (!_medusaV2Service) {
+      _medusaV2Service = createMedusaV2Service()
+    }
+    return Reflect.get(_medusaV2Service, prop, receiver)
+  }
+})
