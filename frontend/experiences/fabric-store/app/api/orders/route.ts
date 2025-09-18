@@ -1,10 +1,11 @@
 /**
  * Orders API Route
  * Production-ready API endpoint for order management
- * Uses Medusa backend with fallback to local storage
+ * Uses Medusa v2 backend with proper error handling and logging
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { medusaV2Service, type Order } from '@/lib/services/medusa-v2.service'
 import { orderService, OrderStatus } from '@/lib/services/order.service'
 import { withCors } from '@/lib/cors'
 import { z } from 'zod'
@@ -55,7 +56,7 @@ const UpdateOrderBodySchema = z.object({
 
 /**
  * GET /api/orders
- * Retrieve orders by ID, email, or status
+ * Retrieve orders by ID, email, or status using Medusa v2 API
  */
 async function handleGET(request: NextRequest) {
   try {
@@ -70,46 +71,119 @@ async function handleGET(request: NextRequest) {
       offset: searchParams.get('offset') || undefined,
     })
 
+    console.log(`📥 Orders API request:`, { query })
+
     // Get single order by ID
     if (query.id) {
-      const order = await orderService.getOrder(query.id)
+      try {
+        // Try fallback storage first (since many orders are stored there)
+        console.log(`🔄 Checking fallback storage for ${query.id}`)
+        const fallbackOrder = await orderService.getOrder(query.id)
 
-      if (!order) {
+        if (fallbackOrder) {
+          console.log(`✅ Found order ${query.id} in fallback storage`)
+          return NextResponse.json({
+            success: true,
+            order: fallbackOrder,
+          })
+        }
+
+        // Try new Medusa v2 service for native Medusa orders
+        console.log(`🔄 Checking Medusa v2 for ${query.id}`)
+        const order = await medusaV2Service.getOrderById(query.id)
+
+        if (order) {
+          console.log(`✅ Successfully retrieved order ${query.id} from Medusa`)
+          return NextResponse.json({
+            success: true,
+            order,
+          })
+        }
+
+        console.warn(`❌ Order ${query.id} not found in any system`)
         return NextResponse.json(
           { error: 'Order not found' },
           { status: 404 }
         )
-      }
 
-      return NextResponse.json({
-        success: true,
-        order,
-      })
+      } catch (error) {
+        console.error(`❌ Error fetching order ${query.id}:`, error)
+
+        // Try fallback before failing
+        try {
+          const fallbackOrder = await orderService.getOrder(query.id)
+          if (fallbackOrder) {
+            console.log(`✅ Fallback successful for order ${query.id}`)
+            return NextResponse.json({
+              success: true,
+              order: fallbackOrder,
+            })
+          }
+        } catch (fallbackError) {
+          console.error(`❌ Fallback also failed for order ${query.id}:`, fallbackError)
+        }
+
+        return NextResponse.json(
+          {
+            error: 'Failed to retrieve order',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            orderId: query.id
+          },
+          { status: 500 }
+        )
+      }
     }
 
     // Get orders by email
     if (query.email) {
-      const orders = await orderService.getOrdersByEmail(query.email)
+      try {
+        console.log(`🔍 Fetching orders for email: ${query.email}`)
 
-      // Apply status filter if provided
-      const filteredOrders = query.status
-        ? orders.filter(order => order.status === query.status)
-        : orders
+        // Try new Medusa v2 service first
+        let orders: Order[] = []
 
-      // Apply pagination
-      const paginatedOrders = filteredOrders.slice(
-        query.offset,
-        query.offset + query.limit
-      )
+        try {
+          orders = await medusaV2Service.getOrdersByEmail(query.email)
+          console.log(`✅ Found ${orders.length} orders for ${query.email} via Medusa v2`)
+        } catch (error) {
+          console.warn(`⚠️ Medusa v2 failed for email ${query.email}, trying fallback:`, error)
+          orders = await orderService.getOrdersByEmail(query.email)
+          console.log(`✅ Found ${orders.length} orders for ${query.email} via fallback`)
+        }
 
-      return NextResponse.json({
-        success: true,
-        orders: paginatedOrders,
-        total: filteredOrders.length,
-        limit: query.limit,
-        offset: query.offset,
-        hasMore: query.offset + query.limit < filteredOrders.length,
-      })
+        // Apply status filter if provided
+        const filteredOrders = query.status
+          ? orders.filter(order => order.status === query.status)
+          : orders
+
+        // Apply pagination
+        const paginatedOrders = filteredOrders.slice(
+          query.offset,
+          query.offset + query.limit
+        )
+
+        console.log(`✅ Returning ${paginatedOrders.length}/${filteredOrders.length} orders for ${query.email}`)
+
+        return NextResponse.json({
+          success: true,
+          orders: paginatedOrders,
+          total: filteredOrders.length,
+          limit: query.limit,
+          offset: query.offset,
+          hasMore: query.offset + query.limit < filteredOrders.length,
+        })
+
+      } catch (error) {
+        console.error(`❌ Error fetching orders for email ${query.email}:`, error)
+        return NextResponse.json(
+          {
+            error: 'Failed to retrieve orders',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            email: query.email
+          },
+          { status: 500 }
+        )
+      }
     }
 
     // Return error if no filter provided
@@ -117,8 +191,9 @@ async function handleGET(request: NextRequest) {
       { error: 'Please provide either an order ID or email address' },
       { status: 400 }
     )
+
   } catch (error) {
-    console.error('Error fetching orders:', error)
+    console.error('❌ Orders API validation error:', error)
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -128,7 +203,7 @@ async function handleGET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to fetch orders', message: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to process request', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

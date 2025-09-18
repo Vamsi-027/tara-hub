@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medusa Admin Direct Access</title>
+</head>
+<body>
+    <h1>Direct Admin Access</h1>
+    <p>Use this link to access the admin with the token:</p>
+    
+    <script>
+        // The JWT token from the login
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY3Rvcl9pZCI6InVzZXJfMDFLM1hYOUZSWlRDRDZWR0Q1RjROVFk5VjgiLCJhY3Rvcl90eXBlIjoidXNlciIsImF1dGhfaWRlbnRpdHlfaWQiOiJhdXRoaWRfMDFLM1hYOUcwVFRHTlhKTlo0NzNDSlFIUEEiLCJhcHBfbWV0YWRhdGEiOnsidXNlcl9pZCI6InVzZXJfMDFLM1hYOUZSWlRDRDZWR0Q1RjROVFk5VjgifSwiaWF0IjoxNzU4MTY0MjUwLCJleHAiOjE3NTgyNTA2NTB9.QpPeyfWBXJlTACbttl768cGZYmYRo6Mc9y8DkcFs90s";
+        
+        // Store the token in localStorage (what Medusa Admin typically uses)
+        localStorage.setItem('medusa_auth_token', token);
+        localStorage.setItem('medusa:auth:token', token);
+        
+        // Create a link to the admin
+        const adminUrl = "https://medusa-backend-production-3655.up.railway.app/app";
+        
+        document.write('<a href="' + adminUrl + '" target="_blank">Click here to access Medusa Admin</a>');
+        document.write('<br><br>');
+        document.write('<p>Token has been stored in localStorage. The admin should recognize you as logged in.</p>');
+    </script>
+</body>
+</html>

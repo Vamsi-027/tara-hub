@@ -1,0 +1,32 @@
+{
+  "health": true,
+  "regions": [
+    {
+      "id": "reg_01K5DB032EF34GSDPW8DK7C20V",
+      "name": "USD",
+      "currency": "usd",
+      "providers": []
+    }
+  ],
+  "products": [
+    {
+      "id": "prod_01K5C2CN06C8E90SGS1NY77JQD",
+      "title": "Sandwell Lipstick",
+      "variants": [
+        "variant_01K5C2CNNTW2R5B6BHDJ8AQE4A",
+        "variant_01K5C2CNNT6SDE68QZFJ8JM5H6"
+      ]
+    }
+  ],
+  "stripe": false,
+  "cartCreation": true,
+  "paymentMethods": [],
+  "orderCompletion": true,
+  "issues": [
+    "Region USD has no payment providers",
+    "Cannot add items to cart",
+    "Cannot add shipping address",
+    "Payment endpoints not available",
+    "Stripe not configured in regions"
+  ]
+}
