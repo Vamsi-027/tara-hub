@@ -59,9 +59,6 @@
     "src/api/fabric-db/**/*",
     "src/api/middlewares/**/*",
     "src/api/middlewares.ts",
-    "src/jobs/**/*",
-    "src/loaders/**/*",
-    "src/models/**/*",
-    "src/modules/**/*"
+    "src/models/**/*"
   ]
 }

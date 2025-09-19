@@ -37,6 +37,7 @@ import type { Fabric } from '../../../lib/fabric-api'
 import { addToCart } from '../../../lib/cart-utils'
 import Header from '../../../components/header'
 import SimpleCartNotification from '../../../components/cart-notification-simple'
+import { SimilarProductsCarousel } from '../../../components/v2/SimilarProductsCarousel'
 
 // Modern Image Gallery Component
 function ModernImageGallery({ images, productName }: { images: string[], productName: string }) {
@@ -1050,8 +1051,16 @@ export default function ModernProductDetailPage() {
         {/* Product Tabs */}
         <ModernProductTabs fabric={fabric} />
 
-        {/* Recommendations */}
-        <ModernRecommendations currentFabric={fabric} />
+        {/* Similar Products Carousel */}
+        <SimilarProductsCarousel
+          currentProductId={fabric.id}
+          category={fabric.category}
+          color={(fabric as any).color_family}
+          material={(fabric as any).material || (fabric as any).composition}
+          priceRange={[Math.max(0, (fabric.price || 100) - 50), (fabric.price || 100) + 50]}
+          title="You May Also Like"
+          maxItems={6}
+        />
       </main>
 
       {/* Sticky Mobile CTA */}
