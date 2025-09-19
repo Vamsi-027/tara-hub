@@ -127,13 +127,50 @@ export default function OrdersPage() {
     setFilteredOrders(filtered)
   }, [orders, searchQuery, statusFilter])
 
+  const transformMedusaOrder = (medusaOrder: any): Order => {
+    return {
+      id: medusaOrder.id,
+      email: medusaOrder.email,
+      status: medusaOrder.status,
+      createdAt: medusaOrder.created_at,
+      updatedAt: medusaOrder.updated_at,
+      paymentIntentId: medusaOrder.payment_info?.id,
+      items: medusaOrder.items?.map((item: any) => ({
+        id: item.id,
+        name: item.title || item.product_title,
+        sku: item.variant_sku || 'N/A',
+        color: item.variant_title || 'N/A',
+        price: Math.round(parseFloat(item.unit_price || '0') * 100),
+        quantity: parseInt(item.quantity || '1'),
+        image: item.thumbnail
+      })) || [],
+      shipping: {
+        firstName: medusaOrder.shipping_address?.first_name || '',
+        lastName: medusaOrder.shipping_address?.last_name || '',
+        address: medusaOrder.shipping_address?.address_1 || '',
+        city: medusaOrder.shipping_address?.city || '',
+        state: medusaOrder.shipping_address?.province || '',
+        zipCode: medusaOrder.shipping_address?.postal_code || '',
+        phone: medusaOrder.shipping_address?.phone
+      },
+      totals: {
+        subtotal: Math.round(parseFloat(medusaOrder.subtotal || '0') * 100),
+        shipping: Math.round(parseFloat(medusaOrder.shipping_total || '0') * 100),
+        tax: Math.round(parseFloat(medusaOrder.tax_total || '0') * 100),
+        total: Math.round(parseFloat(medusaOrder.total || '0') * 100)
+      }
+    }
+  }
+
   const fetchOrders = async (email: string) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/orders?email=${encodeURIComponent(email)}`)
+      const response = await fetch(`/api/orders/customer?email=${encodeURIComponent(email)}`)
       if (response.ok) {
         const data = await response.json()
-        setOrders(data.orders || [])
+        const medusaOrders = data.data?.orders || []
+        const transformedOrders = medusaOrders.map(transformMedusaOrder)
+        setOrders(transformedOrders)
       }
     } catch (error) {
       console.error('Error fetching orders:', error)

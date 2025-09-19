@@ -3,6 +3,12 @@ import path from "path"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
+// Feature flag for legacy checkout
+const isLegacyCheckoutEnabled = process.env.ENABLE_LEGACY_CHECKOUT !== 'false'
+
+// New checkout implementation always uses Stripe
+const useNewCheckout = process.env.USE_NEW_CHECKOUT === 'true'
+
 // Worker/Server Mode
 const isWorkerMode = process.env.MEDUSA_WORKER_MODE === "worker"
 const isServerMode =
@@ -14,7 +20,7 @@ export default defineConfig({
     // redisUrl: process.env.REDIS_URL,    // Redis disabled - using in-memory
     workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server",
     http: {
-      storeCors: process.env.STORE_CORS || "https://medusa-backend-production-3655.up.railway.app,http://localhost:3000,http://localhost:3006,http://localhost:3007,http://localhost:8000",
+      storeCors: process.env.STORE_CORS || "https://medusa-backend-production-3655.up.railway.app,https://fabric-store-ten.vercel.app,http://localhost:3000,http://localhost:3006,http://localhost:3007,http://localhost:8000",
       adminCors: process.env.ADMIN_CORS || "https://medusa-backend-production-3655.up.railway.app,http://localhost:3000,http://localhost:7001,http://localhost:9000",
       authCors: process.env.AUTH_CORS || "https://medusa-backend-production-3655.up.railway.app,http://localhost:3000,http://localhost:9000,http://localhost:8000",
       jwtSecret: process.env.JWT_SECRET || "supersecret",
@@ -123,8 +129,8 @@ export default defineConfig({
       },
     },
 
-    // Stripe Payment Gateway
-    {
+    // Stripe Payment Gateway - Load for legacy or new checkout
+    ...((isLegacyCheckoutEnabled || useNewCheckout) ? [{
       resolve: "@medusajs/payment",
       options: {
         providers: [
@@ -134,11 +140,14 @@ export default defineConfig({
             options: {
               apiKey: process.env.STRIPE_API_KEY,
               webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+              capture: false, // Manual capture for admin control
+              automatic_payment_methods: true,
+              payment_description: "Fabric Store Purchase",
             },
           },
         ],
       },
-    },
+    }] : []),
 
     // SendGrid Notifications
     {

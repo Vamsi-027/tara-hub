@@ -6,8 +6,18 @@
 
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { isLegacyCheckoutEnabled } from "../../../../config/feature-flags"
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  // Check feature flag
+  if (!isLegacyCheckoutEnabled()) {
+    return res.status(501).json({
+      error: "Cart creation is disabled",
+      message: "The legacy checkout system has been disabled. Cart creation is not available.",
+      code: "LEGACY_CHECKOUT_DISABLED"
+    })
+  }
+
   try {
     console.log("🔍 [DEBUG] Starting cart creation analysis...")
 

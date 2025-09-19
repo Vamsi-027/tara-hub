@@ -6,8 +6,18 @@
 
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { isLegacyCheckoutEnabled } from "../../../../config/feature-flags"
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  // Check feature flag
+  if (!isLegacyCheckoutEnabled()) {
+    return res.status(501).json({
+      error: "Fabric order creation is disabled",
+      message: "The legacy checkout system has been disabled. Fabric order creation is not available.",
+      code: "LEGACY_CHECKOUT_DISABLED"
+    })
+  }
+
   try {
     const {
       email,

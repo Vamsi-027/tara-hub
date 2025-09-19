@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         email,
-        region_id: 'reg_01K5DPKAZ3AJRAR7N8SWSCVKSQ', // US region
+        region_id: 'reg_01K5DB032EF34GSDPW8DK7C20V', // US region (from diagnostics)
         currency_code: 'usd',
         metadata: {
           source: 'fabric-store',
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
         ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
       },
       body: JSON.stringify({
-        provider_id: 'pp_stripe_stripe'  // Correct Medusa v2 Stripe provider ID
+        provider_id: 'stripe'  // Correct Medusa v2 Stripe provider ID (without pp_ prefix)
       })
     })
 
@@ -296,7 +296,7 @@ export async function POST(request: NextRequest) {
 
     // Get the Stripe payment session
     const paymentSessions = paymentSessionData.payment_collection?.payment_sessions || []
-    const stripeSession = paymentSessions.find((s: any) => s.provider_id === 'pp_stripe_stripe')
+    const stripeSession = paymentSessions.find((s: any) => s.provider_id === 'stripe')
 
     if (!stripeSession) {
       console.error('❌ No Stripe payment session found')
