@@ -1,0 +1,31 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://fabric-store-ten.vercel.app",
+        "https://fabric-store-*.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:3006",
+        "http://localhost:9000",
+        "https://tara-hub.vercel.app",
+        "https://medusa-backend-production-3655.up.railway.app"
+      ],
+      "AllowedMethods": [
+        "GET",
+        "HEAD",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "AllowedHeaders": [
+        "*"
+      ],
+      "ExposeHeaders": [
+        "ETag",
+        "Content-Length",
+        "Content-Type"
+      ],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}

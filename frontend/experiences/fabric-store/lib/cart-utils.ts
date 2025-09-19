@@ -15,25 +15,26 @@ export interface CartItem {
 }
 
 export async function addToCart(item: Omit<CartItem, 'id'>) {
+  // TEMPORARILY DISABLED - Force use localStorage until Medusa cart is fixed
   // Use new checkout flow if enabled
-  if (isNewCheckoutEnabled()) {
-    try {
-      const cart = await cartApi.addToCart({
-        variant_id: item.variantId,
-        quantity: item.quantity,
-        metadata: {
-          type: item.type,
-          yardage: item.yardage,
-          title: item.title,
-          thumbnail: item.thumbnail,
-        },
-      })
-      return cart.items
-    } catch (error) {
-      console.error('Failed to add to cart:', error)
-      throw error
-    }
-  }
+  // if (isNewCheckoutEnabled()) {
+  //   try {
+  //     const cart = await cartApi.addToCart({
+  //       variant_id: item.variantId,
+  //       quantity: item.quantity,
+  //       metadata: {
+  //         type: item.type,
+  //         yardage: item.yardage,
+  //         title: item.title,
+  //         thumbnail: item.thumbnail,
+  //       },
+  //     })
+  //     return cart.items
+  //   } catch (error) {
+  //     console.error('Failed to add to cart:', error)
+  //     throw error
+  //   }
+  // }
 
   // Legacy LocalStorage implementation
   // Ensure we're in browser environment
@@ -99,28 +100,29 @@ export async function addToCart(item: Omit<CartItem, 'id'>) {
 }
 
 export async function getCart(): Promise<CartItem[]> {
+  // TEMPORARILY DISABLED - Force use localStorage until Medusa cart is fixed
   // Use new checkout flow if enabled
-  if (isNewCheckoutEnabled()) {
-    try {
-      const cart = await cartApi.getCart()
-      // Transform Medusa cart items to legacy format
-      return cart.items.map(item => ({
-        id: item.id,
-        variantId: item.variant_id,
-        productId: item.product_id,
-        title: item.title,
-        variant: item.metadata?.variant || '',
-        price: item.unit_price,
-        quantity: item.quantity,
-        thumbnail: item.thumbnail,
-        type: item.metadata?.type,
-        yardage: item.metadata?.yardage,
-      }))
-    } catch (error) {
-      console.error('Failed to get cart:', error)
-      return []
-    }
-  }
+  // if (isNewCheckoutEnabled()) {
+  //   try {
+  //     const cart = await cartApi.getCart()
+  //     // Transform Medusa cart items to legacy format
+  //     return cart.items.map(item => ({
+  //       id: item.id,
+  //       variantId: item.variant_id,
+  //       productId: item.product_id,
+  //       title: item.title,
+  //       variant: item.metadata?.variant || '',
+  //       price: item.unit_price,
+  //       quantity: item.quantity,
+  //       thumbnail: item.thumbnail,
+  //       type: item.metadata?.type,
+  //       yardage: item.metadata?.yardage,
+  //     }))
+  //   } catch (error) {
+  //     console.error('Failed to get cart:', error)
+  //     return []
+  //   }
+  // }
 
   // Legacy LocalStorage implementation
   const existingCart = localStorage.getItem('fabric-cart')
@@ -128,16 +130,16 @@ export async function getCart(): Promise<CartItem[]> {
 }
 
 export async function updateCartItemQuantity(id: string, quantity: number) {
-  // Use new checkout flow if enabled
-  if (isNewCheckoutEnabled()) {
-    try {
-      const cart = await cartApi.updateCartItem(id, quantity)
-      return cart.items
-    } catch (error) {
-      console.error('Failed to update cart item:', error)
-      throw error
-    }
-  }
+  // TEMPORARILY DISABLED - Force use localStorage until Medusa cart is fixed
+  // if (isNewCheckoutEnabled()) {
+  //   try {
+  //     const cart = await cartApi.updateCartItem(id, quantity)
+  //     return cart.items
+  //   } catch (error) {
+  //     console.error('Failed to update cart item:', error)
+  //     throw error
+  //   }
+  // }
 
   // Legacy LocalStorage implementation
   const cart = getCart()
@@ -165,16 +167,16 @@ export async function updateCartItemQuantity(id: string, quantity: number) {
 }
 
 export async function removeFromCart(id: string) {
-  // Use new checkout flow if enabled
-  if (isNewCheckoutEnabled()) {
-    try {
-      const cart = await cartApi.removeFromCart(id)
-      return cart.items
-    } catch (error) {
-      console.error('Failed to remove from cart:', error)
-      throw error
-    }
-  }
+  // TEMPORARILY DISABLED - Force use localStorage until Medusa cart is fixed
+  // if (isNewCheckoutEnabled()) {
+  //   try {
+  //     const cart = await cartApi.removeFromCart(id)
+  //     return cart.items
+  //   } catch (error) {
+  //     console.error('Failed to remove from cart:', error)
+  //     throw error
+  //   }
+  // }
 
   // Legacy LocalStorage implementation
   const cart = getCart()
@@ -192,17 +194,17 @@ export async function removeFromCart(id: string) {
 }
 
 export async function clearCart() {
-  // Use new checkout flow if enabled
-  if (isNewCheckoutEnabled()) {
-    try {
-      // Create new cart to clear the old one
-      await cartApi.createCart()
-      return []
-    } catch (error) {
-      console.error('Failed to clear cart:', error)
-      throw error
-    }
-  }
+  // TEMPORARILY DISABLED - Force use localStorage until Medusa cart is fixed
+  // if (isNewCheckoutEnabled()) {
+  //   try {
+  //     // Create new cart to clear the old one
+  //     await cartApi.createCart()
+  //     return []
+  //   } catch (error) {
+  //     console.error('Failed to clear cart:', error)
+  //     throw error
+  //   }
+  // }
 
   // Legacy LocalStorage implementation
   localStorage.setItem('fabric-cart', JSON.stringify([]))

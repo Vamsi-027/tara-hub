@@ -34,11 +34,14 @@ class FeatureFlagManager {
   }
 
   private loadFlags(): FeatureFlags {
+    // Force disable new checkout until Medusa cart is properly configured
     return {
-      useNewCheckout: this.parseBoolean(
-        process.env.NEXT_PUBLIC_USE_NEW_CHECKOUT,
-        false // Default to false for safety
-      ),
+      useNewCheckout: false, // Hardcoded to false to use localStorage
+      // Original logic commented for reference:
+      // useNewCheckout: this.parseBoolean(
+      //   process.env.NEXT_PUBLIC_USE_NEW_CHECKOUT,
+      //   false // Default to false for safety
+      // ),
       enableGuestOrderLookup: this.parseBoolean(
         process.env.NEXT_PUBLIC_ENABLE_GUEST_ORDER_LOOKUP,
         true
