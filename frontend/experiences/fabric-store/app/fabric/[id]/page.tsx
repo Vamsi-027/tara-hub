@@ -36,6 +36,7 @@ import { useFabric, useFabrics } from '../../../hooks/useFabrics'
 import type { Fabric } from '../../../lib/fabric-api'
 import { addToCart } from '../../../lib/cart-utils'
 import Header from '../../../components/header'
+import CartNotification from '../../../components/cart-notification'
 
 // Modern Image Gallery Component
 function ModernImageGallery({ images, productName }: { images: string[], productName: string }) {
@@ -233,6 +234,7 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
   const [selectedVariantType, setSelectedVariantType] = useState<'Swatch' | 'Fabric'>('Swatch')
   const [addedToCart, setAddedToCart] = useState(false)
   const [showNotification, setShowNotification] = useState(false)
+  const [cartNotificationItem, setCartNotificationItem] = useState<any>(null)
 
   // Essential field extraction
   const essentialFields = {
@@ -270,7 +272,7 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
       ? Math.round(essentialFields.swatchPrice * 100)
       : Math.round(essentialFields.price * 100)
 
-    addToCart({
+    const cartItem = {
       variantId: fabric.id,
       productId: fabric.id,
       title: essentialFields.name,
@@ -280,15 +282,14 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
       thumbnail: (fabric as any).swatch_image_url || (fabric as any).images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
       type: selectedVariantType === 'Swatch' ? 'swatch' : 'fabric',
       yardage: selectedVariantType === 'Fabric' ? quantity : undefined  // Store yardage separately for fabric
-    })
+    }
 
-    // Show success feedback
+    addToCart(cartItem)
+
+    // Show professional notification
+    setCartNotificationItem(cartItem)
     setAddedToCart(true)
     setShowNotification(true)
-    setTimeout(() => {
-      setAddedToCart(false)
-      setShowNotification(false)
-    }, 3000)
   }
 
   const handleWishlistToggle = () => {
@@ -320,19 +321,16 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
 
   return (
     <div className="space-y-6">
-      {/* Success Notification */}
-      {showNotification && (
-        <div className="fixed top-24 right-4 z-50 animate-slide-in-right">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <div>
-              <p className="font-medium text-green-800">Added to cart!</p>
-              <p className="text-sm text-green-600">
-                {selectedVariantType === 'Swatch' ? `${quantity} swatch${quantity > 1 ? 'es' : ''}` : `${quantity} yard${quantity !== 1 ? 's' : ''}`} added
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Professional Cart Notification */}
+      {showNotification && cartNotificationItem && (
+        <CartNotification
+          item={cartNotificationItem}
+          onClose={() => {
+            setShowNotification(false)
+            setCartNotificationItem(null)
+            setAddedToCart(false)
+          }}
+        />
       )}
 
       {/* Brand & Category */}
