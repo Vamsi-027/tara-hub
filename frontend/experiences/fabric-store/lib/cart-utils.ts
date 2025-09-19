@@ -36,12 +36,22 @@ export async function addToCart(item: Omit<CartItem, 'id'>) {
   }
 
   // Legacy LocalStorage implementation
+  // Ensure we're in browser environment
+  if (typeof window === 'undefined') {
+    console.warn('addToCart called outside browser environment')
+    return []
+  }
+
   // Create a stable ID based on product and variant, not timestamp
   const stableId = `${item.type || 'fabric'}-${item.productId}-${item.variantId}`
+
+  // Debug logging
+  console.log('Adding item to cart:', { item, stableId })
 
   // Get existing cart
   const existingCart = localStorage.getItem('fabric-cart')
   const cart: CartItem[] = existingCart ? JSON.parse(existingCart) : []
+  console.log('Existing cart:', cart)
 
   // Check if this exact item already exists in cart
   const existingItemIndex = cart.findIndex((cartItem) =>
@@ -70,6 +80,11 @@ export async function addToCart(item: Omit<CartItem, 'id'>) {
 
   // Save to localStorage
   localStorage.setItem('fabric-cart', JSON.stringify(cart))
+  console.log('Cart saved to localStorage:', cart)
+
+  // Verify save
+  const verifyCart = localStorage.getItem('fabric-cart')
+  console.log('Verified cart in localStorage:', verifyCart)
 
   // Dispatch custom event for cart update with action type
   window.dispatchEvent(new CustomEvent('cart-updated', {

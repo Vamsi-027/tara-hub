@@ -519,8 +519,11 @@ export default function CartPage() {
     const loadCart = () => {
       try {
         const savedCart = localStorage.getItem('fabric-cart')
+        console.log('Loading cart from localStorage:', savedCart)
         if (savedCart) {
-          setCart(JSON.parse(savedCart))
+          const parsedCart = JSON.parse(savedCart)
+          setCart(parsedCart)
+          console.log('Cart loaded:', parsedCart)
         }
       } catch (error) {
         console.error('Error loading cart:', error)
@@ -530,8 +533,32 @@ export default function CartPage() {
       }
     }
 
+    // Load cart initially
     if (typeof window !== 'undefined') {
       loadCart()
+    }
+
+    // Listen for cart updates from other components
+    const handleCartUpdate = (event: CustomEvent) => {
+      console.log('Cart updated event received:', event.detail)
+      loadCart()
+    }
+
+    window.addEventListener('cart-updated', handleCartUpdate as EventListener)
+
+    // Listen for storage changes from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'fabric-cart') {
+        console.log('Storage changed, reloading cart')
+        loadCart()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdate as EventListener)
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [])
 

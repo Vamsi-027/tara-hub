@@ -36,7 +36,7 @@ import { useFabric, useFabrics } from '../../../hooks/useFabrics'
 import type { Fabric } from '../../../lib/fabric-api'
 import { addToCart } from '../../../lib/cart-utils'
 import Header from '../../../components/header'
-import CartNotification from '../../../components/cart-notification'
+import SimpleCartNotification from '../../../components/cart-notification-simple'
 
 // Modern Image Gallery Component
 function ModernImageGallery({ images, productName }: { images: string[], productName: string }) {
@@ -284,7 +284,17 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
       yardage: selectedVariantType === 'Fabric' ? quantity : undefined  // Store yardage separately for fabric
     }
 
-    addToCart(cartItem)
+    // Debug logging
+    console.log('Adding to cart:', cartItem)
+
+    const updatedCart = addToCart(cartItem)
+
+    // Verify cart was updated
+    console.log('Cart after adding:', updatedCart)
+
+    // Double-check localStorage
+    const savedCart = localStorage.getItem('fabric-cart')
+    console.log('Cart in localStorage:', savedCart ? JSON.parse(savedCart) : 'empty')
 
     // Show professional notification
     setCartNotificationItem(cartItem)
@@ -321,9 +331,9 @@ function ModernProductInfo({ fabric }: { fabric: Fabric }) {
 
   return (
     <div className="space-y-6">
-      {/* Professional Cart Notification */}
+      {/* Simple Cart Notification */}
       {showNotification && cartNotificationItem && (
-        <CartNotification
+        <SimpleCartNotification
           item={cartNotificationItem}
           onClose={() => {
             setShowNotification(false)
