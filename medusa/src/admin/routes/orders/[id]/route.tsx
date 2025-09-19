@@ -361,6 +361,5 @@ const OrderDetailPage = () => {
 
 export default OrderDetailPage
 
-export const config = defineRouteConfig({
-  label: "Order Details",
-})
+// Don't export config to prevent this from appearing in the sidebar
+// This page should only be accessible via navigation from the orders list
