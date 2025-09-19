@@ -17,7 +17,7 @@ const isServerMode =
 export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL, // PostgreSQL (Neon/Railway)
-    // redisUrl: process.env.REDIS_URL,    // Redis disabled - using in-memory
+    // redisUrl: process.env.REDIS_URL, // Disabled due to Upstash limit
     workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server",
     http: {
       storeCors: process.env.STORE_CORS || "https://medusa-backend-production-3655.up.railway.app,https://fabric-store-ten.vercel.app,http://localhost:3000,http://localhost:3006,http://localhost:3007,http://localhost:8000",
@@ -39,30 +39,30 @@ export default defineConfig({
   },
 
   modules: [
-    // Redis Modules - Commented out due to Upstash limit
-    // Uncomment when Redis is available
-    /*
-    {
-      resolve: "@medusajs/medusa/cache-redis",
-      options: {
-        redisUrl: process.env.REDIS_URL,
-      },
-    },
-    {
-      resolve: "@medusajs/medusa/event-bus-redis",
-      options: {
-        redisUrl: process.env.REDIS_URL,
-      },
-    },
-    {
-      resolve: "@medusajs/medusa/workflow-engine-redis",
-      options: {
-        redis: {
-          url: process.env.REDIS_URL,
-        },
-      },
-    },
-    */
+    // Redis Modules - Temporarily disabled due to Upstash limit
+    // TODO: Re-enable when Redis quota is available
+    // ...(process.env.REDIS_URL ? [
+    //   {
+    //     resolve: "@medusajs/medusa/cache-redis",
+    //     options: {
+    //       redisUrl: process.env.REDIS_URL,
+    //     },
+    //   },
+    //   {
+    //     resolve: "@medusajs/medusa/event-bus-redis",
+    //     options: {
+    //       redisUrl: process.env.REDIS_URL,
+    //     },
+    //   },
+    //   {
+    //     resolve: "@medusajs/medusa/workflow-engine-redis",
+    //     options: {
+    //       redis: {
+    //         url: process.env.REDIS_URL,
+    //       },
+    //     },
+    //   },
+    // ] : []),
 
     // Resend Notification Module
     {
@@ -166,10 +166,11 @@ export default defineConfig({
       },
     },
 
-    // Custom Modules
-    { resolve: "./src/modules/contact" },
-    { resolve: "./src/modules/materials" },         // Simplified materials module
-    { resolve: "./src/modules/fabric_details" },     // Fabric properties module
-    { resolve: "./src/modules/fabric_products" },    // Configurable fabric products
+    // Custom Modules - Temporarily disabled due to MedusaService errors
+    // TODO: Fix and re-enable after fixing service patterns
+    // { resolve: "./src/modules/contact" },
+    // { resolve: "./src/modules/materials" },
+    // { resolve: "./src/modules/fabric_details" },
+    // { resolve: "./src/modules/fabric_products" },
   ],
 })

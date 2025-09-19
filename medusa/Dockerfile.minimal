@@ -1,0 +1,42 @@
+# Minimal Railway Deployment - Exclude Custom Services
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy base config and essential files
+COPY medusa-config.simple.ts ./medusa-config.ts
+COPY tsconfig.json ./
+
+# Create minimal directory structure
+RUN mkdir -p src
+
+# Copy ONLY the working API routes (exclude custom services)
+RUN mkdir -p src/api/admin src/api/store src/api/auth src/api/webhooks
+
+# Copy only essential, working routes
+COPY src/api/middlewares.ts src/api/ 2>/dev/null || echo "No middlewares"
+
+# Copy webhook route (should work)
+COPY src/api/webhooks/stripe/route.ts src/api/webhooks/stripe/ 2>/dev/null || echo "No stripe webhook"
+
+# Exclude custom services that are causing the error
+# DO NOT COPY src/services/ - this is where the problem is
+
+# Environment
+ENV NODE_ENV=production
+ENV PORT=9000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:9000/health || exit 1
+
+EXPOSE 9000
+
+# Start with explicit command
+CMD ["sh", "-c", "npx medusa start --host 0.0.0.0 --port ${PORT:-9000}"]

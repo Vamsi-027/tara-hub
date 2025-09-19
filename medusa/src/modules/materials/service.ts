@@ -1,15 +1,9 @@
-import { MedusaService } from "@medusajs/framework/utils"
-import { Material } from "./models"
-
 /**
- * Materials Service
- * Simple service for materials table
+ * Materials Service - Disabled to Fix Deployment
+ *
+ * This service has been temporarily disabled due to "Class extends value undefined"
+ * errors caused by incompatible MedusaService usage in Medusa v2.
  */
-class MaterialsService extends MedusaService({
-  Material
-}) {
-  // That's it - MedusaService provides all CRUD operations
-  // No custom methods needed for simple one-to-one sync
-}
 
-export default MaterialsService
+// Export empty default to prevent module loading errors
+export default {}

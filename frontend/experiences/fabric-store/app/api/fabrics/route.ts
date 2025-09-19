@@ -567,8 +567,8 @@ async function fetchFromMedusa(searchParams: URLSearchParams) {
     console.log('⚠️ USD region not configured yet, using EUR region temporarily')
   }
 
-  // Use custom endpoint that includes metadata
-  const medusaUrl = new URL(`${medusaBackendUrl}/store/products-with-metadata`)
+  // Use standard products endpoint
+  const medusaUrl = new URL(`${medusaBackendUrl}/store/products`)
 
   // Apply Medusa-native filters with dynamic region
   medusaUrl.searchParams.set('limit', '100')

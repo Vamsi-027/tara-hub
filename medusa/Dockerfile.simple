@@ -1,0 +1,35 @@
+# Simple Dockerfile for Railway deployment
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --omit=dev
+
+# Copy essential files only
+COPY medusa-config.simple.ts ./medusa-config.ts
+COPY tsconfig.json ./
+
+# Create minimal src structure
+RUN mkdir -p src/api src/modules src/services
+
+# Copy only essential API routes (avoid problematic custom routes)
+COPY src/api/middlewares.ts src/api/ || true
+COPY src/api/webhooks src/api/webhooks/ || true
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=9000
+
+# Expose port
+EXPOSE 9000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:9000/health || exit 1
+
+# Start command
+CMD ["npx", "medusa", "start", "--host", "0.0.0.0", "--port", "9000"]
