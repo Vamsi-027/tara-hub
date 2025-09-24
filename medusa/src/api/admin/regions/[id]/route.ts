@@ -1,32 +1,19 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { Modules } from "@medusajs/framework/utils"
+import { IRegionModuleService } from "@medusajs/framework/types"
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   try {
     const { id } = req.params
-    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+    const regionModule = req.scope.resolve<IRegionModuleService>(Modules.REGION)
 
-    // Fetch region with all necessary relations
-    const { data: regions = [] } = await query.graph({
-      entity: "region",
-      fields: [
-        "id",
-        "name",
-        "currency_code",
-        "tax_rate",
-        "tax_code",
-        "automatic_taxes",
-        "gift_cards_taxable",
-        "metadata",
-        "created_at",
-        "updated_at",
-        "deleted_at",
-        "countries.*",
-        "payment_providers.*",
-        "fulfillment_providers.*"
-      ],
-      filters: { id }
-    })
+    // Fetch single region with relations
+    const regions = await regionModule.listRegions(
+      { id },
+      {
+        relations: ["countries", "payment_providers", "fulfillment_providers"]
+      }
+    )
 
     const region = regions[0]
 
@@ -92,7 +79,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   try {
     const { id } = req.params
-    const regionModule = req.scope.resolve("@medusajs/medusa/region")
+    const regionModule = req.scope.resolve<IRegionModuleService>(Modules.REGION)
 
     const data = req.body as any
 
@@ -122,7 +109,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
   try {
     const { id } = req.params
-    const regionModule = req.scope.resolve("@medusajs/medusa/region")
+    const regionModule = req.scope.resolve<IRegionModuleService>(Modules.REGION)
 
     await regionModule.deleteRegions(id)
 

@@ -1,31 +1,31 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { Modules } from "@medusajs/framework/utils"
+import { IRegionModuleService } from "@medusajs/framework/types"
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   try {
-    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+    // Use the RegionModule directly
+    const regionModule = req.scope.resolve<IRegionModuleService>(Modules.REGION)
 
-    // Fetch regions with all necessary relations
-    const { data: regions = [] } = await query.graph({
-      entity: "region",
-      fields: [
-        "id",
-        "name",
-        "currency_code",
-        "tax_rate",
-        "tax_code",
-        "automatic_taxes",
-        "gift_cards_taxable",
-        "metadata",
-        "created_at",
-        "updated_at",
-        "deleted_at",
-        "countries.*",
-        "payment_providers.*",
-        "fulfillment_providers.*"
-      ],
-      filters: req.query || {}
-    })
+    // Fetch all regions with relations
+    const regions = await regionModule.listRegions(
+      {},
+      {
+        relations: ["countries", "payment_providers", "fulfillment_providers"],
+        select: [
+          "id",
+          "name",
+          "currency_code",
+          "tax_rate",
+          "tax_code",
+          "automatic_taxes",
+          "gift_cards_taxable",
+          "metadata",
+          "created_at",
+          "updated_at"
+        ]
+      }
+    )
 
     // Format regions for admin UI
     const formattedRegions = regions.map((region: any) => {
@@ -99,7 +99,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   try {
-    const regionModule = req.scope.resolve("@medusajs/medusa/region")
+    const regionModule = req.scope.resolve<IRegionModuleService>(Modules.REGION)
 
     const data = req.body as any
 
