@@ -1,6 +1,6 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils";
-import { computeAtsUnits, getStockStatus } from "../../../services/inventory-policy.service";
+import { computeAtsUnits, getStockStatus } from "../../../../_services/inventory-policy.service";
 import { enforceScopes, INVENTORY_SCOPES } from "../../../utils/rbac";
 
 type HealthItem = {

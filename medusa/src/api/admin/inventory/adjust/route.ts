@@ -1,9 +1,9 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils";
 import { enforceScopes, INVENTORY_SCOPES } from "../../../utils/rbac";
-import { toBaseUnits, getBaseUnitFactor } from "../../../services/inventory-policy.service";
-import InventoryAdjustmentService from "../../../services/inventory-adjustment.service";
-import { INVENTORY_AUDIT_MODULE } from "../../../modules/inventory_audit";
+import { toBaseUnits, getBaseUnitFactor } from "../../../../_services/inventory-policy.service";
+import InventoryAdjustmentService from "../../../../_services/inventory-adjustment.service";
+import { INVENTORY_AUDIT_MODULE } from "../../../../modules/inventory_audit";
 
 type AdjustBody = {
   inventory_item_id: string;

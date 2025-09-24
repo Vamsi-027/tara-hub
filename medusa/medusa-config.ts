@@ -172,5 +172,10 @@ export default defineConfig({
     // { resolve: "./src/modules/materials" },
     // { resolve: "./src/modules/fabric_details" },
     // { resolve: "./src/modules/fabric_products" },
+
+    // New Inventory Management Module - Added by developer
+    // IMPORTANT: This uses MedusaService which may cause deployment issues
+    // Enable cautiously after testing
+    // { resolve: "./src/modules/inventory_audit" },
   ],
 })

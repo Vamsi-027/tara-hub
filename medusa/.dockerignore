@@ -1,0 +1,14 @@
+node_modules
+.medusa
+dist
+build
+.env
+.env.local
+.DS_Store
+*.log
+.git
+.github
+.vscode
+coverage
+.nyc_output
+uploads
