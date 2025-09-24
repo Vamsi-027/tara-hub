@@ -1,8 +1,58 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils";
-import { toBaseUnits, getBaseUnitFactor } from "../../../services/inventory-policy.service";
-import InventoryAdjustmentService from "../../../services/inventory-adjustment.service";
-import { INVENTORY_AUDIT_MODULE } from "../../../modules/inventory_audit";
+
+// Inline inventory policy functions
+const getBaseUnitFactor = (minIncrement: number): number => {
+  if (minIncrement <= 0) {
+    throw new Error("min_increment must be > 0");
+  }
+  const factor = Math.round(1 / minIncrement);
+  const reconstructed = 1 / factor;
+  if (Math.abs(reconstructed - minIncrement) > 1e-10) {
+    const scaled = Math.round(minIncrement * 1_000_000);
+    return Math.round(1_000_000 / scaled);
+  }
+  return factor;
+};
+
+const toBaseUnits = (
+  decimalQty: number,
+  minIncrement: number,
+  rounding: "up" | "down" | "nearest" = "nearest"
+): number => {
+  const factor = getBaseUnitFactor(minIncrement);
+  const rawUnits = decimalQty * factor;
+  let units: number;
+  switch (rounding) {
+    case "up":
+      units = Math.ceil(rawUnits - 1e-10);
+      break;
+    case "down":
+      units = Math.floor(rawUnits + 1e-10);
+      break;
+    default:
+      units = Math.round(rawUnits);
+  }
+  return units;
+};
+
+// Inline inventory adjustment service
+class InventoryAdjustmentService {
+  private logger_: any;
+
+  constructor(container: any) {
+    this.logger_ = container.logger || container.resolve?.("logger");
+  }
+
+  async recordAdjustment(input: any) {
+    this.logger_?.info?.("inventory.adjusted", {
+      ...input,
+      at: new Date().toISOString(),
+    });
+  }
+}
+
+const INVENTORY_AUDIT_MODULE = "inventoryAudit";
 
 // Inline RBAC helpers
 const INVENTORY_SCOPES = {
