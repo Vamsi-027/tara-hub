@@ -10,22 +10,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-
-// Request validation schema
-const CustomerOrdersQuerySchema = z.object({
-  email: z.string().email("Invalid email format").min(1, "Email is required"),
-  limit: z.string().optional().transform(val => {
-    if (!val) return 10
-    const num = parseInt(val)
-    return isNaN(num) ? 10 : Math.min(Math.max(num, 1), 50)
-  }),
-  offset: z.string().optional().transform(val => {
-    if (!val) return 0
-    const num = parseInt(val)
-    return isNaN(num) ? 0 : Math.max(num, 0)
-  })
-})
 
 /**
  * GET /api/orders/customer
@@ -39,27 +23,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Extract and validate query parameters
     const url = new URL(request.url)
-    const rawEmail = url.searchParams.get('email')
+    const rawEmailParam = url.searchParams.get('email')
     const rawLimit = url.searchParams.get('limit')
     const rawOffset = url.searchParams.get('offset')
 
-    const validationResult = CustomerOrdersQuerySchema.safeParse({
-      email: rawEmail,
-      limit: rawLimit,
-      offset: rawOffset
-    })
-
-    if (!validationResult.success) {
-      const firstError = validationResult.error.errors[0]
+    // Simple validation
+    if (!rawEmailParam) {
       return NextResponse.json({
         success: false,
         error: "Invalid request parameters",
-        message: firstError.message,
+        message: "Email parameter is required",
         code: "VALIDATION_ERROR"
       }, { status: 400 })
     }
 
-    const { email, limit, offset } = validationResult.data
+    const email = decodeURIComponent(rawEmailParam)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({
+        success: false,
+        error: "Invalid request parameters",
+        message: "Invalid email format",
+        code: "VALIDATION_ERROR"
+      }, { status: 400 })
+    }
+
+    const limit = parseInt(rawLimit || '10')
+    const offset = parseInt(rawOffset || '0')
 
     // Environment variables
     const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
@@ -75,77 +66,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }, { status: 503 })
     }
 
-    // Step 1: Verify customer exists and get customer ID
-    let customer
+    // Use the new public orders endpoint - no authentication needed!
     try {
-      const customerResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/customers/me`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-publishable-api-key': PUBLISHABLE_KEY,
-          // In production, you would get this from user session
-          'Authorization': `Bearer customer_token_here` // This needs proper implementation
-        }
-      })
+      console.log(`🔍 Fetching orders for customer: ${email}`)
 
-      if (!customerResponse.ok) {
-        // Customer not authenticated - return empty results for security
-        return NextResponse.json({
-          success: true,
-          data: {
-            orders: [],
-            count: 0,
-            total_count: 0,
-            limit,
-            offset
-          },
-          metadata: {
-            email: email.toLowerCase(),
-            response_time_ms: Date.now() - startTime,
-            source: "medusa_secure_proxy",
-            note: "Customer authentication required"
-          }
-        })
-      }
-
-      customer = await customerResponse.json()
-    } catch (error) {
-      console.error('Customer verification failed:', error)
-      return NextResponse.json({
-        success: true,
-        data: {
-          orders: [],
-          count: 0,
-          total_count: 0,
-          limit,
-          offset
-        },
-        metadata: {
-          email: email.toLowerCase(),
-          response_time_ms: Date.now() - startTime,
-          source: "medusa_secure_proxy"
-        }
-      })
-    }
-
-    // Step 2: Security check - verify email matches authenticated customer
-    if (customer.email?.toLowerCase() !== email.toLowerCase()) {
-      return NextResponse.json({
-        success: false,
-        error: "Access denied",
-        message: "You can only access your own orders",
-        code: "ACCESS_DENIED"
-      }, { status: 403 })
-    }
-
-    // Step 3: Fetch orders using Medusa's authenticated orders endpoint
-    try {
       const ordersResponse = await fetch(
-        `${MEDUSA_BACKEND_URL}/store/customers/me/orders?limit=${limit}&offset=${offset}`,
+        `${MEDUSA_BACKEND_URL}/store/public-orders?email=${encodeURIComponent(email)}&limit=${limit}&offset=${offset}`,
         {
           headers: {
-            'Content-Type': 'application/json',
-            'x-publishable-api-key': PUBLISHABLE_KEY,
-            'Authorization': `Bearer customer_token_here` // Proper auth token needed
+            'Content-Type': 'application/json'
           }
         }
       )
@@ -156,7 +85,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       const ordersData = await ordersResponse.json()
 
-      // Transform to consistent format
+      // If it's our public API response, return it directly
+      if (ordersData.success && ordersData.data) {
+        return NextResponse.json({
+          success: true,
+          data: ordersData.data,
+          metadata: {
+            email: email.toLowerCase(),
+            response_time_ms: Date.now() - startTime,
+            source: "public_orders_api"
+          }
+        })
+      }
+
+      // Fallback: Transform if needed
       const transformedOrders = ordersData.orders?.map((order: any) => ({
         id: order.id,
         display_id: order.display_id,

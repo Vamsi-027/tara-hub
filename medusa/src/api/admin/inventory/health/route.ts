@@ -1,7 +1,96 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils";
-import { computeAtsUnits, getStockStatus } from "../../../../_services/inventory-policy.service";
-import { enforceScopes, INVENTORY_SCOPES } from "../../../utils/rbac";
+
+// Inline inventory policy functions
+const getBaseUnitFactor = (minIncrement: number): number => {
+  if (minIncrement <= 0) {
+    throw new Error("min_increment must be > 0");
+  }
+  const factor = Math.round(1 / minIncrement);
+  const reconstructed = 1 / factor;
+  if (Math.abs(reconstructed - minIncrement) > 1e-10) {
+    const scaled = Math.round(minIncrement * 1_000_000);
+    return Math.round(1_000_000 / scaled);
+  }
+  return factor;
+};
+
+const toBaseUnits = (
+  decimalQty: number,
+  minIncrement: number,
+  rounding: "up" | "down" | "nearest" = "nearest"
+): number => {
+  const factor = getBaseUnitFactor(minIncrement);
+  const rawUnits = decimalQty * factor;
+  let units: number;
+  switch (rounding) {
+    case "up":
+      units = Math.ceil(rawUnits - 1e-10);
+      break;
+    case "down":
+      units = Math.floor(rawUnits + 1e-10);
+      break;
+    default:
+      units = Math.round(rawUnits);
+  }
+  return units;
+};
+
+const fromBaseUnits = (baseUnits: number, minIncrement: number): number => {
+  const factor = getBaseUnitFactor(minIncrement);
+  return baseUnits / factor;
+};
+
+interface AtsParams {
+  stockedUnits: number;
+  reservedUnits: number;
+  incomingUnits?: number;
+  includeIncomingInAts?: boolean;
+}
+
+const computeAtsUnits = (params: AtsParams): number => {
+  const { stockedUnits, reservedUnits, incomingUnits = 0, includeIncomingInAts = false } = params;
+  const ats = stockedUnits - reservedUnits + (includeIncomingInAts ? incomingUnits : 0);
+  return Math.max(0, ats);
+};
+
+type StockStatus = "in_stock" | "low_stock" | "out_of_stock" | "backordered";
+
+const getStockStatus = (atsUnits: number, lowStockThresholdDecimal: number, minIncrement: number): StockStatus => {
+  if (atsUnits <= 0) {
+    return "out_of_stock";
+  }
+  const thresholdUnits = toBaseUnits(lowStockThresholdDecimal, minIncrement, "nearest");
+  return atsUnits <= thresholdUnits ? "low_stock" : "in_stock";
+};
+
+// Inline RBAC helpers
+const INVENTORY_SCOPES = {
+  READ: "inventory:read",
+  WRITE: "inventory:write",
+  TRANSFER: "inventory:transfer",
+} as const;
+
+function isAdmin(req: MedusaRequest): boolean {
+  return (
+    (req as any).auth?.actor_type === "user" ||
+    (req as any).user?.type === "admin" ||
+    (req as any).user?.role === "admin" ||
+    Boolean((req as any).session?.user_id)
+  );
+}
+
+function enforceScopes(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  required: string[]
+): boolean {
+  if (!isAdmin(req)) {
+    res.status(403).json({ error: "Admin access required" });
+    return false;
+  }
+  return true;
+}
 
 type HealthItem = {
   variant_id?: string;

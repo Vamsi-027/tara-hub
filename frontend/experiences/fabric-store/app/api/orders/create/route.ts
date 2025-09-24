@@ -327,6 +327,27 @@ export async function POST(request: NextRequest) {
     // Step 6: Initialize payment session with Stripe provider
     console.log('6️⃣ Initializing Stripe payment session...')
 
+    // Check if Stripe keys are configured
+    const stripeApiKey = process.env.STRIPE_API_KEY
+    const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+
+    console.log('🔑 Stripe configuration check:')
+    console.log('   API Key:', stripeApiKey ? `Present (${stripeApiKey.substring(0, 7)}...)` : '❌ MISSING')
+    console.log('   Publishable Key:', stripePublishableKey ? `Present (${stripePublishableKey.substring(0, 7)}...)` : '❌ MISSING')
+
+    if (!stripeApiKey) {
+      return NextResponse.json({
+        success: false,
+        error: 'Stripe configuration error',
+        message: 'STRIPE_API_KEY is not configured. Please add it to environment variables.',
+        required_vars: ['STRIPE_API_KEY', 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'],
+        debug: {
+          medusa_url: MEDUSA_BACKEND_URL,
+          has_publishable_key: !!PUBLISHABLE_KEY
+        }
+      }, { status: 500 })
+    }
+
     const paymentSessionResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/payment-collections/${payment_collection.id}/payment-sessions`, {
       method: 'POST',
       headers: {
@@ -334,7 +355,7 @@ export async function POST(request: NextRequest) {
         ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
       },
       body: JSON.stringify({
-        provider_id: 'stripe'  // Correct Medusa v2 Stripe provider ID (without pp_ prefix)
+        provider_id: 'pp_stripe_stripe'  // Correct Medusa v2 Stripe provider ID with full prefix
       })
     })
 
@@ -342,12 +363,26 @@ export async function POST(request: NextRequest) {
       const errorText = await paymentSessionResponse.text()
       console.error('❌ Payment session creation failed:', errorText)
 
+      // Parse error for more details
+      let errorDetails = errorText
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorDetails = errorJson.message || errorJson.error || errorText
+      } catch (e) {
+        // Keep original error text if not JSON
+      }
+
       return NextResponse.json({
         success: false,
         error: 'Payment session creation failed',
-        message: 'Unable to initialize Stripe payment session.',
+        message: `Unable to initialize Stripe payment session: ${errorDetails}`,
         details: errorText,
-        payment_collection_id: payment_collection.id
+        payment_collection_id: payment_collection.id,
+        debug: {
+          provider_id_used: 'stripe',
+          medusa_backend: MEDUSA_BACKEND_URL,
+          stripe_configured: !!stripeApiKey
+        }
       }, { status: 500 })
     }
 
@@ -356,7 +391,7 @@ export async function POST(request: NextRequest) {
 
     // Get the Stripe payment session
     const paymentSessions = paymentSessionData.payment_collection?.payment_sessions || []
-    const stripeSession = paymentSessions.find((s: any) => s.provider_id === 'stripe')
+    const stripeSession = paymentSessions.find((s: any) => s.provider_id === 'pp_stripe_stripe' || s.provider_id === 'stripe')
 
     if (!stripeSession) {
       console.error('❌ No Stripe payment session found')

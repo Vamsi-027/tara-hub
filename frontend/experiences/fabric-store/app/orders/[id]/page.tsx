@@ -87,7 +87,49 @@ export default function GuestOrderPage() {
 
       if (response.ok) {
         const data = await response.json()
-        if (data.order) {
+
+        // Handle the response structure: data.data.orders[0]
+        if (data.success && data.data && data.data.orders && data.data.orders.length > 0) {
+          const orderData = data.data.orders[0]
+
+          // Transform the order data to match the expected format
+          const transformedOrder: Order = {
+            id: orderData.id,
+            email: orderData.email,
+            items: orderData.items.map((item: any) => ({
+              id: item.id,
+              name: item.title,
+              sku: item.variant?.sku || 'N/A',
+              color: item.metadata?.color || 'Default',
+              price: item.unit_price * 100, // Convert to cents
+              quantity: item.quantity,
+              image: item.thumbnail
+            })),
+            shipping: {
+              firstName: orderData.shipping_address?.first_name || '',
+              lastName: orderData.shipping_address?.last_name || '',
+              address: orderData.shipping_address?.address_1 || '',
+              city: orderData.shipping_address?.city || '',
+              state: orderData.shipping_address?.province || '',
+              zipCode: orderData.shipping_address?.postal_code || '',
+              phone: orderData.shipping_address?.phone || ''
+            },
+            totals: {
+              subtotal: (orderData.subtotal || 0) * 100, // Convert to cents
+              shipping: (orderData.shipping_total || 0) * 100,
+              tax: (orderData.tax_total || 0) * 100,
+              total: (orderData.total || 0) * 100
+            },
+            status: orderData.status || 'pending',
+            paymentIntentId: orderData.payment_collection_id,
+            tracking: orderData.tracking_number,
+            createdAt: orderData.created_at,
+            updatedAt: orderData.updated_at
+          }
+
+          setOrder(transformedOrder)
+        } else if (data.order) {
+          // Fallback for old API structure
           setOrder(data.order)
         } else {
           setError('Order not found')

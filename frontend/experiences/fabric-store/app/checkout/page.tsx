@@ -38,7 +38,13 @@ import { useSession, signIn } from 'next-auth/react'
 let stripePromise: Promise<any> | null = null
 const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51PVOZh08gPJjfTdFLBQJPcG42YxvWKCjBRNgCqzN7Y9tJjGnBJ9xeQzHMTLKT4uGxb9Gx6Bx5nJzKZKxJxJxJxJx00Y9YJxJxJ')
+    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    if (!publishableKey) {
+      console.error('❌ Stripe publishable key is missing! Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to environment variables.')
+      // Return null to prevent Stripe initialization without proper key
+      return null
+    }
+    stripePromise = loadStripe(publishableKey)
   }
   return stripePromise
 }
