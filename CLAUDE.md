@@ -174,3 +174,33 @@ US region support with USD pricing is being implemented, including tax handling 
 
 ### Payment Integration
 Stripe payment provider configured for both Medusa backend and fabric-store frontend with proper webhook handling and payment flow.
+
+## Environment Variables
+
+Key environment variables required:
+- `DATABASE_URL` - PostgreSQL connection string
+- `POSTGRES_URL` - Alternative PostgreSQL URL for Medusa
+- `KV_REST_API_*` - Vercel KV/Redis configuration
+- `JWT_SECRET` - Authentication secret
+- `MEDUSA_ADMIN_EMAIL` - Admin user email
+- `STRIPE_API_KEY` - Stripe payment integration
+- `TWILIO_*` - SMS authentication
+- `RESEND_API_KEY` - Email service
+- `R2_*` - Cloudflare R2 storage
+- `SANITY_*` - CMS configuration
+
+## Testing Strategy
+
+Before running tests, check available test commands:
+```bash
+# Check package.json for test scripts
+cat package.json | grep "test"
+cat medusa/package.json | grep "test"
+```
+
+## Important File Locations
+
+- Medusa configuration: `/medusa/medusa-config.ts`
+- Turbo configuration: `/turbo.json`
+- Deployment configs: `/vercel.json`, `/railway.json`
+- Environment examples: `/.env.example`, `/medusa/.env.template`

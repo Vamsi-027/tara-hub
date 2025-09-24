@@ -18,17 +18,14 @@ const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ||
                        'pk_52c908c87d04f835cc7b96e7579083f06603e4997fc42f7358c69dcff8f17d38'
 
-// Admin credentials for accessing orders
-const ADMIN_EMAIL = 'admin@tara-hub.com'
-const ADMIN_PASSWORD = 'password'
-
 // Email validation regex - RFC 5322 compliant
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
 
 /**
  * GET /api/orders - Fetch customer orders
  * Query Parameters:
- * - email: Customer email address (required)
+ * - id: Order ID to fetch specific order (optional)
+ * - email: Customer email address (optional if id provided)
  * - limit: Number of orders to return (optional, default: 10, max: 50)
  * - offset: Number of orders to skip (optional, default: 0)
  */
@@ -38,28 +35,32 @@ export async function GET(request: NextRequest) {
   try {
     // Extract and validate query parameters
     const { searchParams } = new URL(request.url)
+    const orderId = searchParams.get('id')
     const email = searchParams.get('email')
     const limitParam = searchParams.get('limit')
     const offsetParam = searchParams.get('offset')
 
-    // Input validation
-    if (!email) {
+    // Input validation - require either orderId or email
+    if (!orderId && !email) {
       return NextResponse.json({
         success: false,
         error: 'Missing required parameter',
-        message: 'Email parameter is required',
-        code: 'MISSING_EMAIL'
+        message: 'Either order ID or email parameter is required',
+        code: 'MISSING_PARAMETER'
       }, { status: 400 })
     }
 
-    // Email format validation
-    if (!EMAIL_REGEX.test(email)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid email format',
-        message: 'Please provide a valid email address',
-        code: 'INVALID_EMAIL_FORMAT'
-      }, { status: 400 })
+    // If fetching by order ID, skip email validation
+    if (!orderId) {
+      // Email format validation only if email is provided and no orderId
+      if (email && !EMAIL_REGEX.test(email)) {
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid email format',
+          message: 'Please provide a valid email address',
+          code: 'INVALID_EMAIL_FORMAT'
+        }, { status: 400 })
+      }
     }
 
     // Parse and validate pagination parameters
@@ -75,60 +76,133 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log(`🔍 [ORDERS] Fetching orders for email: ${email}`)
+    console.log(`🔍 [ORDERS] Fetching orders - ID: ${orderId || 'none'}, Email: ${email || 'none'}`)
     console.log(`📄 [ORDERS] Pagination: limit=${limit}, offset=${offset}`)
 
-    // Helper function to authenticate with admin credentials
-    async function getAdminToken() {
-      console.log('🔑 Authenticating with admin credentials...')
-
-      const authResponse = await fetch(`${MEDUSA_BACKEND_URL}/admin/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: ADMIN_EMAIL,
-          password: ADMIN_PASSWORD
-        })
-      })
-
-      if (!authResponse.ok) {
-        const errorText = await authResponse.text()
-        throw new Error(`Admin authentication failed: ${errorText}`)
-      }
-
-      const authData = await authResponse.json()
-      const adminToken = authData.access_token || authData.token
-
-      if (!adminToken) {
-        throw new Error('No admin token received')
-      }
-
-      console.log('✅ Admin authentication successful')
-      return adminToken
-    }
-
     try {
-      // Get admin token for accessing orders
-      const adminToken = await getAdminToken()
+      // If order ID is provided, fetch specific order using public endpoint
+      if (orderId) {
+        console.log('🆔 Fetching specific order by ID using public endpoint:', orderId)
 
-      // Method 1: Fetch orders using admin API with email filter
-      console.log('1️⃣ Fetching orders with admin authentication...')
+        // Use public endpoint that doesn't require authentication
+        const storeOrderResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/public-orders/${orderId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
 
-      const ordersResponse = await fetch(`${MEDUSA_BACKEND_URL}/admin/orders?email=${encodeURIComponent(email)}&limit=${limit}&offset=${offset}`, {
+        if (storeOrderResponse.ok) {
+          const orderData = await storeOrderResponse.json()
+          const order = orderData.order || orderData
+
+          console.log(`✅ [ORDERS] Found order ${orderId}`)
+
+          // Transform order for consistent API response
+          const transformedOrder = {
+            id: order.id,
+            display_id: order.display_id,
+            email: order.email,
+            status: order.status,
+            payment_status: order.payment_status,
+            fulfillment_status: order.fulfillment_status,
+            total: order.total,
+            subtotal: order.subtotal,
+            tax_total: order.tax_total,
+            shipping_total: order.shipping_total,
+            currency_code: order.currency_code,
+            created_at: order.created_at,
+            updated_at: order.updated_at,
+            items: order.items?.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              total: item.total,
+              thumbnail: item.thumbnail,
+              variant: {
+                id: item.variant_id,
+                title: item.variant?.title,
+                sku: item.variant?.sku
+              },
+              product: {
+                id: item.variant?.product_id,
+                title: item.variant?.product?.title
+              }
+            })) || [],
+            shipping_address: order.shipping_address,
+            billing_address: order.billing_address
+          }
+
+          const responseTime = Date.now() - startTime
+
+          return NextResponse.json({
+            success: true,
+            data: {
+              orders: [transformedOrder],
+              count: 1,
+              total_count: 1,
+              limit: 1,
+              offset: 0
+            },
+            metadata: {
+              order_id: orderId,
+              response_time_ms: responseTime,
+              source: 'medusa_store_api_by_id'
+            }
+          })
+        } else if (storeOrderResponse.status === 404) {
+          return NextResponse.json({
+            success: false,
+            error: 'Order not found',
+            message: `No order found with ID: ${orderId}`,
+            code: 'ORDER_NOT_FOUND'
+          }, { status: 404 })
+        } else {
+          const errorText = await storeOrderResponse.text()
+          console.error('❌ Failed to fetch order by ID from store API:', errorText)
+
+          // Store API failed, return error
+          return NextResponse.json({
+            success: false,
+            error: 'Unable to fetch order',
+            message: `Could not retrieve order ${orderId}. Please try again later.`,
+            code: 'ORDER_FETCH_ERROR',
+            metadata: {
+              order_id: orderId,
+              response_time_ms: Date.now() - startTime
+            }
+          }, { status: 500 })
+        }
+      }
+
+      // Method 1: Try fetching orders using store API first (no authentication needed)
+      if (!email) {
+        // If no email and we got here, it means orderId fetch failed
+        return NextResponse.json({
+          success: false,
+          error: 'Unable to fetch order',
+          message: 'Order could not be retrieved',
+          code: 'FETCH_ERROR'
+        }, { status: 500 })
+      }
+
+      console.log('1️⃣ Fetching orders for customer email...')
+
+      // Use our custom customer orders endpoint
+      const customerOrdersResponse = await fetch(`${MEDUSA_BACKEND_URL}/store/orders/customer?email=${encodeURIComponent(email)}&limit=${limit}&offset=${offset}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
+          ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
         }
       })
 
-      if (ordersResponse.ok) {
-        const ordersData = await ordersResponse.json()
+      if (customerOrdersResponse.ok) {
+        const ordersData = await customerOrdersResponse.json()
         const orders = ordersData.orders || ordersData.data || []
 
-        console.log(`✅ [ORDERS] Found ${orders.length} orders for ${email} using admin API`)
+        console.log(`✅ [ORDERS] Found ${orders.length} orders for ${email} using store API`)
 
         // Filter orders to match the exact email (in case backend filter is case-sensitive or partial)
         const exactMatchOrders = orders.filter((order: any) =>
@@ -187,102 +261,17 @@ export async function GET(request: NextRequest) {
           metadata: {
             email,
             response_time_ms: responseTime,
-            source: 'medusa_admin_api',
+            source: 'medusa_store_api',
             total_orders_found: orders.length,
             exact_matches: exactMatchOrders.length
           }
         })
       }
 
-      // Method 2: If email filter doesn't work, fetch all orders and filter locally
-      console.log('2️⃣ Email filter failed, fetching all orders and filtering locally...')
+      // Method 2: If store API doesn't have email filter, return empty for now
+      console.log('2️⃣ Store API does not support email filtering for orders')
 
-      const allOrdersResponse = await fetch(`${MEDUSA_BACKEND_URL}/admin/orders?limit=100`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        }
-      })
-
-      if (allOrdersResponse.ok) {
-        const allOrdersData = await allOrdersResponse.json()
-        const allOrders = allOrdersData.orders || allOrdersData.data || []
-
-        console.log(`📦 [ORDERS] Total orders in database: ${allOrders.length}`)
-
-        // Filter orders by email
-        const userOrders = allOrders.filter((order: any) =>
-          order.email && order.email.toLowerCase() === email.toLowerCase()
-        )
-
-        console.log(`🎯 [ORDERS] Found ${userOrders.length} orders for ${email}`)
-
-        if (userOrders.length > 0) {
-          // Apply pagination to filtered results
-          const paginatedOrders = userOrders.slice(offset, offset + limit)
-
-          // Transform orders for consistent API response
-          const transformedOrders = paginatedOrders.map((order: any) => ({
-            id: order.id,
-            display_id: order.display_id,
-            email: order.email,
-            status: order.status,
-            payment_status: order.payment_status,
-            fulfillment_status: order.fulfillment_status,
-            total: order.total,
-            subtotal: order.subtotal,
-            tax_total: order.tax_total,
-            shipping_total: order.shipping_total,
-            currency_code: order.currency_code,
-            created_at: order.created_at,
-            updated_at: order.updated_at,
-            items: order.items?.map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              quantity: item.quantity,
-              unit_price: item.unit_price,
-              total: item.total,
-              thumbnail: item.thumbnail,
-              variant: {
-                id: item.variant_id,
-                title: item.variant?.title,
-                sku: item.variant?.sku
-              },
-              product: {
-                id: item.variant?.product_id,
-                title: item.variant?.product?.title
-              }
-            })) || [],
-            shipping_address: order.shipping_address,
-            billing_address: order.billing_address
-          }))
-
-          const responseTime = Date.now() - startTime
-
-          return NextResponse.json({
-            success: true,
-            data: {
-              orders: transformedOrders,
-              count: paginatedOrders.length,
-              total_count: userOrders.length,
-              limit,
-              offset
-            },
-            metadata: {
-              email,
-              response_time_ms: responseTime,
-              source: 'medusa_admin_api_filtered',
-              total_orders_in_db: allOrders.length,
-              user_orders_found: userOrders.length
-            }
-          })
-        }
-      }
-
-      // Method 3: Fallback - return empty results with helpful message
-      console.log('3️⃣ No orders found, returning empty results')
-
+      // Return empty results for now
       return NextResponse.json({
         success: true,
         data: {
@@ -292,12 +281,11 @@ export async function GET(request: NextRequest) {
           limit,
           offset
         },
-        message: 'No orders found for this email address',
+        message: 'Order history is currently unavailable. Please check back later.',
         metadata: {
           email,
           response_time_ms: Date.now() - startTime,
-          source: 'admin_authenticated_empty_result',
-          note: 'Orders searched using admin authentication - customer may not have placed any orders yet'
+          source: 'store_api_no_email_filter'
         }
       })
 
@@ -311,8 +299,10 @@ export async function GET(request: NextRequest) {
         message: 'Unable to fetch orders at this time. Please try again later.',
         code: 'SERVICE_UNAVAILABLE',
         metadata: {
-          email,
-          response_time_ms: Date.now() - startTime
+          ...(orderId && { order_id: orderId }),
+          ...(email && { email }),
+          response_time_ms: Date.now() - startTime,
+          error_details: medusaError instanceof Error ? medusaError.message : 'Unknown error'
         }
       }, { status: 503 })
     }

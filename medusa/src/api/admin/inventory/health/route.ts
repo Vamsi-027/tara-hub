@@ -1,7 +1,34 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils";
 import { computeAtsUnits, getStockStatus } from "../../../services/inventory-policy.service";
-import { enforceScopes, INVENTORY_SCOPES } from "../../../utils/rbac";
+
+// Inline RBAC helpers
+const INVENTORY_SCOPES = {
+  READ: "inventory:read",
+  WRITE: "inventory:write",
+  TRANSFER: "inventory:transfer",
+} as const;
+
+function isAdmin(req: MedusaRequest): boolean {
+  return (
+    (req as any).auth?.actor_type === "user" ||
+    (req as any).user?.type === "admin" ||
+    (req as any).user?.role === "admin" ||
+    Boolean((req as any).session?.user_id)
+  );
+}
+
+function enforceScopes(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  required: string[]
+): boolean {
+  if (!isAdmin(req)) {
+    res.status(403).json({ error: "Admin access required" });
+    return false;
+  }
+  return true;
+}
 
 type HealthItem = {
   variant_id?: string;
