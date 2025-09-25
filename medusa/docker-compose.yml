@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: medusa
+      POSTGRES_PASSWORD: medusa
+      POSTGRES_DB: medusa_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medusa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  medusa:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    ports:
+      - "9000:9000"
+      - "7001:7001"
+    environment:
+      DATABASE_URL: postgres://medusa:medusa@postgres:5432/medusa_db
+      NODE_ENV: development
+      JWT_SECRET: supersecret
+      COOKIE_SECRET: supersecret
+      STORE_CORS: http://localhost:3000,http://localhost:3006,http://localhost:3007,http://localhost:8000
+      ADMIN_CORS: http://localhost:3000,http://localhost:7001,http://localhost:9000
+      AUTH_CORS: http://localhost:3000,http://localhost:9000,http://localhost:8000
+      MEDUSA_BACKEND_URL: http://localhost:9000
+      DISABLE_MEDUSA_ADMIN: false
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx medusa db:migrate && npm run dev"
+
+volumes:
+  postgres_data:

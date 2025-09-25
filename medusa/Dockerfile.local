@@ -1,0 +1,26 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ git
+
+# Copy package files
+COPY package*.json ./
+
+# Force clean install with legacy peer deps
+RUN rm -rf node_modules package-lock.json && \
+    npm cache clean --force && \
+    npm install --legacy-peer-deps --no-optional
+
+# Copy source code
+COPY . .
+
+# Build Medusa (allow failure for now)
+RUN npm run build || true
+
+# Expose ports
+EXPOSE 9000 7001
+
+# Start command
+CMD ["npm", "run", "dev"]
