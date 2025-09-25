@@ -12,7 +12,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies for build
-RUN npm ci --only=production --ignore-scripts
+# Using npm install instead of npm ci since package-lock.json doesn't exist
+RUN npm install --production=false --ignore-scripts
 
 # Copy source code
 COPY . .
@@ -106,7 +107,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (Medusa needs dev deps for TypeScript at runtime)
-RUN npm ci && npm cache clean --force
+# Using npm install instead of npm ci since package-lock.json doesn't exist
+RUN npm install --production=false && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder --chown=medusa:nodejs /app/.medusa /app/.medusa
