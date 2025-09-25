@@ -83,3 +83,6 @@ code-reference/
 
 # Deployment tokens (never commit)
 .env.deployment.local
+
+# Legacy test data (never commit)
+**/.orders.json

@@ -23,8 +23,7 @@ This implementation plan focuses on fabric-specific commerce features that diffe
 **🚀 Future Sprint Features (POST-LAUNCH):**
 - Advanced trade accounts (NET 30, volume discounts, tax exemption)
 - Complex backend inventory management
-- Advanced analytics and reporting
-- ERP integrations
+
 
 **Key Success Metrics:**
 - Homepage conversion rate > 3%

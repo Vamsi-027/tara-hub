@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import AuthSessionProvider from '@/components/providers/session-provider'
+import { CartProvider } from '@/contexts/CartContext'
 
 // Optimized font configuration - using only Inter for better performance
 const inter = Inter({ 
@@ -34,7 +35,9 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="font-inter antialiased" suppressHydrationWarning>
         <AuthSessionProvider>
-          {children}
+          <CartProvider>
+            {children}
+          </CartProvider>
         </AuthSessionProvider>
       </body>
     </html>

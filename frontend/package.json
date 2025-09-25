@@ -23,7 +23,6 @@
     "shared"
   ],
   "dependencies": {
-    "@next/swc-darwin-arm64": "^15.5.3",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",

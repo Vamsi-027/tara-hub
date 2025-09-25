@@ -7,14 +7,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { orderService } from '@/lib/services/order.service'
 
-// Get Stripe configuration
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY || 'sk_test_fallback'
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_fallback'
+// Get Stripe configuration strictly from environment (no fallbacks)
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
 // Initialize Stripe only if we have a valid key
 let stripe: Stripe | null = null
 
-if (stripeSecretKey && stripeSecretKey !== 'sk_test_fallback') {
+if (stripeSecretKey) {
   try {
     stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2024-12-18.acacia',
@@ -43,6 +43,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing stripe signature' },
         { status: 400 }
+      )
+    }
+
+    if (!webhookSecret) {
+      console.warn('Stripe webhook called without STRIPE_WEBHOOK_SECRET configured')
+      return NextResponse.json(
+        { error: 'Stripe webhook not configured' },
+        { status: 501 }
       )
     }
 

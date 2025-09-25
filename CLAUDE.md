@@ -204,3 +204,6 @@ cat medusa/package.json | grep "test"
 - Turbo configuration: `/turbo.json`
 - Deployment configs: `/vercel.json`, `/railway.json`
 - Environment examples: `/.env.example`, `/medusa/.env.template`
+
+## context7 MCP Server
+Always use context7 when I need code generation, setup or configuration steps, or library/API documentation. This means you should automatically use the Context7 MCP tools to resolve library id and get library docs without me having to explicitly ask.
