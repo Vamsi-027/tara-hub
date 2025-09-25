@@ -46,7 +46,7 @@ RUN echo "MEDUSA_BACKEND_URL=https://medusa-backend-production-3655.up.railway.a
 
 # Clean caches and reinstall with dev deps for build
 RUN rm -rf .medusa node_modules/.cache ~/.npm/_cacache || true
-RUN npm install --include=dev --no-cache
+RUN npm install --include=dev --legacy-peer-deps
 
 # Build with ALL possible environment variables set
 # Continue even if there are TypeScript warnings
