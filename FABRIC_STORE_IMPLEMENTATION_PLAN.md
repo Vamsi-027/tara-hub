@@ -10,7 +10,21 @@
 
 ## 📋 **EXECUTIVE SUMMARY**
 
-This implementation plan focuses on fabric-specific commerce features that differentiate Tara Hub from generic e-commerce platforms. We're building for the fabric industry's unique requirements: sample ordering, visual discovery, mobile browsing, and B2B trade accounts.
+**⚠️ SCOPE-MANAGED FOR ASAP GO-LIVE**
+
+This implementation plan focuses on fabric-specific commerce features that differentiate Tara Hub from generic e-commerce platforms. **Based on critical feedback, this plan prioritizes MVP features for immediate launch while moving advanced features to future sprints.**
+
+**🎯 MVP Go-Live Focus:**
+- Sample ordering system (competitive advantage)
+- Mobile-first UIUX with visual fabric discovery
+- Content & legal compliance (launch blockers)
+- Essential commerce flow optimization
+
+**🚀 Future Sprint Features (POST-LAUNCH):**
+- Advanced trade accounts (NET 30, volume discounts, tax exemption)
+- Complex backend inventory management
+- Advanced analytics and reporting
+- ERP integrations
 
 **Key Success Metrics:**
 - Homepage conversion rate > 3%
@@ -22,15 +36,24 @@ This implementation plan focuses on fabric-specific commerce features that diffe
 
 ## 🎯 **FEATURE SPECIFICATIONS**
 
-### **WEEK 1: FOUNDATION + FABRIC-SPECIFIC FEATURES**
+### **WEEK 1: CRITICAL PATH - CONTENT + BACKEND + UIUX** ⚡ **MUST START DAY 1**
 
-#### **Feature 1: Fabric-Focused Homepage (Days 1-2)**
+**⚠️ CRITICAL SUCCESS FACTOR:** Content and Backend work are on the critical path. Frontend will be blocked without APIs, CMS schemas, and legal content ready.
+
+#### **Feature 1: Homepage UIUX Design + CMS Setup (Days 1-2)** ⭐ **HIGH IMPACT, LOW EFFORT**
+
+**🎨 UIUX Design Priority:**
+- Hero section layout with fabric-specific messaging
+- Featured collections grid design
+- Trust signals placement and styling
+- Mobile-first responsive breakpoints
+- Call-to-action button placement and hierarchy
 
 **Technical Requirements:**
-- CMS-driven content management via Sanity
-- Mobile-first responsive design
+- CMS-driven content management via Sanity *(Backend Priority)*
+- Mobile-first responsive design *(Frontend Priority)*
 - Core Web Vitals optimization
-- Fabric-specific messaging and imagery
+- Fabric-specific messaging and imagery *(Content Priority)*
 
 **Component Architecture:**
 ```typescript
@@ -94,7 +117,7 @@ export const homepageSchema = {
 
 ---
 
-#### **Feature 2: Sample Ordering System (Days 3-4)**
+#### **Feature 2: Sample Ordering System (Days 3-4)** 🎯 **MVP CORE FEATURE**
 
 **Business Logic:**
 ```typescript
@@ -154,7 +177,7 @@ const sampleProduct = {
 
 ---
 
-#### **Feature 3: Essential Business Pages (Day 5)**
+#### **Feature 3: Essential Business Pages + Content (Day 5)** ⚡ **LAUNCH BLOCKER**
 
 **Required Legal Pages:**
 ```typescript
@@ -183,9 +206,9 @@ const businessPages = {
 
 ---
 
-### **WEEK 2: DISCOVERY + COMMERCE OPTIMIZATION**
+### **WEEK 2: MOBILE UIUX + COMMERCE FLOW**
 
-#### **Feature 4: Mobile-First Product Discovery (Days 1-3)**
+#### **Feature 4: Mobile-First Product Discovery + UIUX (Days 1-3)** 📱 **70% OF TRAFFIC**
 
 **Search Implementation:**
 ```typescript
@@ -259,51 +282,74 @@ const productCardData = {
 
 ---
 
-#### **Feature 5: Checkout Optimization (Days 4-5)**
+#### **Feature 5: Checkout UIUX Optimization (Days 4-5)** 💳 **REVENUE CRITICAL**
 
-**Fabric-Specific Checkout Flow:**
+**MVP Checkout UIUX Enhancement:**
 ```typescript
-// Enhanced checkout for fabric commerce
+// Scope-managed checkout for MVP launch
 components/checkout/
-├── FabricCartSummary.tsx    // Cart with fabric specifications
-├── ShippingCalculator.tsx   // Weight-based shipping
-├── YardageValidator.tsx     // Minimum order quantities
-├── SampleCheckout.tsx       // Separate sample checkout
-├── TradeAccountForm.tsx     // B2B account information
-└── OrderConfirmation.tsx    // Fabric care instructions
+├── FabricCartSummary.tsx    // Cart with basic fabric specs
+├── CheckoutForm.tsx        // Streamlined checkout form
+├── OrderConfirmation.tsx    // Basic order confirmation
+└── PaymentForm.tsx         // Stripe payment integration
 
-const checkoutEnhancements = {
-  fabricCalculations: {
+const mvpCheckoutFeatures = {
+  essential: {
+    fabricSpecs: 'Display width, composition, care basics',
     pricePerYard: 'Calculate total based on yardage',
-    minimumOrders: 'Enforce minimum order quantities',
-    cuttingFees: 'Add cutting fees for specific lengths'
-  },
-  shipping: {
-    weightBased: 'Calculate shipping by fabric weight',
-    rollCharges: 'Additional fees for fabric rolls',
-    sampleShipping: 'Free sample shipping over threshold'
-  },
-  tradeAccounts: {
-    netTerms: 'NET 30 payment terms for approved accounts',
-    volumeDiscounts: 'Automatic tiered pricing',
-    taxExemption: 'Tax-exempt status handling'
+    basicShipping: 'Standard shipping rates (not weight-based)',
+    stripePayment: 'Card payments only for MVP'
   }
 }
 ```
 
-**Payment Enhancement:**
+**🚀 Future Sprint Features (POST-LAUNCH):**
 ```typescript
-// Enhanced payment processing
-const paymentConfig = {
+// Advanced features moved to future sprints
+const futureCheckoutFeatures = {
+  advanced: {
+    weightBasedShipping: 'Calculate shipping by fabric weight',
+    minimumOrders: 'Enforce minimum order quantities',
+    cuttingFees: 'Add cutting fees for specific lengths',
+    separateSampleCheckout: 'Dedicated sample ordering flow'
+  },
+  tradeAccounts: {
+    netTerms: 'NET 30 payment terms for approved accounts',
+    volumeDiscounts: 'Automatic tiered pricing',
+    taxExemption: 'Tax-exempt status handling',
+    bulkOrdering: 'Wholesale quantity management'
+  }
+}
+```
+
+**MVP Payment Processing:**
+```typescript
+// Simple payment processing for MVP
+const mvpPaymentConfig = {
   stripe: {
-    paymentMethods: ['card', 'bank_transfer'], // ACH for large orders
+    paymentMethods: ['card'], // Credit/debit cards only for MVP
+    basicIntegration: 'Standard Stripe checkout',
+    orderConfirmation: 'Email receipt and confirmation'
+  },
+  orderTypes: {
+    sample: 'Simple sample orders',
+    yardage: 'Standard fabric orders'
+  }
+}
+```
+
+**🚀 Future Payment Features:**
+```typescript
+// Advanced payment features for future sprints
+const futurePaymentConfig = {
+  stripe: {
+    paymentMethods: ['card', 'bank_transfer', 'buy_now_pay_later'],
     tradeAccounts: 'NET payment terms integration',
     recurringOrders: 'Subscription fabric deliveries'
   },
   orderTypes: {
-    sample: 'Low-cost sample orders',
-    yardage: 'Standard fabric orders',
-    trade: 'Wholesale/bulk orders with special pricing'
+    trade: 'Wholesale/bulk orders with special pricing',
+    subscription: 'Recurring fabric deliveries'
   }
 }
 ```
@@ -381,44 +427,52 @@ export const useFabricStore = create<FabricStore>((set, get) => ({
 
 ## 🗃️ **DATABASE SCHEMA ENHANCEMENTS**
 
-### **Medusa Custom Fields:**
+### **MVP Database Changes (Minimal Risk):**
 ```sql
--- Product metadata for fabrics
+-- Essential fabric metadata (uses existing product metadata field)
+-- NO TABLE ALTERATIONS for MVP - use Medusa's built-in metadata JSON field
+
+-- Sample orders using existing order system with metadata
+-- NO NEW TABLES for MVP - leverage existing order table with type metadata
+
+-- MVP: Use Medusa's existing structures with metadata
+UPDATE product
+SET metadata = jsonb_set(
+  COALESCE(metadata, '{}'),
+  '{fabric_type}',
+  '"cotton"'
+) WHERE product_type = 'fabric';
+```
+
+**⚠️ RISK MITIGATION:** No schema changes for MVP launch. Use Medusa's built-in metadata fields.
+
+**🚀 Future Sprint Database Enhancements:**
+```sql
+-- Post-launch: Dedicated fabric columns for performance
 ALTER TABLE product ADD COLUMN fabric_type VARCHAR(50);
 ALTER TABLE product ADD COLUMN fabric_width DECIMAL(5,2);
-ALTER TABLE product ADD COLUMN fabric_weight DECIMAL(7,2);
 ALTER TABLE product ADD COLUMN composition JSONB;
-ALTER TABLE product ADD COLUMN care_instructions JSONB;
-ALTER TABLE product ADD COLUMN minimum_order DECIMAL(7,2);
 
--- Sample order tracking
-CREATE TABLE sample_orders (
-  id VARCHAR(255) PRIMARY KEY,
-  customer_id VARCHAR(255),
-  items JSONB NOT NULL,
-  total DECIMAL(10,2),
-  shipping_address JSONB,
-  status VARCHAR(50) DEFAULT 'pending',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Trade account management
+-- Post-launch: Trade account management
 CREATE TABLE trade_accounts (
   id VARCHAR(255) PRIMARY KEY,
   customer_id VARCHAR(255) UNIQUE,
   business_name VARCHAR(255),
-  tax_id VARCHAR(50),
-  credit_limit DECIMAL(10,2),
   payment_terms VARCHAR(20) DEFAULT 'NET_30',
-  discount_tier VARCHAR(20) DEFAULT 'standard',
-  approved_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 ---
 
-## 📱 **MOBILE OPTIMIZATION STRATEGY**
+## 📱 **MOBILE UIUX OPTIMIZATION STRATEGY** 🎯 **70% OF TRAFFIC**
+
+**🎨 UIUX Design Priorities:**
+- Touch-friendly fabric browsing with large tap targets
+- Visual color filters with swatches (not dropdowns)
+- Swipe-enabled product image galleries
+- Simplified checkout form for mobile
+- Prominent sample ordering CTAs
 
 ### **Performance Requirements:**
 ```typescript

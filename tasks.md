@@ -1,17 +1,31 @@
 # 📋 **FABRIC STORE GO-LIVE TASKS**
 
-## **Project Information**
-- **Project:** Tara Hub Fabric Store Go-Live
+## **Project Information** ⚡ **SCOPE-MANAGED FOR ASAP LAUNCH**
+- **Project:** Tara Hub Fabric Store MVP Go-Live
 - **Timeline:** 14 days (2 weeks)
-- **Team:** 2-3 developers (Frontend + Backend)
+- **Team:** 2-3 developers (Frontend + Backend + Content)
 - **Budget:** 80 development hours
 - **Target:** End of January 2025
 
+**🎯 MVP FOCUS:** Sample ordering, Mobile UIUX, Content/Legal compliance
+**🚀 POST-LAUNCH:** Advanced trade accounts, complex backend features
+
 ---
 
-# 🚀 **WEEK 1: FOUNDATION + FABRIC-SPECIFIC FEATURES**
+# 🚀 **WEEK 1: CRITICAL PATH - CONTENT + BACKEND + UIUX**
 
-## **DAY 1-2: FABRIC-FOCUSED HOMEPAGE** ⭐ **CRITICAL**
+**⚠️ CRITICAL SUCCESS FACTOR:** Content, Backend, and UIUX work must start Day 1. Frontend will be blocked without APIs, CMS schemas, and legal content ready.
+
+## **DAY 1-2: HOMEPAGE UIUX DESIGN + CMS SETUP** ⭐ **HIGH IMPACT, LOW EFFORT**
+
+### **UIUX Design Tasks:** 🎨 **START DAY 1**
+- [ ] **U1.1** - Design homepage hero section layout
+  - [ ] Create fabric-specific hero mockups (mobile-first)
+  - [ ] Design featured collections grid layout
+  - [ ] Plan trust signals placement and styling
+  - **Assignee:** UI/UX Designer
+  - **Hours:** 6
+  - **Priority:** CRITICAL
 
 ### **Frontend Tasks:**
 - [ ] **F1.1** - Set up Sanity CMS integration in fabric-store
@@ -22,12 +36,12 @@
   - **Hours:** 4
   - **Priority:** HIGH
 
-- [ ] **F1.2** - Create fabric-specific hero section component
-  - [ ] Build `HeroSection.tsx` with CMS-driven content
-  - [ ] Implement fabric-specific messaging
-  - [ ] Add mobile-responsive design with proper CTAs
+- [ ] **F1.2** - Implement homepage UIUX design
+  - [ ] Build `HeroSection.tsx` from UIUX mockups
+  - [ ] Implement mobile-first responsive design
+  - [ ] Add proper CTA button hierarchy and styling
   - **Assignee:** Frontend Developer
-  - **Hours:** 6
+  - **Hours:** 8
   - **Priority:** HIGH
 
 - [ ] **F1.3** - Build featured collections showcase
@@ -55,72 +69,80 @@
   - **Hours:** 3
   - **Priority:** HIGH
 
-### **Content Tasks:**
+### **Content Tasks:** 📝 **CRITICAL PATH**
 - [ ] **C1.1** - Write fabric-specific homepage copy
   - [ ] Create compelling headlines and messaging
   - [ ] Write trust signal copy and descriptions
   - [ ] Prepare fabric category descriptions
   - **Assignee:** Content Writer / PM
+  - **Hours:** 6
+  - **Priority:** CRITICAL
+
+- [ ] **C1.2** - Create sample ordering copy and flow text
+  - [ ] Write sample CTA copy ("Order Sample", "Free with $50+")
+  - [ ] Create sample checkout flow messaging
+  - [ ] Write email templates for sample confirmations
+  - **Assignee:** Content Writer
   - **Hours:** 4
   - **Priority:** HIGH
 
 ---
 
-## **DAY 3-4: SAMPLE ORDERING SYSTEM** ⭐ **CRITICAL**
+## **DAY 3-4: SAMPLE ORDERING SYSTEM (SIMPLIFIED)** 🎯 **MVP COMPETITIVE ADVANTAGE**
 
 ### **Frontend Tasks:**
-- [ ] **F2.1** - Build sample ordering UI components
+- [ ] **F2.1** - Build simplified sample ordering UI (MVP)
   - [ ] Create `SampleOrderButton.tsx` with prominent styling
-  - [ ] Build `SampleOrderModal.tsx` for sample selection
-  - [ ] Implement `SampleCart.tsx` for sample management
+  - [ ] Build simple sample selection modal (no complex cart)
+  - [ ] Integrate with existing cart system (not separate)
   - **Assignee:** Frontend Lead
-  - **Hours:** 8
-  - **Priority:** CRITICAL
-
-- [ ] **F2.2** - Implement sample size and pricing logic
-  - [ ] Create `SampleSizeSelector.tsx` component
-  - [ ] Implement dynamic pricing based on sample rules
-  - [ ] Add free sample threshold calculations
-  - **Assignee:** Frontend Developer
-  - **Hours:** 6
-  - **Priority:** HIGH
-
-- [ ] **F2.3** - Build sample checkout flow
-  - [ ] Create dedicated sample checkout components
-  - [ ] Implement sample-specific shipping calculations
-  - [ ] Add sample order confirmation flow
-  - **Assignee:** Frontend Developer
-  - **Hours:** 8
-  - **Priority:** HIGH
-
-### **Backend Tasks:**
-- [ ] **B2.1** - Create sample product management in Medusa
-  - [ ] Set up sample product types in Medusa
-  - [ ] Configure sample pricing and inventory
-  - [ ] Create sample-specific SKU generation
-  - **Assignee:** Backend Developer
   - **Hours:** 6
   - **Priority:** CRITICAL
 
-- [ ] **B2.2** - Implement sample order APIs
-  - [ ] Create `/api/samples/add-to-sample-cart` endpoint
-  - [ ] Build `/api/samples/create-sample-order` endpoint
-  - [ ] Implement sample shipping calculation API
-  - **Assignee:** Backend Developer
-  - **Hours:** 8
-  - **Priority:** CRITICAL
+- [ ] **F2.2** - Implement basic sample pricing (MVP)
+  - [ ] Add sample products to existing cart system
+  - [ ] Implement simple free sample threshold logic
+  - [ ] Add sample identification in cart display
+  - **Assignee:** Frontend Developer
+  - **Hours:** 4
+  - **Priority:** HIGH
 
-- [ ] **B2.3** - Set up sample order tracking
-  - [ ] Create sample order database schema
-  - [ ] Implement sample order status tracking
-  - [ ] Build sample order history API
-  - **Assignee:** Backend Developer
+- [ ] **F2.3** - Enhance existing checkout for samples
+  - [ ] Add sample identification in checkout summary
+  - [ ] Update order confirmation to mention samples
+  - [ ] Add basic sample fulfillment email templates
+  - **Assignee:** Frontend Developer
   - **Hours:** 4
   - **Priority:** MEDIUM
 
+### **Backend Tasks:**
+- [ ] **B2.1** - Create sample products using existing Medusa system
+  - [ ] Add sample variants to existing fabric products
+  - [ ] Configure sample pricing ($0-$5 range)
+  - [ ] Use existing product system (no new tables)
+  - **Assignee:** Backend Developer
+  - **Hours:** 4
+  - **Priority:** CRITICAL
+
+- [ ] **B2.2** - Enhance existing APIs for samples (MVP)
+  - [ ] Add sample identification to existing cart API
+  - [ ] Update order creation to handle sample metadata
+  - [ ] Use standard shipping for MVP (no custom logic)
+  - **Assignee:** Backend Developer
+  - **Hours:** 4
+  - **Priority:** HIGH
+
+- [ ] **B2.3** - Basic sample order identification (MVP)
+  - [ ] Add sample metadata to existing orders
+  - [ ] Update order history to show sample indicators
+  - [ ] Basic email notifications for sample orders
+  - **Assignee:** Backend Developer
+  - **Hours:** 2
+  - **Priority:** LOW
+
 ---
 
-## **DAY 5: ESSENTIAL BUSINESS PAGES** ⭐ **LEGAL REQUIREMENT**
+## **DAY 5: ESSENTIAL BUSINESS PAGES + CONTENT** ⚡ **LAUNCH BLOCKER**
 
 ### **Frontend Tasks:**
 - [ ] **F3.1** - Create legal and business page templates
@@ -162,7 +184,7 @@
 
 # 🔍 **WEEK 2: DISCOVERY + COMMERCE OPTIMIZATION**
 
-## **DAY 6-8: MOBILE-FIRST PRODUCT DISCOVERY** ⭐ **CRITICAL**
+## **DAY 6-8: MOBILE-FIRST PRODUCT DISCOVERY + UIUX** 📱 **70% OF TRAFFIC**
 
 ### **Frontend Tasks:**
 - [ ] **F4.1** - Build advanced search functionality
@@ -209,41 +231,41 @@
 
 ---
 
-## **DAY 9-10: CHECKOUT OPTIMIZATION** ⭐ **HIGH PRIORITY**
+## **DAY 9-10: CHECKOUT UIUX OPTIMIZATION** 💳 **REVENUE CRITICAL**
 
 ### **Frontend Tasks:**
-- [ ] **F5.1** - Enhance checkout for fabric commerce
-  - [ ] Update `FabricCartSummary.tsx` with specifications
-  - [ ] Implement `ShippingCalculator.tsx` for weight-based shipping
-  - [ ] Build `YardageValidator.tsx` for minimum orders
+- [ ] **F5.1** - Optimize existing checkout UIUX (MVP)
+  - [ ] Enhance cart summary with basic fabric specs
+  - [ ] Improve mobile checkout form layout
+  - [ ] Add fabric care instructions to confirmation
   - **Assignee:** Frontend Lead
-  - **Hours:** 10
+  - **Hours:** 6
   - **Priority:** HIGH
 
-- [ ] **F5.2** - Add trade account features
-  - [ ] Create `TradeAccountForm.tsx` component
-  - [ ] Implement trade pricing display logic
-  - [ ] Add NET payment terms for trade accounts
+- [ ] **F5.2** - Basic trade account signup (Future Sprint Prep)
+  - [ ] Create simple trade account interest form
+  - [ ] Add "Trade Account" link in footer
+  - [ ] Basic lead capture for B2B customers
   - **Assignee:** Frontend Developer
-  - **Hours:** 8
-  - **Priority:** MEDIUM
+  - **Hours:** 3
+  - **Priority:** LOW
 
 ### **Backend Tasks:**
-- [ ] **B5.1** - Implement fabric-specific checkout logic
-  - [ ] Add weight-based shipping calculations
-  - [ ] Implement minimum order quantity validation
-  - [ ] Create fabric cutting fee calculations
+- [ ] **B5.1** - Basic checkout enhancements (MVP)
+  - [ ] Add fabric metadata to order summaries
+  - [ ] Implement basic yardage calculations
+  - [ ] Use standard shipping (no weight-based for MVP)
   - **Assignee:** Backend Developer
-  - **Hours:** 8
-  - **Priority:** HIGH
-
-- [ ] **B5.2** - Set up trade account management
-  - [ ] Create trade account database schema
-  - [ ] Implement trade pricing logic
-  - [ ] Add NET payment terms integration
-  - **Assignee:** Backend Developer
-  - **Hours:** 6
+  - **Hours:** 4
   - **Priority:** MEDIUM
+
+- [ ] **B5.2** - Trade account lead capture (Future Sprint Prep)
+  - [ ] Create simple contact form for trade inquiries
+  - [ ] Set up email notifications for trade leads
+  - [ ] Basic lead storage (no complex pricing logic)
+  - **Assignee:** Backend Developer
+  - **Hours:** 2
+  - **Priority:** LOW
 
 ---
 
@@ -336,33 +358,41 @@
 
 # 📊 **TASK SUMMARY BY ROLE**
 
-## **Frontend Lead (32 hours):**
-- Homepage hero section and Sanity integration
-- Sample ordering system architecture
-- Advanced search functionality
-- Checkout enhancement coordination
+## **Frontend Lead (26 hours):** 🎨
+- Homepage UIUX implementation from designs
+- Simplified sample ordering system
+- Mobile-first search and filtering
+- Basic checkout optimization
 
-## **Frontend Developer (28 hours):**
+## **Frontend Developer (22 hours):** 🗽️
 - Component development (collections, trust signals, filters)
-- Mobile-first product discovery
+- Mobile-first product discovery UIUX
 - Legal page templates
-- Trade account features
+- Basic trade account signup form
 
-## **Backend Developer (26 hours):**
-- Medusa sample product setup
-- API development for samples and search
-- Database schema enhancements
-- Trade account backend logic
+## **Backend Developer (18 hours):** 🔌
+- Sample products using existing Medusa system
+- API enhancements for samples and search
+- Minimal database changes (metadata only)
+- Basic trade lead capture
 
-## **QA Engineer (20 hours):**
-- Comprehensive testing (unit, integration, mobile)
-- Performance testing and optimization
-- Pre-launch verification
-
-## **Content Writer (18 hours):**
+## **Content Writer (12 hours):** 📝 **CRITICAL PATH**
+- Homepage copy and messaging
+- Sample ordering flow text
 - Legal compliance content
-- Fabric-specific copy and messaging
-- Trade program content
+- Trade program information
+
+## **UI/UX Designer (8 hours):** 🎨 **HIGH IMPACT**
+- Homepage layout and mobile design
+- Sample ordering UIUX flows
+- Mobile product discovery wireframes
+- Checkout process optimization
+
+## **QA Engineer (14 hours):**
+- Mobile responsiveness testing
+- Sample ordering flow testing
+- Basic integration testing
+- Pre-launch verification checklist
 
 ---
 
@@ -411,13 +441,41 @@
 
 ---
 
+**🚀 FUTURE SPRINT FEATURES (POST-LAUNCH):**
+
+### **Sprint 2: Advanced Trade Accounts**
+- NET 30 payment terms integration
+- Volume discount pricing logic
+- Tax exemption handling
+- Bulk order management
+- Trade account dashboard
+
+### **Sprint 3: Advanced Commerce Features**
+- Weight-based shipping calculations
+- Minimum order quantity validation
+- Fabric cutting fees
+- Advanced sample cart management
+- Inventory management integration
+
+### **Sprint 4: Backend Optimizations**
+- Database schema optimizations
+- Dedicated fabric product tables
+- Advanced analytics integration
+- ERP system connections
+- Performance monitoring
+
+---
+
 **Priority Legend:**
-- ⭐ **CRITICAL** - Blocks go-live if not completed
-- **HIGH** - Important for user experience
-- **MEDIUM** - Nice to have but not blocking
+- ⚡ **LAUNCH BLOCKER** - Must complete or go-live fails
+- 🎯 **MVP CORE** - Essential for competitive advantage
+- 🎨 **UIUX PRIORITY** - High impact, low effort design improvements
+- 📱 **MOBILE CRITICAL** - 70% of traffic is mobile
+- 🚀 **FUTURE SPRINT** - Important but not blocking launch
 
 **Next Steps:**
-1. Assign tasks to team members
-2. Set up project tracking (Jira/Linear/GitHub Issues)
-3. Schedule daily standups
-4. Begin Week 1 development immediately
+1. **START CONTENT WORK IMMEDIATELY** (Day 1 critical path)
+2. Assign UIUX design tasks to designer
+3. Set up project tracking (Jira/Linear/GitHub Issues)
+4. Schedule daily standups with content/backend/frontend sync
+5. Begin Week 1 development with parallel workstreams
