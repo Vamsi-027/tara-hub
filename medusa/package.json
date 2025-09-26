@@ -27,6 +27,7 @@
     "test:contacts": "npx medusa exec ./src/scripts/test-contact-integration.ts",
     "setup:us-region": "npx medusa exec ./src/scripts/setup-us-region.ts",
     "setup:inventory": "npx medusa exec ./src/scripts/setup-inventory.ts",
+    "seed:bundles": "node ./scripts/seed-bundles.js",
     "fix:stripe-provider": "npx tsx ./scripts/fix-stripe-payment-provider.ts",
     "start": "npx medusa start --host 0.0.0.0",
     "start:prod": "NODE_ENV=production npx medusa start --host 0.0.0.0",
