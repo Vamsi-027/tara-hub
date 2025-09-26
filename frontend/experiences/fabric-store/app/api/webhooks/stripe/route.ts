@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { Medusa } from '@medusajs/js-sdk'
+import Medusa from '@medusajs/js-sdk'
 
-const stripe = new Stripe(process.env.STRIPE_API_KEY!, {
-  apiVersion: '2023-10-16',
-})
+// Lazily access env and construct clients inside the handler to avoid build-time errors
+function getStripe() {
+  const key = process.env.STRIPE_API_KEY
+  if (!key) throw new Error('Stripe API key not configured')
+  return new Stripe(key, { apiVersion: '2023-10-16' })
+}
 
-const medusa = new Medusa({
-  baseUrl: process.env.MEDUSA_BACKEND_URL!,
-  apiKey: process.env.MEDUSA_API_KEY!,
-})
-
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
+function getAdminClient() {
+  const baseUrl = process.env.MEDUSA_BACKEND_URL
+  const apiKey = process.env.MEDUSA_API_KEY
+  if (!baseUrl || !apiKey) throw new Error('Medusa admin not configured')
+  return new Medusa({ baseUrl, apiKey })
+}
 
 export async function POST(request: NextRequest) {
   const sig = request.headers.get('stripe-signature')!
@@ -20,6 +23,8 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event
 
   try {
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
+    const stripe = getStripe()
     event = stripe.webhooks.constructEvent(body, sig, endpointSecret)
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message)
@@ -30,15 +35,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const medusa = getAdminClient()
     switch (event.type) {
       case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent)
+        await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent, medusa)
         break
       case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent)
+        await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent, medusa)
         break
       case 'charge.refunded':
-        await handleChargeRefunded(event.data.object as Stripe.Charge)
+        await handleChargeRefunded(event.data.object as Stripe.Charge, medusa)
         break
       case 'checkout.session.completed':
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session)
@@ -54,7 +60,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent, medusa: any) {
   console.log('Payment succeeded:', paymentIntent.id)
   const orders = await medusa.orders.list({ q: paymentIntent.id, limit: 1 } as any)
   if (orders.orders?.length > 0) {
@@ -70,7 +76,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   }
 }
 
-async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent, medusa: any) {
   console.log('Payment failed:', paymentIntent.id)
   const orders = await medusa.orders.list({ q: paymentIntent.id, limit: 1 } as any)
   if (orders.orders?.length > 0) {
@@ -86,7 +92,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   }
 }
 
-async function handleChargeRefunded(charge: Stripe.Charge) {
+async function handleChargeRefunded(charge: Stripe.Charge, medusa: any) {
   console.log('Refund processed:', charge.id)
   const paymentIntentId = charge.payment_intent as string
   const orders = await medusa.orders.list({ q: paymentIntentId, limit: 1 } as any)
@@ -119,4 +125,3 @@ async function triggerFulfillment(order: any) {
 async function sendPaymentFailureNotification(_order: any, _intent: Stripe.PaymentIntent) {
   // Integrate with your notification system if available
 }
-

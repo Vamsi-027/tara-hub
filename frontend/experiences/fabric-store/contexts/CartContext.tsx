@@ -1,6 +1,6 @@
 "use client"
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { Medusa } from '@medusajs/js-sdk'
+import Medusa from '@medusajs/js-sdk'
 
 interface CartItem {
   variant_id: string
@@ -46,7 +46,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (cartId) {
         try {
-          const existingCart = await medusa.carts.retrieve(cartId)
+          const existingCart = await medusa.store.cart.retrieve(cartId)
           if (existingCart && (existingCart as any).cart) {
             setCart((existingCart as any).cart)
             setLoading(false)
@@ -57,7 +57,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      const { cart: newCart } = await medusa.carts.create({
+      const { cart: newCart } = await medusa.store.cart.create({
         region_id: process.env.NEXT_PUBLIC_REGION_ID || 'reg_01K5DPKAZ3AJRAR7N8SWSCVKSQ',
         metadata: { source: 'fabric-store', created_via: 'web' },
       })
@@ -81,12 +81,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const existingItem = cart.items?.find((i: any) => i.variant_id === item.variant_id)
 
       if (existingItem) {
-        const { cart: updatedCart } = await medusa.carts.lineItems.update(cart.id, existingItem.id, {
+        const { cart: updatedCart } = await medusa.store.cart.updateLineItem(cart.id, existingItem.id, {
           quantity: existingItem.quantity + item.quantity,
         })
         setCart(updatedCart)
       } else {
-        const { cart: updatedCart } = await medusa.carts.lineItems.create(cart.id, {
+        const { cart: updatedCart } = await medusa.store.cart.createLineItem(cart.id, {
           variant_id: item.variant_id,
           quantity: item.quantity,
           metadata: item.metadata,
@@ -111,7 +111,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await removeItem(lineItemId)
         return
       }
-      const { cart: updatedCart } = await medusa.carts.lineItems.update(cart.id, lineItemId, { quantity })
+      const { cart: updatedCart } = await medusa.store.cart.updateLineItem(cart.id, lineItemId, { quantity })
       setCart(updatedCart)
     } catch (err: any) {
       setError(err?.message || 'Failed to update item')
@@ -124,7 +124,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!cart) return
     try {
       setLoading(true)
-      const { cart: updatedCart } = await medusa.carts.lineItems.delete(cart.id, lineItemId)
+      const { cart: updatedCart } = await medusa.store.cart.deleteLineItem(cart.id, lineItemId)
       setCart(updatedCart)
       showNotification('Item removed from cart', 'info')
     } catch (err: any) {
@@ -143,7 +143,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshCart = async () => {
     if (!cart) return
     try {
-      const { cart: refreshedCart } = await medusa.carts.retrieve(cart.id)
+      const { cart: refreshedCart } = await medusa.store.cart.retrieve(cart.id)
       setCart(refreshedCart)
     } catch (err: any) {
       setError(err?.message || 'Failed to refresh cart')

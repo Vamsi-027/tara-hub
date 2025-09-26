@@ -1,5 +1,7 @@
+"use client"
 import { useState } from 'react'
-import { Medusa } from '@medusajs/js-sdk'
+import { useRouter } from 'next/navigation'
+import Medusa from '@medusajs/js-sdk'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import { useCart } from '@/contexts/CartContext'
@@ -23,6 +25,7 @@ interface CheckoutSteps {
 
 export function CheckoutFlow() {
   const { cart, refreshCart } = useCart()
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState<keyof CheckoutSteps>('email')
   const [completedSteps, setCompletedSteps] = useState<CheckoutSteps>({
     email: false,
@@ -40,7 +43,7 @@ export function CheckoutFlow() {
   const handleEmailSubmit = async (email: string) => {
     if (!cart) return
     try {
-      await medusa.carts.update(cart.id, { email })
+      await medusa.store.cart.update(cart.id, { email })
       setCompletedSteps((prev) => ({ ...prev, email: true }))
       setCurrentStep('shipping')
       await refreshCart()
@@ -52,7 +55,7 @@ export function CheckoutFlow() {
   const handleShippingSubmit = async (address: AddressInput) => {
     if (!cart) return
     try {
-      await medusa.carts.update(cart.id, {
+      await medusa.store.cart.update(cart.id, {
         shipping_address: {
           first_name: address.firstName,
           last_name: address.lastName,
@@ -77,9 +80,9 @@ export function CheckoutFlow() {
     if (!cart) return
     try {
       if (sameAsShipping) {
-        await medusa.carts.update(cart.id, { billing_address: cart.shipping_address })
+        await medusa.store.cart.update(cart.id, { billing_address: cart.shipping_address })
       } else {
-        await medusa.carts.update(cart.id, {
+        await medusa.store.cart.update(cart.id, {
           billing_address: {
             first_name: address.firstName,
             last_name: address.lastName,
@@ -104,7 +107,7 @@ export function CheckoutFlow() {
   const handleShippingMethodSubmit = async (optionId: string) => {
     if (!cart) return
     try {
-      await medusa.carts.addShippingMethod(cart.id, { option_id: optionId })
+      await medusa.store.cart.addShippingMethod(cart.id, { option_id: optionId })
       setCompletedSteps((prev) => ({ ...prev, shipping_method: true }))
       setCurrentStep('payment')
       await refreshCart()
@@ -113,9 +116,9 @@ export function CheckoutFlow() {
     }
   }
 
-  const handlePaymentComplete = async (_orderId: string) => {
+  const handlePaymentComplete = async (orderId: string) => {
     setCompletedSteps((prev) => ({ ...prev, payment: true }))
-    // Navigation to confirmation page would happen in the page using this component
+    router.push(`/orders/${orderId}`)
   }
 
   return (
@@ -154,4 +157,3 @@ export function CheckoutFlow() {
     </div>
   )
 }
-

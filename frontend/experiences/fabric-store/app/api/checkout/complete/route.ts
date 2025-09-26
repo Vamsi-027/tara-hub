@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Medusa } from '@medusajs/js-sdk'
-
-const medusa = new Medusa({
-  baseUrl: process.env.MEDUSA_BACKEND_URL!,
-  apiKey: process.env.MEDUSA_API_KEY!,
-})
+import Medusa from '@medusajs/js-sdk'
 
 export async function POST(request: NextRequest) {
   try {
+    const medusa = new Medusa({
+      baseUrl: process.env.MEDUSA_BACKEND_URL!,
+      apiKey: process.env.MEDUSA_API_KEY!,
+    })
     const { cart_id, payment_intent_id } = await request.json()
 
     const { order, error } = await medusa.carts.complete(cart_id, {
@@ -71,4 +70,3 @@ async function trackConversion(order: any) {
     console.warn('Conversion tracking failed (non-blocking):', e)
   }
 }
-

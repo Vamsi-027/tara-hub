@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Medusa } from '@medusajs/js-sdk'
-
-const medusa = new Medusa({
-  baseUrl: process.env.MEDUSA_BACKEND_URL!,
-  apiKey: process.env.MEDUSA_API_KEY!,
-})
+import Medusa from '@medusajs/js-sdk'
 
 export async function POST(request: NextRequest) {
   try {
+    const medusa = new Medusa({
+      baseUrl: process.env.MEDUSA_BACKEND_URL!,
+      apiKey: process.env.MEDUSA_API_KEY!,
+    })
     const { payment_collection_id, provider_id } = await request.json()
 
     const { payment_session } = await medusa.paymentSessions.initialize(
@@ -36,4 +35,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
-

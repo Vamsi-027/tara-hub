@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Medusa } from '@medusajs/js-sdk'
-
-const medusa = new Medusa({
-  baseUrl: process.env.MEDUSA_BACKEND_URL!,
-  apiKey: process.env.MEDUSA_API_KEY!, // Admin API key for server-side
-})
+import Medusa from '@medusajs/js-sdk'
 
 export async function POST(request: NextRequest) {
   try {
+    const medusa = new Medusa({
+      baseUrl: process.env.MEDUSA_BACKEND_URL!,
+      apiKey: process.env.MEDUSA_API_KEY!, // Admin API key for server-side
+    })
     const { cart_id } = await request.json()
 
     const { payment_collection } = await medusa.paymentCollections.create({
@@ -21,4 +20,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
-

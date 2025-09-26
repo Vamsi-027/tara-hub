@@ -36,9 +36,12 @@
     "sync:materials:dry": "tsx scripts/sync-fabrics-to-materials.ts --dry-run",
     "clear:products": "node scripts/clear-medusa-products.js",
     "clear:products:dry": "node scripts/clear-medusa-products.js --dry-run",
-    "clear:products:force": "node scripts/clear-medusa-products.js --force"
+    "clear:products:force": "node scripts/clear-medusa-products.js --force",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.2",
     "@faker-js/faker": "^9.9.0",
     "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^16.3.0",

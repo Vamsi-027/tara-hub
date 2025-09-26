@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Medusa } from '@medusajs/js-sdk'
+import Medusa from '@medusajs/js-sdk'
 
 export function ShippingMethodSelector({ cartId, onSubmit }: { cartId?: string, onSubmit: (optionId: string) => Promise<void> }) {
   const [options, setOptions] = useState<any[]>([])
@@ -12,7 +12,7 @@ export function ShippingMethodSelector({ cartId, onSubmit }: { cartId?: string, 
       baseUrl: process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL!,
       publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
     })
-    medusa.shipping
+    medusa.store.fulfillment
       .listCartOptions(cartId)
       .then(({ shipping_options }) => setOptions(shipping_options))
       .catch((e) => console.error('Failed to fetch shipping options', e))
@@ -48,4 +48,3 @@ export function ShippingMethodSelector({ cartId, onSubmit }: { cartId?: string, 
     </div>
   )
 }
-

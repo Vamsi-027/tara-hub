@@ -1,0 +1,95 @@
+name: E2E Checkout
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e-stripe:
+    name: E2E (Stripe live test mode)
+    runs-on: ubuntu-latest
+    if: ${{ secrets.STRIPE_API_KEY != '' && secrets.STRIPE_WEBHOOK_SECRET != '' && secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY != '' }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: medusa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # App + test settings
+      APP_URL: http://localhost:3006
+      E2E_NO_SERVER: ''
+
+      # Medusa backend
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/medusa
+      MEDUSA_BACKEND_URL: http://localhost:9000
+      NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://localhost:9000
+      MEDUSA_PORT: 9000
+
+      # Stripe (from secrets; test mode)
+      STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+      # Next API (Medusa Admin key) — provide via repo/org secrets
+      MEDUSA_API_KEY: ${{ secrets.MEDUSA_API_KEY }}
+
+      # Publishable key for direct Store API calls in tests
+      NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install root deps
+        run: npm ci
+
+      - name: Install Medusa deps
+        working-directory: medusa
+        run: npm ci
+
+      - name: Setup DB and run migrations
+        working-directory: medusa
+        run: npx medusa db:migrate
+
+      - name: Start Medusa (background)
+        working-directory: medusa
+        run: |
+          nohup npm run dev > ../medusa_dev.log 2>&1 &
+          for i in {1..60}; do
+            if nc -z localhost 9000; then echo "Medusa up"; break; fi; sleep 2; done
+
+      - name: Seed initial data (regions, inventory, sample products)
+        working-directory: medusa
+        run: |
+          npm run setup:us-region || true
+          npm run setup:inventory || true
+          npm run seed:fabrics || true
+
+      - name: Install fabric-store deps
+        working-directory: frontend/experiences/fabric-store
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Run E2E tests (Stripe)
+        run: npm run test:e2e
+
