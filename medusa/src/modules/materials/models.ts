@@ -2,12 +2,12 @@ import { model } from "@medusajs/framework/utils"
 
 /**
  * Material Model
- * Direct mirror of admin materials table
+ * Represents fabric materials and their properties
  */
 export const Material = model.define("material", {
-  id: model.text().primaryKey(), // Use same ID from admin
-  
+  id: model.text().primaryKey(),
   name: model.text(),
-  
-  properties: model.json().default({})
+  properties: model.json().default({}),
 })
+
+export default Material

@@ -166,12 +166,16 @@ export default defineConfig({
       },
     },
 
-    // Custom Modules - Temporarily disabled due to MedusaService errors
-    // TODO: Fix and re-enable after fixing service patterns
+    // Custom Modules
+    // Note: materials implemented without MedusaService to avoid deployment issues
     // { resolve: "./src/modules/contact" },
-    // { resolve: "./src/modules/materials" },
+    { resolve: "./src/modules/materials" },
     // { resolve: "./src/modules/fabric_details" },
     // { resolve: "./src/modules/fabric_products" },
+
+    // Inventory Module (native). Enable to use stock locations, reservations, etc.
+    // Ensure the package is installed in your runtime environment.
+    { resolve: "@medusajs/inventory", options: {} },
 
     // New Inventory Management Module - Added by developer
     // IMPORTANT: This uses MedusaService which may cause deployment issues

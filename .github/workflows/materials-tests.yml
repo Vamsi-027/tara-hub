@@ -1,0 +1,97 @@
+name: Materials Module Tests
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'medusa/**'
+      - '.github/workflows/materials-tests.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'medusa/**'
+
+jobs:
+  materials-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Provide all; tests pick in priority: DATABASE_URL_TEST > NEON_DATABASE_URL > DATABASE_URL
+      DATABASE_URL_TEST: ${{ secrets.DATABASE_URL_TEST }}
+      NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NODE_OPTIONS: --experimental-vm-modules
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            medusa/package-lock.json
+
+      - name: Install dependencies
+        working-directory: medusa
+        run: npm ci
+
+      - name: Verify Docker availability
+        run: |
+          docker --version || true
+          docker info || echo "Docker not available. Falling back to DATABASE_URL_TEST if set."
+
+      - name: Run admin route unit tests
+        working-directory: medusa
+        run: npm run test:unit -- src/api/admin/materials/__tests__/route.unit.spec.ts
+
+      - name: Run materials integration tests
+        working-directory: medusa
+        run: npm run test:integration:materials
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL_TEST: ${{ secrets.DATABASE_URL_TEST }}
+      NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NODE_OPTIONS: --experimental-vm-modules
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            medusa/package-lock.json
+
+      - name: Install dependencies
+        working-directory: medusa
+        run: npm ci
+
+      - name: Verify Docker availability
+        run: |
+          docker --version || true
+          docker info || echo "Docker not available. Falling back to DATABASE_URL_TEST if set."
+
+      - name: Run materials E2E tests
+        working-directory: medusa
+        run: npm run test:e2e:materials
+
+      - name: Run products E2E tests
+        working-directory: medusa
+        run: npm run test:e2e:products
+      - name: Run tax E2E tests
+        working-directory: medusa
+        run: npm run test:e2e:tax
+      - name: Run shipping E2E tests
+        working-directory: medusa
+        run: npm run test:e2e:shipping
+      - name: Run inventory E2E tests
+        working-directory: medusa
+        run: npm run test:e2e:inventory

@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { Plus, XMarkMini, ArrowLeft, MagnifyingGlassMini } from "@medusajs/icons"
 import { createProductWorkflow } from "@medusajs/medusa/core-flows"
+import MaterialSelect from "../../../components/MaterialSelect"
 
 const CreateFabricProduct = () => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("basic")
+  const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null)
   
   // SKU Selection states
   const [showSkuSelector, setShowSkuSelector] = useState(false)
@@ -309,7 +311,7 @@ const CreateFabricProduct = () => {
       ]
 
       // Create product with metadata
-      
+
       const response = await fetch('/admin/products', {
         method: 'POST',
         headers: {
@@ -328,7 +330,8 @@ const CreateFabricProduct = () => {
             ...metadata,
             swatch_price: variantPrices.swatch,
             price: variantPrices.fabric
-          }
+          },
+          material_id: selectedMaterialId,
         })
       })
 
@@ -521,6 +524,13 @@ const CreateFabricProduct = () => {
                   onChange={(e) => updateProductField('handle', e.target.value)}
                   placeholder="premium-navy-canvas"
                 />
+              </div>
+            </div>
+
+            {/* Material selector */}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <MaterialSelect value={selectedMaterialId} onChange={setSelectedMaterialId} />
               </div>
             </div>
 
