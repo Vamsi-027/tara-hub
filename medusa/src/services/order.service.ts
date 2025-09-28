@@ -7,7 +7,7 @@
 
 import { MedusaService, TransactionBaseService } from "@medusajs/framework/utils"
 import { Modules } from "@medusajs/framework/utils"
-import { IOrderModuleService, IInventoryService } from "@medusajs/framework/types"
+import { IOrderModuleService, IInventoryService, IPaymentModuleService } from "@medusajs/framework/types"
 import { CreateOrderDTO, OrderDTO } from "@medusajs/framework/types"
 import CartService from "./cart.service"
 
@@ -29,10 +29,12 @@ class OrderService extends TransactionBaseService {
   protected orderModule_: IOrderModuleService
   protected inventoryService_: IInventoryService
   protected cartService_: CartService
+  protected container_: any
   private processedIdempotencyKeys: Set<string> = new Set()
 
   constructor(container: any) {
     super(container)
+    this.container_ = container
     this.orderModule_ = container[Modules.ORDER]
     this.inventoryService_ = container[Modules.INVENTORY]
     this.cartService_ = new CartService(container)
@@ -83,15 +85,22 @@ class OrderService extends TransactionBaseService {
           throw new Error(`Cart validation failed: ${validation.errors.join(", ")}`)
         }
 
-        // 3. Verify payment with Stripe
-        const paymentVerification = await this.paymentService_.verifyPayment({
-          payment_intent_id,
-          cart_id,
+        // 3. Verify payment using Medusa payment module
+        const paymentModule = this.container_[Modules.PAYMENT]
+
+        // Get payment collection for the cart
+        const paymentCollections = await paymentModule.listPaymentCollections({
+          cart_id: cart_id
         })
 
-        if (!paymentVerification.verified) {
+        if (!paymentCollections.length) {
+          throw new Error(`No payment collection found for cart ${cart_id}`)
+        }
+
+        const paymentCollection = paymentCollections[0]
+        if (paymentCollection.status !== "authorized") {
           throw new Error(
-            `Payment not confirmed. Status: ${paymentVerification.status}`
+            `Payment not authorized. Status: ${paymentCollection.status}`
           )
         }
 
@@ -401,10 +410,22 @@ class OrderService extends TransactionBaseService {
 
     // Cancel payment if authorized but not captured
     if (order.payment_status === "authorized") {
-      // Cancel with payment service
-      const paymentIntentId = order.metadata?.payment_intent_id
-      if (paymentIntentId) {
-        await this.paymentService_.cancelPayment(paymentIntentId)
+      // Cancel payment using Medusa payment module
+      const paymentModule = this.container_[Modules.PAYMENT]
+
+      // Get payment collection for the order
+      const paymentCollections = await paymentModule.listPaymentCollections({
+        order_id: orderId
+      })
+
+      if (paymentCollections.length > 0) {
+        const paymentCollection = paymentCollections[0]
+
+        // Update payment collection status to canceled
+        await paymentModule.updatePaymentCollections([{
+          id: paymentCollection.id,
+          status: "canceled"
+        }])
       }
     }
 
