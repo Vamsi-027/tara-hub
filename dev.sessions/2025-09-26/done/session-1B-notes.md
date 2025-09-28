@@ -52,3 +52,9 @@
 - Add an integration test for the new `/admin/sync-materials` handler that mocks the service layer and asserts idempotency plus logging hooks.
 - Run existing Medusa unit/integration suites (`npm run test:integration` inside `medusa`) once the network database dependency is available.
 - Manual smoke: trigger the sync via Medusa CLI and verify product catalog remains the single source.
+
+## Implementation Coverage (Session 1B)
+- Added shared helpers for admin auth/container resolution to keep route guards consistent.
+- Hardened `/admin/products` create/update + variant material routes with schema-backed payloads, scoped services, and structured logging.
+- Replaced the disabled sync handler with `/admin/sync-materials` backed by a guarded service and new unit coverage.
+- Removed the public `/store/fabrics` API to enforce single product source.

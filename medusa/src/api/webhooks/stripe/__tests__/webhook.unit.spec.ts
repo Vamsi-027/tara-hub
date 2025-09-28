@@ -94,7 +94,8 @@ describe("Stripe Webhook Handler", () => {
       }
     } as any
 
-    MockedStripe.mockImplementation(() => mockStripeInstance)
+    // Mock the Stripe constructor to return our mocked instance
+    MockedStripe.mockImplementation(() => mockStripeInstance as any)
 
     // Set environment variables
     process.env.STRIPE_API_KEY = "sk_test_123"

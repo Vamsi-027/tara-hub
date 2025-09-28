@@ -7,8 +7,7 @@
  * Replaces custom payment service with framework-native patterns.
  */
 
-import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { MedusaRequest, MedusaResponse } from "@medusajs/framework"
 import {
   processPaymentWorkflow,
   capturePaymentWorkflow,
