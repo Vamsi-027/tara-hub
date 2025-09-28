@@ -1,75 +1,216 @@
-import { POST as createProduct } from "../../products/route"
-import { POST as updateProduct } from "../../products/[id]/route"
+import { GET as getVariant, POST as updateVariant } from "../../products/[id]/variants/[variant_id]/route"
 
-const makeRes = () => {
+type MockResponse = {
+  statusCode: number
+  body: any
+  status: (code: number) => MockResponse
+  json: (payload: any) => MockResponse
+}
+
+const makeRes = (): MockResponse => {
   const res: any = {}
   res.statusCode = 200
-  res.status = (c: number) => { res.statusCode = c; return res }
-  res.json = (b: any) => { res.body = b; return res }
+  res.body = undefined
+  res.status = (code: number) => {
+    res.statusCode = code
+    return res
+  }
+  res.json = (payload: any) => {
+    res.body = payload
+    return res
+  }
   return res
 }
 
-describe("Admin Products routes material_id handling", () => {
-  it("creates product and sets material_id", async () => {
-    const material_id = "mat_123"
-    const createdProduct = { id: "prod_1", title: "Test" }
-
-    const req: any = {
-      body: { title: "Test", material_id },
-      scope: {
-        resolve: (key: string) => {
-          if (key === "materialsModuleService") {
-            return { retrieveMaterial: jest.fn(async () => ({ id: material_id })) }
-          }
-          if (key === "query") {
-            return { graph: jest.fn(async () => ({ data: [{ id: createdProduct.id }] })) }
-          }
-          if (key === require("@medusajs/framework/utils").Modules.PRODUCT) {
-            return { createProducts: jest.fn(async () => [createdProduct]) }
-          }
-          return undefined
-        },
-      },
-      auth: { actor_type: "user" },
-    }
-    const res: any = makeRes()
-
-    await createProduct(req, res)
-    expect(res.statusCode).toBe(201)
-    expect(res.body.product.id).toBe(createdProduct.id)
-    expect(res.body.product.material_id).toBe(material_id)
+describe("Admin Product Variant material link routes", () => {
+  afterEach(() => {
+    jest.clearAllMocks()
   })
 
-  it("updates product material_id via POST /admin/products/:id", async () => {
-    const productId = "prod_2"
-    const material_id = "mat_789"
-    const updatedProduct = { id: productId, title: "X" }
+  it("retrieves a variant with material array", async () => {
+    const productId = "prod_123"
+    const variantId = "variant_123"
+    const variant = {
+      id: variantId,
+      product: { id: productId },
+      materials: [{ id: "mat_a", name: "Cotton" }, { id: "mat_b", name: "Linen" }],
+    }
+
+    const queryGraph = jest.fn(async () => ({ data: [variant] }))
 
     const req: any = {
-      params: { id: productId },
-      body: { material_id },
+      params: { id: productId, variant_id: variantId },
+      scope: { resolve: (key: string) => (key === "query" ? { graph: queryGraph } : undefined) },
+      auth: { actor_type: "user" },
+    }
+    const res = makeRes()
+
+    await getVariant(req, res)
+
+    expect(queryGraph).toHaveBeenCalledWith({
+      entity: "product_variant",
+      fields: ["*", "product.id", "materials.id", "materials.name", "materials.code"],
+      filters: { id: variantId, product: { id: productId } },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.body.variant.materials).toEqual(variant.materials)
+  })
+
+  it("creates links for newly added materials and skips existing ones", async () => {
+    const productId = "prod_234"
+    const variantId = "variant_234"
+    const existingMaterial = "mat_existing"
+    const newMaterial = "mat_new"
+
+    const dismiss = jest.fn(async () => undefined)
+    const createLink = jest.fn(async () => undefined)
+    const loggerInfo = jest.fn()
+    const loggerWarn = jest.fn()
+
+    const queryGraph = jest
+      .fn()
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: variantId,
+            product: { id: productId },
+            materials: [{ id: existingMaterial }],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: variantId,
+            product: { id: productId },
+            materials: [
+              { id: existingMaterial, name: "Existing" },
+              { id: newMaterial, name: "New" },
+            ],
+          },
+        ],
+      })
+
+    const req: any = {
+      params: { id: productId, variant_id: variantId },
+      body: { material_ids: [existingMaterial, newMaterial, newMaterial] },
+      headers: { "x-request-id": "req_multi" },
+      user: { id: "admin_multi" },
       scope: {
         resolve: (key: string) => {
-          if (key === "materialsModuleService") {
-            return { retrieveMaterial: jest.fn(async () => ({ id: material_id })) }
-          }
-          if (key === "query") {
-            return { graph: jest.fn(async () => ({ data: [{ id: productId }] })) }
-          }
-          if (key === require("@medusajs/framework/utils").Modules.PRODUCT) {
-            return { updateProducts: jest.fn(async () => [updatedProduct]) }
-          }
+          if (key === "query") return { graph: queryGraph }
+          if (key === "linkModuleService") return { dismiss, create: createLink }
+          if (key === "logger") return { info: loggerInfo, warn: loggerWarn }
           return undefined
         },
       },
       auth: { actor_type: "user" },
     }
-    const res: any = makeRes()
 
-    await updateProduct(req, res)
+    const res = makeRes()
+
+    await updateVariant(req, res)
+
+    expect(dismiss).not.toHaveBeenCalled()
+    expect(createLink).toHaveBeenCalledWith([[variantId, newMaterial]])
+    expect(loggerInfo).toHaveBeenCalledWith("product_variant.material.links.created", {
+      product_variant_id: variantId,
+      product_id: productId,
+      material_ids: [newMaterial],
+      request_id: "req_multi",
+      user_id: "admin_multi",
+    })
+    expect(loggerWarn).not.toHaveBeenCalled()
     expect(res.statusCode).toBe(200)
-    expect(res.body.product.id).toBe(productId)
-    expect(res.body.product.material_id).toBe(material_id)
+    expect(res.body.variant.materials).toEqual([
+      { id: existingMaterial, name: "Existing" },
+      { id: newMaterial, name: "New" },
+    ])
+  })
+
+  it("dismisses removed materials and leaves others intact", async () => {
+    const productId = "prod_345"
+    const variantId = "variant_345"
+    const keepMaterial = "mat_keep"
+    const removeMaterial = "mat_remove"
+
+    const dismiss = jest.fn(async () => undefined)
+    const createLink = jest.fn(async () => undefined)
+    const loggerInfo = jest.fn()
+    const loggerWarn = jest.fn()
+
+    const queryGraph = jest
+      .fn()
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: variantId,
+            product: { id: productId },
+            materials: [{ id: keepMaterial }, { id: removeMaterial }],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: variantId,
+            product: { id: productId },
+            materials: [{ id: keepMaterial, name: "Keep" }],
+          },
+        ],
+      })
+
+    const req: any = {
+      params: { id: productId, variant_id: variantId },
+      body: { material_ids: [keepMaterial] },
+      headers: { "x-request-id": "req_rem" },
+      user: { id: "admin_rem" },
+      scope: {
+        resolve: (key: string) => {
+          if (key === "query") return { graph: queryGraph }
+          if (key === "linkModuleService") return { dismiss, create: createLink }
+          if (key === "logger") return { info: loggerInfo, warn: loggerWarn }
+          return undefined
+        },
+      },
+      auth: { actor_type: "user" },
+    }
+
+    const res = makeRes()
+
+    await updateVariant(req, res)
+
+    expect(dismiss).toHaveBeenCalledWith([[variantId, removeMaterial]])
+    expect(createLink).not.toHaveBeenCalled()
+    expect(loggerInfo).toHaveBeenCalledWith("product_variant.material.links.dismissed", {
+      product_variant_id: variantId,
+      product_id: productId,
+      material_ids: [removeMaterial],
+      request_id: "req_rem",
+      user_id: "admin_rem",
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.body.variant.materials).toEqual([
+      { id: keepMaterial, name: "Keep" },
+    ])
+  })
+
+  it("rejects payloads with invalid material identifiers", async () => {
+    const req: any = {
+      params: { id: "prod_invalid", variant_id: "variant_invalid" },
+      body: { material_ids: ["mat_good", 123] },
+      scope: { resolve: () => undefined },
+      auth: { actor_type: "user" },
+    }
+
+    const res = makeRes()
+
+    await updateVariant(req, res)
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body).toEqual({
+      code: "INVALID_MATERIAL_IDS",
+      error: "material_ids must contain only non-empty strings",
+    })
   })
 })
-

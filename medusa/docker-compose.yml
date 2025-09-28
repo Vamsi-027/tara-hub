@@ -33,7 +33,7 @@ services:
       ADMIN_CORS: http://localhost:3000,http://localhost:7001,http://localhost:9000
       AUTH_CORS: http://localhost:3000,http://localhost:9000,http://localhost:8000
       MEDUSA_BACKEND_URL: http://localhost:9000
-      DISABLE_MEDUSA_ADMIN: false
+      DISABLE_MEDUSA_ADMIN: "false"
     volumes:
       - .:/app
       - /app/node_modules

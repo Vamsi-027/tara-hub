@@ -6,12 +6,20 @@ type Material = { id: string; name: string }
 type Props = {
   value: string | null
   onChange: (id: string | null) => void
+  onSelect?: (material: Material | null) => void
   label?: string
   placeholder?: string
   allowClear?: boolean
 }
 
-const MaterialSelect: React.FC<Props> = ({ value, onChange, label = "Material", placeholder = "Select a material", allowClear = true }) => {
+const MaterialSelect: React.FC<Props> = ({
+  value,
+  onChange,
+  onSelect,
+  label = "Material",
+  placeholder = "Select a material",
+  allowClear = true,
+}) => {
   const [materials, setMaterials] = useState<Material[]>([])
   const [q, setQ] = useState("")
   const [loading, setLoading] = useState(false)
@@ -40,6 +48,13 @@ const MaterialSelect: React.FC<Props> = ({ value, onChange, label = "Material", 
 
   const items = useMemo(() => materials.map((m) => ({ label: m.name, value: m.id })), [materials])
 
+  const handleSelect = (nextValue?: string) => {
+    const normalized = nextValue ?? null
+    const nextMaterial = materials.find((m) => m.id === normalized) ?? null
+    onChange(normalized)
+    onSelect?.(nextMaterial)
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex items-end justify-between gap-2">
@@ -52,14 +67,21 @@ const MaterialSelect: React.FC<Props> = ({ value, onChange, label = "Material", 
             className="h-8 w-48"
           />
           {allowClear && value && (
-            <Button size="small" variant="secondary" onClick={() => onChange(null)}>
+            <Button
+              size="small"
+              variant="secondary"
+              onClick={() => {
+                onChange(null)
+                onSelect?.(null)
+              }}
+            >
               Clear
             </Button>
           )}
         </div>
       </div>
 
-      <Select value={value ?? undefined} onValueChange={(v) => onChange(v || null)}>
+      <Select value={value ?? undefined} onValueChange={(v) => handleSelect(v || undefined)}>
         <Select.Trigger>
           <Select.Value placeholder={loading ? "Loading..." : placeholder} />
         </Select.Trigger>
@@ -79,4 +101,3 @@ const MaterialSelect: React.FC<Props> = ({ value, onChange, label = "Material", 
 }
 
 export default MaterialSelect
-

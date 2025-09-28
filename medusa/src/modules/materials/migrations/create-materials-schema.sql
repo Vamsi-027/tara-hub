@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS materials (
 );
 
 -- Simple index for name lookups
-CREATE INDEX idx_materials_name ON materials(name);
+CREATE INDEX IF NOT EXISTS idx_materials_name ON materials(name);

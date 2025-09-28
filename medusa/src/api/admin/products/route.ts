@@ -17,48 +17,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   const body = (req as any).body || {}
-  const { material_id, ...productInput } = body
 
   try {
-    // Validate material exists if provided
-    if (material_id) {
-      const materialsService = req.scope.resolve("materialsModuleService") as any
-      await materialsService.retrieveMaterial(material_id)
-    }
+    const productService = req.scope.resolve(Modules.PRODUCT) as any
+    const [product] = await productService.createProducts([body])
 
-    // Create product via Product module service (core behavior)
-    const productService: any = req.scope.resolve(Modules.PRODUCT)
-    const created = await productService.createProducts(productInput)
-    const product = Array.isArray(created) ? created[0] : created
-
-    // Persist material_id if provided
-    if (material_id && product?.id) {
-      const query: any = req.scope.resolve("query")
-      try {
-        await query.graph({
-          entity: "product",
-          fields: ["id"],
-          data: [
-            {
-              id: product.id,
-              material_id,
-            },
-          ],
-        })
-      } catch (_) {
-        const { Pool } = await import("pg")
-        const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-        try {
-          await pool.query("UPDATE product SET material_id = $1 WHERE id = $2", [material_id, product.id])
-        } finally {
-          await pool.end()
-        }
-      }
-    }
-
-    res.status(201).json({ product: { ...product, material_id: material_id ?? null } })
-  } catch (e: any) {
-    res.status(400).json({ error: "Failed to create product", details: e?.message })
+    return res.status(201).json({ product })
+  } catch (error: any) {
+    return res.status(400).json({
+      code: "PRODUCT_CREATION_FAILED",
+      error: "Failed to create product",
+      details: error?.message,
+    })
   }
 }
-
