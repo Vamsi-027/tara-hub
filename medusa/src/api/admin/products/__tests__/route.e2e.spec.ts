@@ -143,9 +143,10 @@ describe("Admin Product Variant material link API", () => {
     app.use((req, _res, next) => {
       ;(req as any).scope = {
         resolve: (key: string) => {
-          if (key === "query") return query
-          if (key === "linkModuleService") return linkModuleService
-          if (key === "logger") return logger
+          if (key === "query" || key === "QUERY") return query
+          if (key === "linkModuleService" || key === "LINK_MODULE_SERVICE")
+            return linkModuleService
+          if (key === "logger" || key === "LOGGER") return logger
           return undefined
         },
       }

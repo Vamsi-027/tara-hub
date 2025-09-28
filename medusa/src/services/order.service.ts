@@ -10,7 +10,6 @@ import { Modules } from "@medusajs/framework/utils"
 import { IOrderModuleService, IInventoryService } from "@medusajs/framework/types"
 import { CreateOrderDTO, OrderDTO } from "@medusajs/framework/types"
 import CartService from "./cart.service"
-import PaymentService from "./payment.service"
 
 export interface CreateOrderFromCartInput {
   cart_id: string
@@ -30,7 +29,6 @@ class OrderService extends TransactionBaseService {
   protected orderModule_: IOrderModuleService
   protected inventoryService_: IInventoryService
   protected cartService_: CartService
-  protected paymentService_: PaymentService
   private processedIdempotencyKeys: Set<string> = new Set()
 
   constructor(container: any) {
@@ -38,7 +36,6 @@ class OrderService extends TransactionBaseService {
     this.orderModule_ = container[Modules.ORDER]
     this.inventoryService_ = container[Modules.INVENTORY]
     this.cartService_ = new CartService(container)
-    this.paymentService_ = new PaymentService(container)
   }
 
   /**

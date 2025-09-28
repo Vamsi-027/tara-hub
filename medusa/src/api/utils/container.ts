@@ -1,18 +1,37 @@
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
+type RegistrationKey = keyof typeof ContainerRegistrationKeys | string | symbol
+
+type ScopeLike = {
+  resolve: (key: any) => any
+}
+
 export function resolveContainer<T>(
-  scope: { resolve: (key: any) => T },
-  key: keyof typeof ContainerRegistrationKeys,
-  fallback: any
+  scope: ScopeLike,
+  key: RegistrationKey,
+  fallback?: any
 ): T {
-  const registration = (ContainerRegistrationKeys as any)[key]
+  const registration =
+    typeof key === "string"
+      ? (ContainerRegistrationKeys as any)[key]
+      : (ContainerRegistrationKeys as any)[key as keyof typeof ContainerRegistrationKeys]
+
+  const primary = registration ?? key
+
   try {
-    return scope.resolve(registration ?? fallback)
-  } catch (error) {
-    if (registration && registration !== fallback) {
-      // retry with fallback if the registration constant is unavailable
-      return scope.resolve(fallback)
+    const resolved = scope.resolve(primary)
+    if (resolved !== undefined && resolved !== null) {
+      return resolved
     }
-    throw error
+  } catch (error) {
+    if (!fallback || fallback === primary) {
+      throw error
+    }
   }
+
+  if (fallback !== undefined && fallback !== primary) {
+    return scope.resolve(fallback)
+  }
+
+  return scope.resolve(primary)
 }

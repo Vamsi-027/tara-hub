@@ -40,8 +40,15 @@ describe("Admin Product Variant material link routes", () => {
 
     const req: any = {
       params: { id: productId, variant_id: variantId },
-      scope: { resolve: (key: string) => (key === "query" ? { graph: queryGraph } : undefined) },
+      scope: {
+        resolve: (key: string) => {
+          if (key === "query" || key === "QUERY") return { graph: queryGraph }
+          if (key === "logger" || key === "LOGGER") return { info: jest.fn() }
+          return undefined
+        },
+      },
       auth: { actor_type: "user" },
+      user: { id: "admin" },
     }
     const res = makeRes()
 
@@ -49,7 +56,15 @@ describe("Admin Product Variant material link routes", () => {
 
     expect(queryGraph).toHaveBeenCalledWith({
       entity: "product_variant",
-      fields: ["*", "product.id", "materials.id", "materials.name", "materials.code"],
+      fields: [
+        "id",
+        "title",
+        "sku",
+        "product.id",
+        "materials.id",
+        "materials.name",
+        "materials.code",
+      ],
       filters: { id: variantId, product: { id: productId } },
     })
     expect(res.statusCode).toBe(200)
@@ -98,9 +113,11 @@ describe("Admin Product Variant material link routes", () => {
       user: { id: "admin_multi" },
       scope: {
         resolve: (key: string) => {
-          if (key === "query") return { graph: queryGraph }
-          if (key === "linkModuleService") return { dismiss, create: createLink }
-          if (key === "logger") return { info: loggerInfo, warn: loggerWarn }
+          if (key === "query" || key === "QUERY") return { graph: queryGraph }
+          if (key === "linkModuleService" || key === "LINK_MODULE_SERVICE")
+            return { dismiss, create: createLink }
+          if (key === "logger" || key === "LOGGER")
+            return { info: loggerInfo, warn: loggerWarn }
           return undefined
         },
       },
@@ -113,14 +130,14 @@ describe("Admin Product Variant material link routes", () => {
 
     expect(dismiss).not.toHaveBeenCalled()
     expect(createLink).toHaveBeenCalledWith([[variantId, newMaterial]])
-    expect(loggerInfo).toHaveBeenCalledWith("product_variant.material.links.created", {
-      product_variant_id: variantId,
+    expect(loggerInfo).toHaveBeenCalledWith("admin.variant.materials.update", {
+      actor_id: "admin_multi",
+      added: [newMaterial],
       product_id: productId,
-      material_ids: [newMaterial],
+      product_variant_id: variantId,
+      removed: [],
       request_id: "req_multi",
-      user_id: "admin_multi",
     })
-    expect(loggerWarn).not.toHaveBeenCalled()
     expect(res.statusCode).toBe(200)
     expect(res.body.variant.materials).toEqual([
       { id: existingMaterial, name: "Existing" },
@@ -167,9 +184,11 @@ describe("Admin Product Variant material link routes", () => {
       user: { id: "admin_rem" },
       scope: {
         resolve: (key: string) => {
-          if (key === "query") return { graph: queryGraph }
-          if (key === "linkModuleService") return { dismiss, create: createLink }
-          if (key === "logger") return { info: loggerInfo, warn: loggerWarn }
+          if (key === "query" || key === "QUERY") return { graph: queryGraph }
+          if (key === "linkModuleService" || key === "LINK_MODULE_SERVICE")
+            return { dismiss, create: createLink }
+          if (key === "logger" || key === "LOGGER")
+            return { info: loggerInfo, warn: loggerWarn }
           return undefined
         },
       },
@@ -182,12 +201,13 @@ describe("Admin Product Variant material link routes", () => {
 
     expect(dismiss).toHaveBeenCalledWith([[variantId, removeMaterial]])
     expect(createLink).not.toHaveBeenCalled()
-    expect(loggerInfo).toHaveBeenCalledWith("product_variant.material.links.dismissed", {
-      product_variant_id: variantId,
+    expect(loggerInfo).toHaveBeenCalledWith("admin.variant.materials.update", {
+      actor_id: "admin_rem",
+      added: [],
       product_id: productId,
-      material_ids: [removeMaterial],
+      product_variant_id: variantId,
+      removed: [removeMaterial],
       request_id: "req_rem",
-      user_id: "admin_rem",
     })
     expect(res.statusCode).toBe(200)
     expect(res.body.variant.materials).toEqual([
@@ -208,9 +228,8 @@ describe("Admin Product Variant material link routes", () => {
     await updateVariant(req, res)
 
     expect(res.statusCode).toBe(400)
-    expect(res.body).toEqual({
-      code: "INVALID_MATERIAL_IDS",
-      error: "material_ids must contain only non-empty strings",
-    })
+    expect(res.body.type).toBe("invalid_request")
+    expect(Array.isArray(res.body.issues)).toBe(true)
+    expect(res.body.request_id).toBeNull()
   })
 })

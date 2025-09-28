@@ -5,9 +5,16 @@
 */
 
 import { MedusaContainer } from "@medusajs/framework/types";
+import { asClass, Lifetime } from "awilix";
+
+import MaterialsSyncService from "../services/materials-sync.service";
 
 export default async function (container: MedusaContainer) {
-  // Add other loaders here as needed
+  container.register({
+    materialsSyncService: asClass(MaterialsSyncService, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+  })
 
   console.log("[Loaders] All custom loaders registered");
 }
