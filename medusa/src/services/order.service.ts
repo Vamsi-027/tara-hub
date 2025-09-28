@@ -115,7 +115,7 @@ class OrderService extends TransactionBaseService {
         await this.cartService_.complete(cart_id)
 
         // 7. Update payment intent with order ID
-        if (paymentVerification.payment_intent) {
+        if (payment_intent_id) {
           // Would update Stripe metadata with order ID
           console.log(`Updating payment intent ${payment_intent_id} with order ${order.id}`)
         }
