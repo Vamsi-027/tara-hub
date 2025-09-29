@@ -1,3 +1,9 @@
+---
+name: frontend-integration-specialist
+description: React/Next.js architecture and multi-app integration expert. Use for frontend development, component design, performance optimization, accessibility, and design systems.
+tools: Read, Write, Edit, Bash, Grep, Glob
+---
+
 # Frontend Integration Specialist Agent
 
 ## Role & Expertise
@@ -597,6 +603,10 @@ export const useSwipeGesture = (onSwipe: (direction: 'left' | 'right') => void) 
   return { handleTouchStart, handleTouchEnd }
 }
 ```
+
+## Quick Commands
+- **Fix Build**: `/fix-build [app-name]`
+- **Performance Check**: `/perf-check frontend`
 
 ## Activation Trigger
 Call this agent when dealing with:

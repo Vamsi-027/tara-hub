@@ -1,6 +1,8 @@
-# 📦 Deployment Configuration
+# 🚀 Tara Hub Deployment Scripts & Documentation
 
-Complete deployment setup for Tara Hub platform with Medusa backend on Railway and Fabric Store on Vercel.
+Complete deployment automation and testing suite for Tara Hub production infrastructure.
+
+> **⭐ NEW:** Enhanced deployment scripts with automated testing and verification!
 
 ## 🎯 Deployment Architecture
 
@@ -13,27 +15,41 @@ Complete deployment setup for Tara Hub platform with Medusa backend on Railway a
 
 ```
 deployment/
-├── railway/                     # Railway deployment for Medusa Backend
-│   ├── Dockerfile               # Production Docker image for Medusa
-│   ├── railway.json             # Railway build configuration
-│   └── railway.toml             # Railway deployment settings
-│   
-├── vercel/                      # Vercel deployment for Fabric Store
-│   ├── project.json            # Vercel project configuration
-│   ├── fabric-store.vercel.json # Fabric Store specific settings
-│   ├── env-production.json     # Production environment variables template
-│   ├── .vercelignore           # Files to ignore during deployment
-│   └── README.md               # Vercel-specific documentation
-│
-├── github/                      # GitHub Actions CI/CD
-│   └── deploy.yml              # Automated deployment workflow
-│
-├── scripts/                     # Deployment automation scripts
-│   ├── deploy.sh               # Main deployment script (simple)
-│   └── deploy-production.sh    # Production deployment with validations
-│
-└── README.md                    # This file
+├── scripts/
+│   ├── deploy-and-test.sh                    # 🎯 Complete automated pipeline (NEW!)
+│   ├── pre-deployment-check.sh               # ✅ Pre-flight checks (NEW!)
+│   ├── deploy-production.sh                  # 🚀 Production deployment
+│   ├── verify-production-deployment.sh       # 🔍 Post-deployment tests (NEW!)
+│   ├── deploy.sh                             # 📦 Simple deployment (legacy)
+│   └── ...                                   # Other utility scripts
+├── railway/
+│   ├── Dockerfile                            # 🐳 Medusa container config
+│   └── railway.toml                          # ⚙️  Railway deployment config
+├── DEPLOYMENT_GUIDE.md                       # 📖 Complete deployment guide (NEW!)
+├── QUICK_REFERENCE.md                        # ⚡ Quick command reference (NEW!)
+└── README.md                                 # 📄 This file
 ```
+
+## 🎯 Recommended: Automated Deployment Pipeline
+
+### One-Command Deployment (Best Practice)
+
+```bash
+# Complete automated deployment with all checks and verification
+./deployment/scripts/deploy-and-test.sh all
+```
+
+This runs:
+1. ✅ Pre-deployment validation (git, dependencies, builds, env vars)
+2. 🔨 Build verification
+3. 🚀 Deployment to Railway + Vercel
+4. 🔍 Comprehensive post-deployment testing
+5. 📊 Detailed report with verification links
+
+**For complete documentation, see:** [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md)
+**For quick commands, see:** [`QUICK_REFERENCE.md`](./QUICK_REFERENCE.md)
+
+---
 
 ## 🚀 Quick Start Guide
 

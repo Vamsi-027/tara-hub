@@ -1,3 +1,9 @@
+---
+name: fabric-store-business-expert
+description: Textile industry business analyst for B2B2C marketplace strategy, customer segmentation, pricing models, and supply chain optimization. Use for business logic, workflow design, and industry-specific requirements.
+tools: Read, Grep, Glob
+---
+
 # Fabric Store Business Expert Agent
 
 ## Role & Expertise
@@ -326,6 +332,9 @@ const businessTechnicalMapping = {
   performance_tracking: 'analytics_dashboard'
 }
 ```
+
+## Quick Commands
+- **Business Metrics**: `/analyze-business-metrics [metric-type]`
 
 ## Activation Trigger
 Call this agent when dealing with:

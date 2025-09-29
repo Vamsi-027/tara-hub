@@ -40,12 +40,13 @@ tara-hub/
 ```
 
 ### Technology Stack
-- **Framework**: Next.js 15.1.0+ with App Router, React 19.1.1 (note: most components use React 18.2.0)
+- **Framework**: Next.js 15.1.0+ with App Router
+- **React Versions**: Mixed (React 19 in fabric-store, React 18.2.0 in root/admin)
 - **Backend**: MedusaJS v2.10.0 (Node.js commerce platform) + Clean Architecture service
 - **Database**: PostgreSQL (Neon) with Drizzle ORM + MikroORM 6.4.3
 - **Build**: Turbo 2.5.6 monorepo
 - **Node**: >=18.0.0 (>=20.0.0 for Medusa)
-- **Package Manager**: npm 10.2.0
+- **Package Manager**: npm 10.2.0 with workspaces
 
 ## Development Commands
 
@@ -87,6 +88,7 @@ cd medusa && npm run test:materials  # Test materials sync
 cd medusa && npm run setup:contacts  # Setup contact module
 cd medusa && npm run test:contacts   # Test contact integration
 cd medusa && npm run setup:us-region # Setup US region with USD pricing
+cd medusa && npm run setup:inventory # Setup inventory system
 cd medusa && npm run build:admin     # Build admin UI
 
 # Database Operations
@@ -102,15 +104,30 @@ npm run clear:products          # Clear Medusa products
 npm run clear:products:dry      # Dry run clear
 npm run clear:products:force    # Force clear all products
 
-# Testing
+# Testing - Root Level
 npm run test              # Run tests with Turbo
 npm run test:unit         # Run unit tests
 npm run test:integration  # Run integration tests
+npm run test:e2e          # Run Playwright E2E tests
+npm run test:e2e:headed   # Run E2E tests with browser UI
+
+# Testing - Medusa Backend (from medusa/)
+cd medusa && npm run test:unit                    # Unit tests
+cd medusa && npm run test:integration:http        # HTTP integration tests
+cd medusa && npm run test:integration:modules     # Module integration tests
+cd medusa && npm run test:e2e:materials           # Materials E2E tests
+cd medusa && npm run test:e2e:products            # Products E2E tests
+cd medusa && npm run test:e2e:tax                 # Tax E2E tests
+cd medusa && npm run test:e2e:shipping            # Shipping E2E tests
+cd medusa && npm run test:e2e:inventory           # Inventory E2E tests
+cd medusa && npm run test:e2e:all                 # All E2E tests (cloud DB)
+cd medusa && npm run test:order-persistence       # Order persistence tests
 
 # Deployment
 npm run deploy            # Deploy all apps
 npm run deploy:prod       # Production deployment
 npm run deploy:fabric-store    # Deploy fabric store
+npm run deploy:medusa     # Deploy Medusa backend
 ```
 
 ## Port Allocation
@@ -138,6 +155,12 @@ Custom modules extend Medusa's core functionality:
 - Admin UI extensions in `/medusa/src/admin/`
 - Scripts for data management in `/medusa/src/scripts/`
 
+**Critical: MedusaService Deployment Issue**
+- Avoid using `MedusaService` in custom modules for production deployments
+- Use direct MikroORM repositories or plain API endpoints instead
+- Materials module implemented without MedusaService to prevent Railway deployment failures
+- See `/medusa/medusa-config.ts` comments for modules disabled due to this issue
+
 ### Experience Apps Architecture
 Each experience app is a standalone Next.js application:
 - **fabric-store**: Customer-facing e-commerce with Stripe payments, Sanity CMS, and Twilio SMS
@@ -163,17 +186,16 @@ Each experience app is a standalone Next.js application:
 
 ## Current Development State
 
-### Active Refactoring
-The codebase is undergoing module reorganization in Medusa:
-- Fabric modules being renamed from hyphenated to underscore notation
-- Materials module enhanced with sync capabilities
-- Order management transitioning to native Medusa v2 order service
+### Recent Implementations (Session 4A)
+- **Security & Legal Compliance Framework**: Production-ready security controls integrated into Medusa v2
+- **Stripe Payment Integration**: Full payment flow with webhook handling
+- **US Region Support**: Multi-region pricing with USD and tax handling
+- **Production Deployment Infrastructure**: Railway (Medusa) + Vercel (frontend apps)
 
-### Multi-Region Implementation
-US region support with USD pricing is being implemented, including tax handling and dynamic pricing based on customer location.
-
-### Payment Integration
-Stripe payment provider configured for both Medusa backend and fabric-store frontend with proper webhook handling and payment flow.
+### Known Architectural Decisions
+- **Redis Temporarily Disabled**: Upstash limits exceeded; using in-memory fallbacks for caching and events
+- **MedusaService Avoided**: Custom modules use plain MikroORM to prevent deployment issues
+- **Legacy Checkout Mode**: Feature flag `ENABLE_LEGACY_CHECKOUT` for backward compatibility
 
 ## Environment Variables
 
@@ -191,6 +213,14 @@ Key environment variables required:
 
 ## Testing Strategy
 
+The project uses multiple testing frameworks:
+- **Playwright**: E2E testing for frontend apps
+- **Jest**: Unit and integration tests for Medusa backend
+- **Vitest**: Unit tests for backend services
+- **Supertest**: HTTP endpoint testing in Medusa
+
+Test databases use dedicated cloud instances (Neon PostgreSQL) for E2E tests.
+
 Before running tests, check available test commands:
 ```bash
 # Check package.json for test scripts
@@ -203,7 +233,10 @@ cat medusa/package.json | grep "test"
 - Medusa configuration: `/medusa/medusa-config.ts`
 - Turbo configuration: `/turbo.json`
 - Deployment configs: `/vercel.json`, `/railway.json`
+- Deployment scripts: `/deployment/scripts/`
 - Environment examples: `/.env.example`, `/medusa/.env.template`
+- Sub-agent definitions: `/.claude/agents/`
+- Development session logs: `/dev.sessions.log/` (create if missing)
 
 ## Development Logging Standard
 
@@ -275,5 +308,18 @@ Specialized agents are available in `.claude/agents/` directory:
 
 All sub-agents follow the standardized logging format above.
 
-## context7 MCP Server
-Always use context7 when I need code generation, setup or configuration steps, or library/API documentation. This means you should automatically use the Context7 MCP tools to resolve library id and get library docs without me having to explicitly ask.
+## Context7 MCP Server Integration
+
+When working with external libraries or frameworks, automatically use Context7 MCP tools for:
+- Code generation patterns and best practices
+- Setup and configuration steps
+- Library/API documentation lookup
+- Framework-specific implementation guidance
+
+Libraries commonly used in this project:
+- MedusaJS v2.10.0
+- Next.js 15
+- Stripe (payment integration)
+- MikroORM 6.4.3
+- Drizzle ORM
+- Radix UI components

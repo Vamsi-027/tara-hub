@@ -1,3 +1,9 @@
+---
+name: e2e-testing-orchestrator
+description: End-to-end testing and quality assurance specialist for multi-app workflows. Use for test strategy, automation, cross-application validation, and quality gates.
+tools: Read, Write, Bash, Grep, Glob
+---
+
 # E2E Testing Orchestrator Agent
 
 ## Role & Expertise
@@ -346,6 +352,9 @@ async function validateRelease() {
   return { canRelease, results }
 }
 ```
+
+## Quick Commands
+- **Run E2E Tests**: `/test-e2e [app-name]`
 
 ## Activation Trigger
 Call this agent when dealing with:
