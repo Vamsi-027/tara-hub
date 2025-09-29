@@ -1940,7 +1940,7 @@
     tailwindcss "^3.3.6"
     vite "^5.4.14"
 
-"@medusajs/admin-sdk@2.10.0":
+"@medusajs/admin-sdk@~2.10.0", "@medusajs/admin-sdk@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/admin-sdk/-/admin-sdk-2.10.0.tgz"
   integrity sha512-DSmR80RuZvDOKfP90/e6Q8jdwTZjL+llnrCSfKaZ0EVQGSHSRalUjyoAMAzFAl/vwvbkdaG5qrMErajQcfvsyA==
@@ -2029,7 +2029,7 @@
   resolved "https://registry.npmjs.org/@medusajs/cart/-/cart-2.10.0.tgz"
   integrity sha512-l3WMym9b5/Wo1Y0YcWZECeYqDz0wT/w8E1VkQ/Nyx4/dV2HQpXlMuyN+klvbQoS/b6NpglDvbE3PsFqk1BNZgA==
 
-"@medusajs/cli@2.10.0":
+"@medusajs/cli@~2.10.0", "@medusajs/cli@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/cli/-/cli-2.10.0.tgz"
   integrity sha512-vDET2s+dzLoQfDPheTn2L8cRU6m1Oo5uoXE3sF9TUSBdA243vau3+JsRNMaV18L5aFLLSNbXr/gLTha8Jd2b5g==
@@ -2154,7 +2154,7 @@
   resolved "https://registry.npmjs.org/@medusajs/file-local/-/file-local-2.10.0.tgz"
   integrity sha512-N6/6NftaHE2cKn43PECJ4rKWAjUno+1I0N2IXHGozt3t6SkfwkTwlM6xeZKcIs5zhekADQ1Del6eySnsLFeeTQ==
 
-"@medusajs/file-s3@^2.10.0", "@medusajs/file-s3@2.10.0":
+"@medusajs/file-s3@~2.10.0", "@medusajs/file-s3@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/file-s3/-/file-s3-2.10.0.tgz"
   integrity sha512-dV9l14f53o7GCWADBMAZz1VHJgiymVdzEdWXCviqL8Q3SgGQ2GIpcAp3/ftTCiH14nW13ZIMRP32qTA14Lf6vg==
@@ -2168,7 +2168,7 @@
   resolved "https://registry.npmjs.org/@medusajs/file/-/file-2.10.0.tgz"
   integrity sha512-8xBAIS2RLFOq5qGV7e8zzBeC9xz0xxe83JibuN5Z5smR/fU60Y2urI5CQT1rNBaBOarmxOwaq2/6fU+XV7jc2A==
 
-"@medusajs/framework@2.10.0":
+"@medusajs/framework@~2.10.0", "@medusajs/framework@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/framework/-/framework-2.10.0.tgz"
   integrity sha512-g3gNa5wrtNx1jZaaVWEIV1gEccOX4ObRiVFbni2sufGBFwHwjGxeZJf3kZYmPWZTvBcENkodwIY5r1CvPMc/TQ==
@@ -2288,7 +2288,7 @@
     winston "^3.8.2"
     yargs "^15.3.1"
 
-"@medusajs/medusa@2.10.0":
+"@medusajs/medusa@~2.10.0", "@medusajs/medusa@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/medusa/-/medusa-2.10.0.tgz"
   integrity sha512-is/lJ9yOv5yeJ+IM4E/TecwaG/7u/5GC2UoqPr/LyG+VqtbEOfyvbVHg1u65JrmhBlKmB4J7fFZtlNjatvwdQA==
@@ -2360,7 +2360,7 @@
     uuid "^9.0.0"
     zod "3.25.76"
 
-"@medusajs/modules-sdk@2.10.0":
+"@medusajs/modules-sdk@~2.10.0", "@medusajs/modules-sdk@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/modules-sdk/-/modules-sdk-2.10.0.tgz"
   integrity sha512-ktHuUBVsH0El84usiaeeawfpGDY7QwHOjEps6VKNZSRx5FkPq1JqBDnKi1/AWRgQoheRmfc6IVQ658wGD0X+Xg==
@@ -2374,7 +2374,7 @@
   resolved "https://registry.npmjs.org/@medusajs/notification-local/-/notification-local-2.10.0.tgz"
   integrity sha512-Xwe0uD4CgjMiXhKmSCkJ4ilm+NJwhKlp+Q9mZkuw5KKHOSKBGhfn0XX1wFXrdXdjPedmMlXHkR6xgDIkszXWWg==
 
-"@medusajs/notification-sendgrid@^2.10.0", "@medusajs/notification-sendgrid@2.10.0":
+"@medusajs/notification-sendgrid@~2.10.0", "@medusajs/notification-sendgrid@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/notification-sendgrid/-/notification-sendgrid-2.10.0.tgz"
   integrity sha512-3FjGXVLZ0qY5BEDAeLB7dTaQk9emySx1L6T92p3uckNyA9qazx2liu9YHmA4ZaT/QufZ0IRTJ0btGzcrIkOqkg==
@@ -2400,7 +2400,7 @@
   resolved "https://registry.npmjs.org/@medusajs/order/-/order-2.10.0.tgz"
   integrity sha512-ywljd9E38P04kBMs4OIi1sIE3Govjh+iTJeD0KsTrqWV2kuJK5qukcVwCl0e9PbtFHHz5XUS9Hg1ApLZRxMrNg==
 
-"@medusajs/payment-stripe@^2.10.0", "@medusajs/payment-stripe@2.10.0":
+"@medusajs/payment-stripe@~2.10.0", "@medusajs/payment-stripe@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/payment-stripe/-/payment-stripe-2.10.0.tgz"
   integrity sha512-x0dRptCdmLZl7Oo3ReFqdAQOhaugFR/TUQdgRMnu5Rg+CWjMKT/0P5oW1/73Fn/TrhcB/M5DRunNWthZNsjS8g==
@@ -2417,7 +2417,7 @@
   resolved "https://registry.npmjs.org/@medusajs/pricing/-/pricing-2.10.0.tgz"
   integrity sha512-B8WK67Zu7ji8Zc44qXqhcGwdDvp+Dv3c4k6k16EHmb/zsNPqnyFIoQ2xA/4RU5JSD/o7SdbLnt5x4k3F7OFtug==
 
-"@medusajs/product@2.10.0":
+"@medusajs/product@~2.10.0", "@medusajs/product@2.10.0":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@medusajs/product/-/product-2.10.0.tgz"
   integrity sha512-N8BkFK8IaOJUgCSn+PiBiFenu3gxVou/TTEPQWiZhMMWd/ytzIeH0eulUSzqbSl1d/Zdp2IZdfjfl/2dQAwVKA==

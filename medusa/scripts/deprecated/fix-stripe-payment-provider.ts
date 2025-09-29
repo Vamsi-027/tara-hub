@@ -1,9 +1,13 @@
+// @ts-nocheck
 /**
  * Fix Stripe Payment Provider Configuration
  *
  * This script addresses the critical issue where the USD region
  * has no payment providers configured, causing Stripe payment
  * session creation to fail in production.
+ *
+ * NOTE: This script is deprecated and uses old Medusa v1 APIs.
+ * TypeScript checking is disabled.
  */
 
 import { MedusaAppType } from "@medusajs/framework"

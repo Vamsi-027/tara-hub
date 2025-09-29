@@ -63,7 +63,7 @@ export function createNeonTestConfig(): TestDatabaseConfig {
 
     // MikroORM configuration following Medusa v2 patterns
     mikroOrmConfig: {
-      type: 'postgresql' as const,
+      driver: PostgreSqlDriver,
       clientUrl: databaseUrl,
       entities: [], // Will be populated by Medusa container
       migrations: {

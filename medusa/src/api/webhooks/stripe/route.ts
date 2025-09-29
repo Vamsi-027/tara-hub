@@ -7,7 +7,7 @@
  * Replaces custom payment service with framework-native patterns.
  */
 
-import { MedusaRequest, MedusaResponse } from "@medusajs/framework"
+import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import {
   processPaymentWorkflow,
   capturePaymentWorkflow,
@@ -52,10 +52,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     // Verify webhook signature and construct event
     let event: Stripe.Event
     try {
-      // Get raw body for signature verification
-      const rawBody = req.body
+      const rawBody = req.body as Buffer | string
+      const payload = Buffer.isBuffer(rawBody)
+        ? rawBody
+        : Buffer.from(rawBody ?? "", "utf8")
+
       event = stripe.webhooks.constructEvent(
-        typeof rawBody === "string" ? rawBody : JSON.stringify(rawBody),
+        payload,
         signature,
         webhookSecret
       )

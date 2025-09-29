@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import { defineWidgetConfig } from "@medusajs/admin-sdk"
 import { 
   Container, 
   Heading, 
@@ -131,8 +132,8 @@ const ProductFabricWidget = ({ product, notify }: ProductDetailsWidgetProps) => 
   )
 }
 
-export const config: WidgetConfig = {
+export const config = defineWidgetConfig({
   zone: "product.details.after",
-}
+})
 
 export default ProductFabricWidget

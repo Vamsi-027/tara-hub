@@ -1,21 +1,16 @@
-
 version: '3.8'
+
 services:
   postgres-test:
-    image: postgres:15
+    image: postgres:14-alpine
     environment:
-      POSTGRES_DB: medusa_test
-      POSTGRES_USER: medusa
-      POSTGRES_PASSWORD: medusa
+      POSTGRES_USER: medusa_test
+      POSTGRES_PASSWORD: medusa_test
+      POSTGRES_DB: medusa_test_db
     ports:
       - "5433:5432"
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medusa -d medusa_test"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
 
 volumes:
   postgres_test_data:

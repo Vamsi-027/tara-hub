@@ -281,7 +281,7 @@ export class StreamingParser {
 
     return new Transform({
       objectMode: true,
-      async transform(chunk: any, encoding, callback) {
+      transform: async function(chunk: any, encoding, callback) {
         try {
           await this.memoryManager.waitForAvailableSlot();
 
@@ -366,7 +366,7 @@ export class StreamingParser {
         }
       }.bind(this),
 
-      async flush(callback) {
+      flush: async function(callback) {
         try {
           if (currentBatch.length > 0) {
             await this.processBatchFromObjects(

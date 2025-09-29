@@ -15,6 +15,23 @@ import {
 } from "@medusajs/framework/http"
 import { securityHeaders, getSecurityConfig } from "../utils/security-headers"
 
+const ADMIN_AUTH_SKIP_PATTERNS = [/^\/admin\/auth(?=\/|\?|$)/]
+const adminAuthenticate = authenticate("user", ["bearer", "session"])
+
+const adminAuthGuard = (req: any, res: any, next: any) => {
+  if (req.method === "OPTIONS") {
+    return next()
+  }
+
+  const path = req.path || req.originalUrl || req.url || ""
+
+  if (ADMIN_AUTH_SKIP_PATTERNS.some((pattern) => pattern.test(path))) {
+    return next()
+  }
+
+  return adminAuthenticate(req, res, next)
+}
+
 export default defineMiddlewares({
   routes: [
     {
@@ -67,7 +84,7 @@ export default defineMiddlewares({
           optionsSuccessStatus: 200,
         }),
         json(),
-        authenticate("user", ["bearer", "session"]),
+        adminAuthGuard,
       ],
     },
     {

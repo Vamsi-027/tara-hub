@@ -96,7 +96,7 @@ export class E2ETestSetup {
   private async ensureTestSchemas(): Promise<void> {
     if (!this.context) throw new Error('Context not initialized');
 
-    const { TEST_SCHEMA_DEFINITIONS } = await import('./test-database.config');
+    const { TEST_SCHEMA_DEFINITIONS } = await import('./test-database.config.js');
 
     console.log('🔧 Ensuring test schemas exist...');
 

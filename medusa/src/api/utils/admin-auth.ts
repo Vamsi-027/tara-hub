@@ -1,6 +1,6 @@
 import { MedusaRequest } from "@medusajs/framework/http"
 import { MedusaError } from "@medusajs/framework/utils"
-import { logAuthEvent } from "../utils/security-logger"
+import { logAuthEvent } from "../../utils/security-logger"
 
 export type AdminIdentity = {
   actorId: string | null

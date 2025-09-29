@@ -74,7 +74,7 @@ const ContactsOverviewWidget = () => {
 }
 
 export const config = defineWidgetConfig({
-  zone: "dashboard.before"
+  zone: "product.details.before"
 })
 
 export default ContactsOverviewWidget

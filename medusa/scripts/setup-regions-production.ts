@@ -9,29 +9,27 @@ export default async function setupRegionsProduction(
   console.log("🌍 Setting up production regions...")
 
   try {
-    // Check existing regions
-    const regions = await regionService.list({})
+    // Check existing regions using Medusa v2 API
+    const [regions] = await regionService.listAndCountRegions({})
     console.log(`Found ${regions.length} existing regions`)
 
     if (regions.length === 0) {
       console.log("Creating US region...")
 
-      // Create US region
-      const usRegion = await regionService.create({
+      // Create US region using Medusa v2 API
+      const [usRegion] = await regionService.createRegions([{
         name: "United States",
         currency_code: "usd",
-        tax_rate: 0,
-        payment_providers: ["pp_stripe_stripe"],
-        fulfillment_providers: ["manual"],
+        automatic_taxes: true,
         countries: ["us"]
-      })
+      }])
 
       console.log("✅ US region created:", usRegion.id)
 
-      // Update store with default region
-      const stores = await storeService.list({})
+      // Update store with default region using Medusa v2 API
+      const [stores] = await storeService.listAndCountStores({})
       if (stores.length > 0) {
-        await storeService.update(stores[0].id, {
+        await storeService.updateStores(stores[0].id, {
           default_region_id: usRegion.id
         })
         console.log("✅ Store updated with default region")

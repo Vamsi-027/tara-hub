@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react"
-import { WidgetConfig } from "@medusajs/admin-sdk"
+import { defineWidgetConfig } from "@medusajs/admin-sdk"
 import { Button, Container, Heading, Text, toast } from "@medusajs/ui"
 import MaterialSelect from "../components/MaterialSelect"
 
@@ -157,8 +157,8 @@ const VariantMaterialSelect: React.FC<VariantWidgetProps> = ({ product, variant 
   )
 }
 
-export const config: WidgetConfig = {
+export const config = defineWidgetConfig({
   zone: "product.variants.details.after",
-}
+})
 
 export default VariantMaterialSelect

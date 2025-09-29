@@ -512,8 +512,8 @@ export class SecurityValidator {
       ]],
 
       ['data_exfiltration', [
-        /http[s]?:\\/\\/(?!localhost|127\\.0\\.0\\.1)[^\\s]*/gi,
-        /\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/g,
+        /https?:\/\/(?!localhost|127\.0\.0\.1)[^\s]*/gi,
+        /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,
       ]],
     ]);
   }

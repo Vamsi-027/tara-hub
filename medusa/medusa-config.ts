@@ -167,9 +167,10 @@ export default defineConfig({
     },
 
     // Custom Modules
+    { resolve: "@medusajs/product" },
     // Note: materials implemented without MedusaService to avoid deployment issues
     // { resolve: "./src/modules/contact" },
-    { resolve: "./src/modules/materials" },
+    // { resolve: "./src/modules/materials" },
     // { resolve: "./src/modules/fabric_details" },
     // { resolve: "./src/modules/fabric_products" },
 

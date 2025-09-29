@@ -60,21 +60,24 @@ describe("Stripe Webhook Handler", () => {
       headers: {
         "stripe-signature": "test_signature"
       },
-      body: JSON.stringify({
-        id: "evt_test_webhook",
-        type: "payment_intent.succeeded",
-        data: {
-          object: {
-            id: "pi_test_payment_intent",
-            amount_received: 2000,
-            currency: "usd",
-            metadata: {
-              cart_id: "cart_test",
-              payment_session_id: "ps_test"
+      body: Buffer.from(
+        JSON.stringify({
+          id: "evt_test_webhook",
+          type: "payment_intent.succeeded",
+          data: {
+            object: {
+              id: "pi_test_payment_intent",
+              amount_received: 2000,
+              currency: "usd",
+              metadata: {
+                cart_id: "cart_test",
+                payment_session_id: "ps_test"
+              }
             }
           }
-        }
-      }),
+        }),
+        "utf8"
+      ),
       scope: mockContainer
     }
 
@@ -96,6 +99,9 @@ describe("Stripe Webhook Handler", () => {
 
     // Mock the Stripe constructor to return our mocked instance
     MockedStripe.mockImplementation(() => mockStripeInstance as any)
+
+    const defaultEvent = JSON.parse(mockRequest.body.toString('utf8')) as Stripe.Event
+    mockStripeInstance.webhooks.constructEvent.mockReturnValue(defaultEvent)
 
     // Set environment variables
     process.env.STRIPE_API_KEY = "sk_test_123"
@@ -167,7 +173,7 @@ describe("Stripe Webhook Handler", () => {
       await POST(mockRequest as MedusaRequest, mockResponse as MedusaResponse)
 
       expect(mockStripeInstance.webhooks.constructEvent).toHaveBeenCalledWith(
-        expect.any(String),
+        expect.any(Buffer),
         "test_signature",
         "whsec_test_123"
       )

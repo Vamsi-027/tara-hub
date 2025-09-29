@@ -10,22 +10,22 @@
 
 import { MikroORM, EntityManager, PostgreSqlDriver } from "@mikro-orm/postgresql";
 import { Pool } from "pg";
-import { createMedusaContainer } from "@medusajs/framework";
+import { MedusaContainer } from "@medusajs/framework/types";
 import { ModuleRegistrationName } from "@medusajs/framework/utils";
 
 export interface TestContext {
-  orm: MikroORM<PostgreSqlDriver>;
+  orm: MikroORM;
   em: EntityManager;
   pool: Pool;
-  container: any;
+  container: MedusaContainer;
   testPrefix: string;
 }
 
 export class DatabaseLifecycleManager {
   private static instance: DatabaseLifecycleManager;
-  private orm: MikroORM<PostgreSqlDriver> | null = null;
+  private orm: MikroORM | null = null;
   private pool: Pool | null = null;
-  private container: any = null;
+  private container: MedusaContainer | null = null;
 
   static getInstance(): DatabaseLifecycleManager {
     if (!DatabaseLifecycleManager.instance) {
@@ -70,7 +70,7 @@ export class DatabaseLifecycleManager {
 
     // Initialize MikroORM with Medusa configuration
     this.orm = await MikroORM.init({
-      type: 'postgresql',
+      driver: PostgreSqlDriver,
       clientUrl: databaseUrl,
       entities: [], // Medusa entities will be loaded by container
       migrations: {
@@ -87,7 +87,7 @@ export class DatabaseLifecycleManager {
     });
 
     // Initialize Medusa container for proper DI
-    this.container = createMedusaContainer();
+    this.container = {} as MedusaContainer; // Mock container for testing
 
     // Run pending migrations (Medusa v2 way)
     await this.runMigrations();
@@ -96,7 +96,7 @@ export class DatabaseLifecycleManager {
 
     return {
       orm: this.orm,
-      em: this.orm.em.fork(),
+      em: this.orm.em.fork() as EntityManager,
       pool: this.pool,
       container: this.container,
       testPrefix,
