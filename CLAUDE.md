@@ -205,5 +205,75 @@ cat medusa/package.json | grep "test"
 - Deployment configs: `/vercel.json`, `/railway.json`
 - Environment examples: `/.env.example`, `/medusa/.env.template`
 
+## Development Logging Standard
+
+All development activities (human developers, DevOps, analysts, architects, and sub-agents) must log to `/dev.sessions.log/` folder.
+
+### Log File Naming Convention
+```
+/dev.sessions.log/YYYY-MM-DD-session-name.log
+```
+
+### Standard Log Entry Format
+```
+[TIMESTAMP] [TYPE] [ROLE/AGENT] Activity: <description>
+Patterns: <identified patterns or technologies used>
+Challenges: <encountered difficulties>
+Gaps: <missing capabilities or tools>
+Effectiveness: <high/medium/low>
+Next Actions: <recommended follow-ups>
+---
+```
+
+### Log Types
+- `[HUMAN_DEV]` - Human developer activities
+- `[DEVOPS]` - DevOps and infrastructure activities
+- `[ANALYST]` - Business analysis and requirements
+- `[ARCHITECT]` - Technical architecture decisions
+- `[SUB_AGENT]` - Claude Code sub-agent activities
+
+### Example Log Entries
+```
+[2024-09-29T10:30:00Z] [HUMAN_DEV] [developer] Activity: Fixed Stripe webhook timeout
+Patterns: Webhook retry logic, async processing
+Challenges: Production timeout issues, error handling
+Gaps: Better webhook monitoring tools
+Effectiveness: medium
+Next Actions: Implement webhook health checks
+---
+
+[2024-09-29T11:15:00Z] [SUB_AGENT] [medusa-commerce-specialist] Activity: Implemented variant-material links
+Patterns: defineLink(), MedusaJS v2 Link Module
+Challenges: Complex relationship mapping
+Gaps: None identified
+Effectiveness: high
+Next Actions: Document pattern for reuse
+---
+```
+
+### Purpose
+The `/dev.sessions.log/` folder serves as the central knowledge base for:
+- The **Enricher agent** to monitor development patterns and evolve the sub-agent ecosystem
+- Project stakeholders to track development progress and challenges
+- Knowledge sharing across team members
+- Identifying recurring issues that need specialized solutions
+
+## Claude Code Sub-Agents
+
+Specialized agents are available in `.claude/agents/` directory:
+- **Enricher** - Monitors logs and evolves agent ecosystem
+- **Medusa Commerce Specialist** - MedusaJS v2 expertise
+- **Materials-Inventory Expert** - Fabric inventory management
+- **Fabric Store Business Expert** - Textile business logic
+- **API Security Specialist** - Security architecture
+- **Legal Compliance Specialist** - Regulatory compliance
+- **Deployment Specialist** - Production deployment
+- **Database Migration Expert** - PostgreSQL optimization
+- **Performance Monitoring Specialist** - System monitoring
+- **E2E Testing Orchestrator** - Testing automation
+- **Frontend Integration Specialist** - React/Next.js architecture
+
+All sub-agents follow the standardized logging format above.
+
 ## context7 MCP Server
 Always use context7 when I need code generation, setup or configuration steps, or library/API documentation. This means you should automatically use the Context7 MCP tools to resolve library id and get library docs without me having to explicitly ask.
